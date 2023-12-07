@@ -1,0 +1,352 @@
+---
+title: "Modelli lineari e generalizzati - progetti di Gruppo"
+author: "Rodolfo Metulini"
+date: "2023-12-07"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+<font size="3">
+
+### Step di analisi:
+
+1. Descrizione del problema e dei dati: descrivere qual è lo scopo dell’analisi e descrivere quante e quali variabili si hanno. (A questo punto dovreste aver definito l'obiettivo di analisi e scelto la/le variabili risposta)
+2. EDA (Exploration Data Analysis): boxplot, correlation plot, barplot, tables.
+
+3. Data Engineering (optional): create or add new variables.
+
+4. Missing imputation (non richiesto per questo progetto) e outlier detection: spesso gli outlier vengono rimossi o tenuti da conto per l’analisi di un dataset.
+
+5. Feature selection: decidere quali variabili entrano in gioco nell’analisi e perché, giustificare le proprie scelte o utilizzare modelli che aiutino a fare queste scelte.
+
+6. Model selection: fare fitting di diversi modelli e confrontarli per scegliere il modello migliore per i vostri dati.
+
+7. Conclusioni: concludere esplicitando a cosa è servito il modello finale e se avete risposto alla domanda di ricerca presentata al primo punto.
+
+8. Bibliografia: è buona norma includere le fonti utilizzate per produrre il vostro report (paper di riferimento, ecc.).
+
+### BASKETBALL TEAMS' DATASET
+```{r}
+setwd("C:\\Users\\bnsda\\Desktop\\Progetti_R\\PROGETTO\\MATERIALE")
+ds = read.delim("basketball_teams.txt")
+head (ds)
+
+```
+# Analisi delle variabili del dataset
+
+year: stagione del torneo
+
+lgID: nome della lega
+
+franchID: nome squadra 3 cifre
+
+confID: Conference di appartenenza della squadra
+
+divID: Division di appartenenza della squadra
+
+rank: classifica fine stagione regolare nella division
+
+confRank: classifica fine stagione regolare nella conference
+
+playoff: qualifica ai playoff (come da legenda)
+
+name: nome squadra
+
+o_: offensive
+
+d_: defensive
+
+fgm: tiri realizzati su azione
+
+fga: tiri tentati su azione
+
+ftm: tiri liberi realizzati
+
+fta: tiri liberi tentati
+
+3pm: tiri da 3 realizzati
+
+3pa: tiri da 3 tentati
+
+oreb: rimbalzi offensivi 
+
+dreb: rimbalzi difensivi
+
+reb: rimbalzi totali (offensivi + difensivi)
+
+asts: assists
+
+pf: falli commessi
+
+stl: palle recuperate
+
+to: palle perse
+
+blk: palle stoppate
+
+tmRebound: rimbalzi di squadra
+
+homeWon: vittore in casa
+
+homeLost: sconfitte in casa
+
+awayWon: vittorie in trasferta
+
+awayLost: sconfitte in trasferta
+
+neutWon: vittorie in campo neutro
+
+neutLoss: sconfitte in campo neutro
+
+confWon: vittorie contro squadre della stessa conference
+
+confLoss: sconfitte contro squadre della stessa conference
+
+divWon: vittorie con squadre stessa division
+
+divLoss: sconfitte con squadre stessa division
+
+won: vittorie totali
+
+lost: sconfitte totali
+
+games: partite giocate totali in stagione (won + lost)
+
+min: minuti giocati in stagione
+
+arena: nome stadio
+
+attendance: numero spettatori
+
+# progetto 1: 
+
+ABA league (1967-1975): VARIABILE DIPENDENTE: qualificazione ai playoff (SI/NO) e/o la vittoria di almeno la metà delle partite
+
+COVARIATE: tutte le altre (o uno specifico insieme di queste, in base all'obiettivo di analisi)
+
+attenzione che rimbalzi offensivi e difensivi, recuperi e stoppate, sono state rilevate solo a partire da un certo anno
+
+# progetto 2:
+
+NBA moderna (1976-2011): VARIABILE DIPENDENTE: qualificazione ai playoff (SI/NO)
+
+COVARIATE: tutte le altre (o uno specifico insieme di queste, in base all'obiettivo di analisi)
+
+# progetto 3:
+
+NBA moderna (1976-2011): VARIABILE DIPENDENTE: qualificazione alle finali (SI/NO)
+
+COVARIATE: tutte le altre (o uno specifico insieme di queste, in base all'obiettivo di analisi)
+
+
+# progetto 4:
+
+NBA moderna (1976-2011): VARIABILE DIPENDENTE: vittoria del titolo (SI/NO)
+
+COVARIATE: tutte le altre (o uno specifico insieme di queste, in base all'obiettivo di analisi)
+
+# progetto 5: 
+
+NBA moderna (1976-2011): VARIABILE DIPENDENTE: numero di vittorie in stagione
+
+COVARIATE: tutte le altre (o uno specifico insieme di queste, in base all'obiettivo di analisi)
+
+attenzione: qui considerare solo le squadre che hanno giocato 82 partite (dataset$games==82)
+
+
+# progetto 6: 
+
+Confronto NBA moderna (1976-2011) e ABA (1967-1975): VARIABILE DIPENDENTE: qualificazione ai playoff (SI/NO)
+
+COVARIATE: tutte le altre. 
+
+QUESITO: Le variabili che determinano la qualificazione ai playoff sono diverse nelle 2 leghe?
+
+
+# Possibili quesiti di ricerca
+
+1. Quanto è importante avere una buona precisione nel realizzare (da 2, da 3, ai liberi)?
+
+2. Quanto è importante che gli avversari tirino male?
+
+3. Qual'è l'effetto di prendere più rimbalzi degli avversari e di recuperare molti palloni (stl, blk)
+
+4. è importante saper vincere anche fuori casa per qualificarsi ai playoff?
+
+5. è importante vincere contro le squadre delle propria division per vincere il titolo?
+
+6. l'effetto delle variabili esplicative è cambiato nel corso dsel tempo? (dummy temporale)
+
+7. ci sono arene percui giocare li aiuta a vincere o a qualificarsi ai playoff?
+
+
+# Analisi preliminari
+
+```{r}
+# trasformiamo characters in factors
+ds$lgID <- as.factor(ds$lgID)
+ds$franchID <- as.factor(ds$franchID)
+
+```
+# Analisi sulla variabile risposta
+
+```{r}
+# sUPPONIAMO la variabile risposta essere "won", per le stagione in cui le gare sono state 82
+# e a partire dal 76 per la disponibilità di tutte le statistiche
+nba82 = ds[ds$lgID=="NBA" & ds$games==82 & ds$year>=1976,]
+# histogram
+hist(nba82$won)
+#plot density
+plot(density(nba82$won))
+# buon adattamento normale
+```
+
+```{r}
+library("corrplot")
+M <- cor(as.matrix(nba82[,c(11:25,54)]))
+         # correlation matrix
+corrplot(M, method = 'number')
+```
+
+# Modello di regressione lineare
+```{r}
+# Supponiamo di voler stimare il modello con i Dean's 4 factors
+# e controllando per la dummy "team"
+nba82$o_df1 = (nba82$o_fgm + 0.5*nba82$o_3pm) / nba82$o_fga
+nba82$d_df1 = (nba82$d_fgm + 0.5*nba82$d_3pm) / nba82$d_fga
+nba82$o_df2 = nba82$o_to / (nba82$o_to + nba82$o_fga + 0.44*nba82$o_fta)
+nba82$d_df2 = nba82$d_to / (nba82$d_to + nba82$d_fga + 0.44*nba82$d_fta)
+nba82$o_df3 = nba82$o_oreb / (nba82$o_oreb + nba82$d_dreb)
+nba82$d_df3 = nba82$d_oreb / (nba82$d_oreb + nba82$o_dreb)
+nba82$o_df4 = nba82$o_ftm / nba82$o_fga
+nba82$d_df4 = nba82$d_ftm / nba82$d_fga
+
+(res1 = lm(won ~ o_df1 + d_df1 + o_df2 + d_df2 + o_df3 + d_df3 + o_df4 + d_df4, data= nba82))
+
+# forse meglio normalizzarle per una più facile interpretazuione?
+nba82$o_df1_z = scale(nba82$o_df1)
+nba82$o_df2_z = scale(nba82$o_df2)
+nba82$o_df3_z = scale(nba82$o_df3)
+nba82$o_df4_z = scale(nba82$o_df4)
+nba82$d_df1_z = scale(nba82$d_df1)
+nba82$d_df2_z = scale(nba82$d_df2)
+nba82$d_df3_z = scale(nba82$d_df3)
+nba82$d_df4_z = scale(nba82$d_df4)
+
+(res1 = lm(won ~ o_df1_z + d_df1_z + o_df2_z + d_df2_z + o_df3_z + d_df3_z + o_df4_z + d_df4_z, data= nba82))
+
+```
+# Multicollinearity
+
+```{r}
+library(car)
+(vif(res1))
+```
+
+# variabili dummy 
+
+```{r}
+# inseriamo al modello la variabile dummy "team"?
+res_d = lm(won ~ tmID, data= nba82)
+summary(res_d)
+
+# la variabile team ha un effetto sulle vittorie?
+# i.e. le vittorie medie per squadra sono uguali tra loro? 
+anova(res_d)
+# si rifiuta l'ipotesi... posso inserire a modello la variabile
+
+res2 = lm(won ~ o_df1_z + d_df1_z + o_df2_z + d_df2_z + o_df3_z + d_df3_z + o_df4_z + d_df4_z + tmID, data= nba82)
+summary(res2)
+
+```
+
+# effetti interazione
+
+```{r}
+# più la squadra è forte a rimbalzo, maggiore è l'effetto della precisione dal campo sul numero di vittorie
+res3 = lm(won ~ o_df1_z + d_df1_z + o_df2_z + d_df2_z + o_df3_z + d_df3_z + o_df4_z + d_df4_z + tmID + o_df1_z:o_df3_z, data= nba82)
+summary(res3)
+# non è significativo...
+```
+
+# test F, significatività singoli coefficienti, R^2
+```{r}
+summary(res2)
+
+# poi vedremo come scegliere tra le variabili 
+```
+
+# Analisi dei residui e diagnostica
+
+```{r}
+par(mfrow = c(2, 2))
+plot(res2,  which = c(1:2,4:5))
+
+# questi possono portare ad utilizzare altri modelli
+```
+
+# Può aiutare l'uso della Gamma?
+
+```{r}
+# si direbbe di no, e che quindi i coefficienti stimati saranno simili
+# vediamo
+res_gamma = glm(won ~ o_df1_z + d_df1_z + o_df2_z + d_df2_z + o_df3_z + d_df3_z + o_df4_z + d_df4_z + tmID, family = Gamma(link=identity), data= nba82)
+
+summary(res_gamma)
+# vedere il parametro di dispersione
+# dispersione = 1/alpha = 0.0203
+(alpha = 1 / 0.0203061)
+# per alpha grande la distribuzione tende ad essere simmetrica e non dispersa (quindi con sigma che non dipende da mu)
+
+```
+
+# modello di Poisson?
+# Serve?
+
+```{r}
+# funzione link logaritmo su E(Y): f(E(Y)) = log(E(Y))
+res_pois = glm(won ~ o_df1_z + d_df1_z + o_df2_z + d_df2_z + o_df3_z + d_df3_z + o_df4_z + d_df4_z + tmID, family=poisson(link=log), data=nba82)
+
+normal = coefficients(res2)
+gamma = coefficients(res_gamma)
+poisson = exp(coefficients(res_pois))
+
+cbind(normal, gamma, poisson)
+
+# i coefficienti risultano simili con uso normale e uso gamma. 
+# i coefficienti della Poisson hanno diversa interpretazione
+# es. un aumento unitario in o_df1_z aumenta il numero di vittorie di 1.1869, cioè del 18.69% 
+# es. un aumento unitario in d_df1_z diminuisce il numero di vittorie di 0.8634, quindi del 13.66%
+
+```
+
+# modello logistico
+# per chi ha intenzione di usare var. risposta dicotomica
+
+```{r}
+# supponiamo di voler modellare la probabilità di vincere il titolo
+# costruiamo la variabile
+nba82$title = 0
+nba82$title[nba82$playoff=="NC"] = 1
+
+# chi ha vinto le finali?
+(nba82[nba82$title=="1", c(1,4)])
+
+# modello logistico
+res_logit = glm(title ~ o_df1_z + d_df1_z + o_df2_z + d_df2_z + o_df3_z + d_df3_z + o_df4_z + d_df4_z + tmID, family=binomial(link=logit), data=nba82)
+
+plot(sort(fitted.values(res_logit)))
+
+summary(res_logit)
+#per un aumento unitario di o_df1_z c'è un aumento del 62.1% del log dell'odds.
+# per un aumento unitario di o_df1_z c'è un aumento di exp(1.621) = 5.058 volte dell'odds. ES. Se P(Y=1) = 0.5, P(Y=1)/P(Y=0) passa da 1 a 5.058 
+# (Il vecchio odds và moltiplicato per exp(beta) )
+
+# invece, per un aumento unitario di d_df1_z c'è una variazione di exp(-1.758) = 0.172 volte dell'odds. ES. Se P(Y=1) = 0.5, P(Y=1)/P(Y=0) passa da 1 a 0.172
+
+```
+</font> 
+
+
