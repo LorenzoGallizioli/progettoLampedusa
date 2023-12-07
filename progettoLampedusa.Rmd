@@ -1,0 +1,59 @@
+---
+title: "ProgettoLampedusa"
+output: html_document
+date: "2023-12-07"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Come scrivere il report (consigli generali validi anche per il futuro):
+
+1. Descrizione del problema e dei dati: descrivere qual è lo scopo dell’analisi e descrivere quante e quali variabili si hanno.
+
+2. EDA (Exploration Data Analysis): boxplot, correlation plot, barplot, tables.
+
+3. Data Engineering (optional): create or add new variables.
+
+4. Missing imputation (non richiesto per questo progetto) e outlier detection: spesso gli outlier vengono rimossi o tenuti da conto per l’analisi di un dataset.
+
+5. Feature selection: decidere quali variabili entrano in gioco nell’analisi e perché, giustificare le proprie scelte o utilizzare modelli che aiutino a fare queste scelte.
+
+6. Model selection: fare fitting di diversi modelli e confrontarli per scegliere il modello migliore per i vostri dati.
+
+7. Conclusioni: concludere esplicitando a cosa è servito il modello finale e se avete risposto alla domanda di ricerca presentata al primo punto.
+
+8. Bibliografia: è buona norma includere le fonti utilizzate per produrre il vostro report (paper di riferimento, ecc.).
+
+### BASKETBALL TEAMS' DATASET
+```{r}
+setwd("/Users/lorenzogallizioli/Downloads/Basketball teams-20231130/")
+ds = read.delim("basketball_teams.txt")
+head(ds)
+
+```
+
+
+# progetto 4:
+
+NBA moderna (1976-2011): VARIABILE DIPENDENTE: vittoria del titolo (SI/NO)
+
+COVARIATE: tutte le altre (o uno specifico insieme di queste, in base all'obiettivo di analisi)
+
+
+# Possibili quesiti di ricerca
+
+1. Quanto è importante avere una buona precisione nel realizzare (da 2, da 3, ai liberi)?
+
+2. Quanto è importante che gli avversari tirino male?
+
+3. Qual'è l'effetto di prendere più rimbalzi degli avversari e di recuperare molti palloni (stl, blk)
+
+4. è importante saper vincere anche fuori casa per qualificarsi ai playoff?
+
+5. è importante vincere contro le squadre delle propria division per vincere il titolo?
+
+6. l'effetto delle variabili esplicative è cambiato nel corso dsel tempo? (dummy temporale)
+
+7. ci sono arene percui giocare li aiuta a vincere o a qualificarsi ai playoff?
