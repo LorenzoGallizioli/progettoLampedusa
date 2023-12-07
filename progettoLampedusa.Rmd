@@ -35,11 +35,13 @@ head(ds)
 ```
 
 
-# progetto 4:
+# progetto 5: 
 
-NBA moderna (1976-2011): VARIABILE DIPENDENTE: vittoria del titolo (SI/NO)
+NBA moderna (1976-2011): VARIABILE DIPENDENTE: numero di vittorie in stagione
 
 COVARIATE: tutte le altre (o uno specifico insieme di queste, in base all'obiettivo di analisi)
+
+attenzione: qui considerare solo le squadre che hanno giocato 82 partite (dataset$games==82)
 
 
 # Possibili quesiti di ricerca
