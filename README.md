@@ -59,18 +59,10 @@ COVARIATE: tutte le altre (o uno specifico insieme di queste, in base all'obiett
 attenzione: qui considerare solo le squadre che hanno giocato 82 partite (dataset$games==82)
 
 
-# Possibili quesiti di ricerca
-
-1. Quanto è importante avere una buona precisione nel realizzare (da 2, da 3, ai liberi)?
-
-2. Quanto è importante che gli avversari tirino male?
+# Domanda 3:
 
 3. Qual'è l'effetto di prendere più rimbalzi degli avversari e di recuperare molti palloni (stl, blk)
 
-4. è importante saper vincere anche fuori casa per qualificarsi ai playoff?
 
-5. è importante vincere contro le squadre delle propria division per vincere il titolo?
-
-6. l'effetto delle variabili esplicative è cambiato nel corso dsel tempo? (dummy temporale)
-
-7. ci sono arene percui giocare li aiuta a vincere o a qualificarsi ai playoff?
+# Approfondimenti personali:
+...
