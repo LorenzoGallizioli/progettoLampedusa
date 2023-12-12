@@ -62,9 +62,9 @@ attenzione: qui considerare solo le squadre che hanno giocato 82 partite (datase
 dataset = read.delim("0_Materiale/basketball_teams.txt")
 head (dataset)
 
-first = 1976 # first year 
-last = 2011 # last year
-nba82 = dataset [dataset$lgID=="NBA" & dataset$year >= first & dataset$year <= last & dataset$games==82,]
+FIRST = 1976 # first year 
+LAST = 2011 # last year
+nba82 = dataset [dataset$lgID=="NBA" & dataset$year >= FIRST & dataset$year <= LAST & dataset$games==82,]
 
 str (dataset)
 dataset$lgID <- as.factor(dataset$lgID) # perchè mi permettono di poter generare variabili dummy
