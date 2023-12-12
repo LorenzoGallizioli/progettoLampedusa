@@ -62,4 +62,24 @@ attenzione: qui considerare solo le squadre che hanno giocato 82 partite (datase
 dataset = read.delim("0_Materiale/basketball_teams.txt")
 head (dataset)
 
+first = 1976 # first year 
+last = 2011 # last year
+nba82 = dataset [dataset$lgID=="NBA" & dataset$year >= first & dataset$year <= last & dataset$games==82,]
+
+str (dataset)
+dataset$lgID <- as.factor(dataset$lgID) # perchè mi permettono di poter generare variabili dummy
+summary(dataset)
+
+hist(nba82$won)
+plot(density(nba82$won))
+
+#TESTING
+plot(density(log(nba82$won))) # fa cagare
+
+
+M <- cor(as.matrix(nba82[,c(11:25,54)])) # correlation matrix
+corrplot(M, method = 'number')
+
+boxplot(nba82$won ~ nba82$tmID, las=2)
+
 ```
