@@ -1,68 +1,68 @@
-#PROGETTO STATISTICA
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# 🏀 Progetto Statistica: Analisi NBA 📊
 
-DATASET: Basketball Teams
+---
 
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+## 📈 Dataset: Basketball Teams
 
-OBIETTIVO:
+---
 
-Utilizzare tecniche di regressione lineare o generalizzata in R Studio (o altro software a vostro piacere) per studiare una data variabile risposta (𝑌) in funzione delle altre variabili esplicative a disposizione nel dataset (covariate, 𝑋).
-Identificare i modelli più adatti a descrivere Y in base alle conoscenze acquisite sui modelli di regressione lineari e generalizzati, sui criteri di valutazione e confronto tra modelli (significatività delle variabili esplicative, adattamento del modello ai dati, 
-trasformazioni dei dati, diagnostica sui residui) e eventuali altri criteri (AIC, BIC, stepwise, cross validation, regolarizzazione).
-Discutere e commentare le scelte effettuate.
-Per finire, commentare ed interpretare i risultati ottenuti. Classiche domande di interesse sono: Quali covariate sono statisticamente significative? Qual è la performance del modello?
+## 🎯 Obbiettivo
 
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+L'obiettivo di questo progetto è applicare tecniche di **regressione lineare o generalizzata** in R Studio (o altro software a scelta) per analizzare una specifica variabile risposta (𝑌) in funzione delle altre variabili esplicative disponibili nel dataset (covariate, 𝑋).
 
-OUTPUT DA CONSEGNARE:
+### Punti chiave:
+- Identificare i modelli più adatti per descrivere Y, basandosi su:
+  - Conoscenze sui modelli di regressione lineari e generalizzati
+  - Criteri di valutazione e confronto tra modelli (es. significatività delle variabili, adattamento del modello, trasformazioni dei dati, diagnostica sui residui)
+  - Altri criteri come AIC, BIC, stepwise, cross-validation, regolarizzazione
+- Discussione e commento sulle scelte effettuate
+- Interpretazione dei risultati, focalizzandosi su:
+  - Significatività delle covariate
+  - Performance del modello
 
+---
 
-- un report finale (preferibilmente svolto in R Markdown e consegnato in .html, o in power point /pdf) con breve descrizione del lavoro svolto (dalle 3 alle 7 pagine, inclusi codici ed eventuali tabelle e figure),
-  le analisi svolte, i risultati principali e relativi commenti (come previsto dalla consegna). Il file deve essere rinominato usando la seguente sintassi: GYYYYY_Report.html, dove YYYYY indica il nome del gruppo (es. 
-  Favignana, Giglio, …).
-  Nella prima pagina del report devono essere indicati i nomi, cognomi e le matricole di tutti i componenti del gruppo, oltre che il nome del gruppo;
-  
-- La presentazione del case study in ppt/pdf con la sintassi GYYYY_presentazione.pdf
+## 📋 Output da Consegnare
 
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1. **Report Finale**: 
+   - Formato: R Markdown, consegnato in .html (o PowerPoint/PDF)
+   - Contenuto: Descrizione del lavoro, analisi svolte, risultati principali e commenti
+   - Lunghezza: 3-7 pagine (inclusi codici, tabelle, figure)
+   - Nomenclatura file: `GYYYYY_Report.html` (YYYYY = nome del gruppo, es. Favignana)
+   - Prima pagina: Nomi, cognomi, matricole dei membri del gruppo, nome del gruppo
 
-ENTRO: 
+2. **Presentazione Case Study**:
+   - Formato: PowerPoint/PDF
+   - Nomenclatura file: `GYYYYY_presentazione.pdf` (YYYYY = nome del gruppo)
 
-Ogni gruppo dovrà inviare il report finale di cui sopra entro 7 giorni prima la data di appello (lunedì 8 Gennaio 2023 ore 23.59, per chi presenterà il 15 Gennaio) per posta a rodolfo.metulini@unibg.it e a.giampino@campus.unimib.it (ad entrambe le mail).
-       La presentazione può essere inviata invece anche il giorno stesso.
+---
 
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+## ⏰ Scadenze
 
-ORALE: 
+- **Report Finale**: Inviare via email a rodolfo.metulini@unibg.it e a.giampino@campus.unimib.it **7 giorni prima dell'appello** (Esempio: entro il 8 Gennaio 2023, per chi presenterà il 15 Gennaio)
+- **Presentazione**: Può essere inviata anche il giorno stesso dell'appello
 
-La discussione si svolgerà nelle date di appello ufficiale, cioè Lunedì 15 gennaio 2023 oppure Venerdì 9 febbraio 2023. Ciascun gruppo può decidere una delle due date, e dovrà comunicare la presenza ai docenti almeno una settimana prima della data.
-Tutti i componenti del gruppo dovranno intervenire nella discussione orale del progetto, che dovrà essere calibrata per durare 10 minuti.
+---
 
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+## 🗣 Discussione Orale
 
-DECISIONE PROGETTO:
+- **Date**: Lunedì 15 gennaio 2023 oppure Venerdì 9 febbraio 2023
+- **Durata**: 10 minuti per gruppo
+- **Partecipazione**: Tutti i membri del gruppo devono intervenire
+- **Comunicazione Presenza**: Informare i docenti almeno una settimana prima della data scelta
 
+---
 
-# progetto 5: 
+## 📚 Decisione Progetto
 
-NBA moderna (1976-2011): VARIABILE DIPENDENTE: numero di vittorie in stagione
+### Progetto 5: NBA Moderna (1976-2011)
+- **Variabile Dipendente**: Numero di vittorie in stagione
+- **Covariate**: Tutte le altre (o un insieme specifico, a seconda dell'obiettivo di analisi)
+- **Nota**: Considerare solo le squadre che hanno giocato 82 partite (`dataset$games == 82`)
 
-COVARIATE: tutte le altre (o uno specifico insieme di queste, in base all'obiettivo di analisi)
+### Domanda 3
+- Qual è l'effetto di prendere più rimbalzi degli avversari e di recuperare molti palloni (stl, blk)?
 
-attenzione: qui considerare solo le squadre che hanno giocato 82 partite (dataset$games==82)
-
-
-# Domanda 3:
-
-3. Qual'è l'effetto di prendere più rimbalzi degli avversari e di recuperare molti palloni (stl, blk)
-
-
-# Approfondimenti personali:
+### Approfondimenti Personali
 ...
+
