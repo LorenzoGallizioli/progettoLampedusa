@@ -6,7 +6,8 @@ date: "2023-12-07"
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = "C:/Users/bnsda/Desktop/Progetto_Statistica/0_Materiale")
+library(here)
+knitr::opts_knit$set(root.dir = here("progettoLampedusa", "0_Materiale"))
 getwd()
 ```
 
@@ -58,10 +59,7 @@ attenzione: qui considerare solo le squadre che hanno giocato 82 partite (datase
 
 ```{r}
 
-setwd("C:/Users/bnsda/Desktop/Progetto_Statistica/0_Materiale")
-dataset = read.delim("basketball_teams.txt")
+dataset = read.delim("0_Materiale/basketball_teams.txt")
 head (dataset)
-
-dataset =
 
 ```
