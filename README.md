@@ -6,7 +6,7 @@
 
 ---
 
-## 🎯 Obiettivo
+## 🎯 Obbiettivo
 
 L'obiettivo di questo progetto è applicare tecniche di **regressione lineare o generalizzata** in R Studio (o altro software a scelta) per analizzare una specifica variabile risposta (𝑌) in funzione delle altre variabili esplicative disponibili nel dataset (covariate, 𝑋).
 
