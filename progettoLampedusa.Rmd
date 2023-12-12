@@ -6,6 +6,8 @@ date: "2023-12-07"
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "C:/Users/bnsda/Desktop/Progetto_Statistica/0_Materiale")
+getwd()
 ```
 
 ### Come scrivere il report (consigli generali validi anche per il futuro):
@@ -26,13 +28,6 @@ knitr::opts_chunk$set(echo = TRUE)
 
 8. Bibliografia: è buona norma includere le fonti utilizzate per produrre il vostro report (paper di riferimento, ecc.).
 
-### BASKETBALL TEAMS' DATASET
-```{r}
-setwd("/Users/lorenzogallizioli/Downloads/Basketball teams-20231130/")
-ds = read.delim("basketball_teams.txt")
-head(ds)
-
-```
 
 
 # progetto 5: 
@@ -59,3 +54,14 @@ attenzione: qui considerare solo le squadre che hanno giocato 82 partite (datase
 6. l'effetto delle variabili esplicative è cambiato nel corso dsel tempo? (dummy temporale)
 
 7. ci sono arene percui giocare li aiuta a vincere o a qualificarsi ai playoff?
+
+
+```{r}
+
+setwd("C:/Users/bnsda/Desktop/Progetto_Statistica/0_Materiale")
+dataset = read.delim("basketball_teams.txt")
+head (dataset)
+
+dataset =
+
+```
