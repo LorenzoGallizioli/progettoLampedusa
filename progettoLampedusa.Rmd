@@ -1,3 +1,179 @@
+<<<<<<< HEAD
+---
+title: "ProgettoLampedusa"
+output: html_document
+date: "2023-12-07"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(here)
+knitr::opts_knit$set(root.dir = here("progettoLampedusa", "0_Materiale"))
+getwd()
+```
+
+
+##LEGENDA:
+
+year: stagione del torneo
+
+lgID: nome della lega
+
+franchID: nome squadra 3 cifre
+
+confID: Conference di appartenenza della squadra
+
+divID: Division di appartenenza della squadra
+
+rank: classifica fine stagione regolare nella division
+
+confRank: classifica fine stagione regolare nella conference
+
+playoff: qualifica ai playoff (come da legenda)
+
+name: nome squadra
+
+o_: offensive
+
+d_: defensive
+
+fgm: tiri realizzati su azione
+
+fga: tiri tentati su azione
+
+ftm: tiri liberi realizzati
+
+fta: tiri liberi tentati
+
+3pm: tiri da 3 realizzati
+
+3pa: tiri da 3 tentati
+
+oreb: rimbalzi offensivi
+
+dreb: rimbalzi difensivi
+
+reb: rimbalzi totali (offensivi + difensivi)
+
+asts: assists
+
+pf: falli commessi
+
+stl: palle recuperate
+
+to: palle perse
+
+blk: palle stoppate
+
+tmRebound: rimbalzi di squadra
+
+homeWon: vittore in casa
+
+homeLost: sconfitte in casa
+
+awayWon: vittorie in trasferta
+
+awayLost: sconfitte in trasferta
+
+neutWon: vittorie in campo neutro
+
+neutLoss: sconfitte in campo neutro
+
+confWon: vittorie contro squadre della stessa conference
+
+confLoss: sconfitte contro squadre della stessa conference
+
+divWon: vittorie con squadre stessa division
+
+divLoss: sconfitte con squadre stessa division
+
+won: vittorie totali
+
+lost: sconfitte totali
+
+games: partite giocate totali in stagione (won + lost)
+
+min: minuti giocati in stagione
+
+arena: nome stadio
+
+attendance: numero spettatori
+
+
+### Come scrivere il report (consigli generali validi anche per il futuro):
+
+1. Descrizione del problema e dei dati: descrivere qual è lo scopo dell’analisi e descrivere quante e quali variabili si hanno.
+
+2. EDA (Exploration Data Analysis): boxplot, correlation plot, barplot, tables.
+
+3. Data Engineering (optional): create or add new variables.
+
+4. Missing imputation (non richiesto per questo progetto) e outlier detection: spesso gli outlier vengono rimossi o tenuti da conto per l’analisi di un dataset.
+
+5. Feature selection: decidere quali variabili entrano in gioco nell’analisi e perché, giustificare le proprie scelte o utilizzare modelli che aiutino a fare queste scelte.
+
+6. Model selection: fare fitting di diversi modelli e confrontarli per scegliere il modello migliore per i vostri dati.
+
+7. Conclusioni: concludere esplicitando a cosa è servito il modello finale e se avete risposto alla domanda di ricerca presentata al primo punto.
+
+8. Bibliografia: è buona norma includere le fonti utilizzate per produrre il vostro report (paper di riferimento, ecc.).
+
+
+
+# progetto 5: 
+
+NBA moderna (1976-2011): VARIABILE DIPENDENTE: numero di vittorie in stagione
+
+COVARIATE: tutte le altre (o uno specifico insieme di queste, in base all'obiettivo di analisi)
+
+attenzione: qui considerare solo le squadre che hanno giocato 82 partite (dataset$games==82)
+
+```{r}
+
+#Caricamento dei Dati:
+dataset = read.delim("0_Materiale/basketball_teams.txt")
+FIRST = 1976 # first year 
+LAST = 2011 # last year
+
+nba_model = dataset [dataset$lgID=="NBA" & dataset$year >= FIRST & dataset$year <= LAST & dataset$games==82,]
+(nba_model)
+
+dataset$lgID <- as.factor(dataset$lgID) # perchè mi permettono di poter generare variabili dummy
+summary(nba_model)
+
+# VERIFICA VALORI MANCANTI
+#sum(is.na(nba_model))
+#nba_model[which(complete.cases(nba_model))]
+
+hist(nba_model$won)
+plot(density(nba_model$won))
+
+M <- cor(as.matrix(nba_model[,c(11:25,54)])) # correlation matrix
+corrplot(M, method = 'number')
+
+boxplot(nba_model$won ~ nba_model$tmID, las=2)
+
+
+#DEAN'S 4 FACTORS (Covariate)
+  
+nba_model$o_canestriSuTotali = nba_model$o_fgm/nba_model$o_fga # proporzione tra tiri realizzati su tiri totali
+nba_model$d_canestriSuTotali = nba_model$d_fgm/nba_model$d_fga # proporzione tra tiri subiti su tiri totali
+nba_model$d_stoppateSuTiri = nba_model$d_blk/nba_model$d_fga # proporzione su quanti tiri tentati sono stati stoppati
+nba_model$o_rimbTiriSbagliati = nba_model$o_oreb/(nba_model$o_fga-nba_model$o_fgm) # percentuale di rimbalzi presi su tiri sbagliati in attacco
+nba_model$d_rimbDef = nba_model$d_dreb/(nba_model$d_fga-nba_model$d_fgm) # percentuale di rimbalzi difensivi presi in difesa
+# Modello di regressione 1
+#(linMod1 = lm(won ~ o_df1 + d_df1 + o_df2 + d_df2 + o_df3 + d_df3 + o_df4 + d_df4, data= nba_model))
+
+(linMod1 = lm(won ~ o_canestriSuTotali + d_canestriSuTotali + d_stoppateSuTiri + o_rimbTiriSbagliati + d_rimbDef, data = nba_model ))
+summary (linMod1)
+
+# TODO: sistemare
+nba_model$o_df1_z = scale(nba_model$o_df1)
+nba_model$d_df1_z = scale(nba_model$d_df1)
+# Modello di regressione 2
+(linMod1 = lm(won ~ o_df1_z + d_df1_z, data= nba_model))
+summary (linMod1)
+=======
 ---
 title: "ProgettoLampedusa"
 output: html_document
@@ -128,42 +304,28 @@ COVARIATE: tutte le altre (o uno specifico insieme di queste, in base all'obiett
 attenzione: qui considerare solo le squadre che hanno giocato 82 partite (dataset$games==82)
 
 
-# Possibili quesiti di ricerca
-
-1. Quanto è importante avere una buona precisione nel realizzare (da 2, da 3, ai liberi)?
-
-2. Quanto è importante che gli avversari tirino male?
-
-3. Qual'è l'effetto di prendere più rimbalzi degli avversari e di recuperare molti palloni (stl, blk)
-
-4. è importante saper vincere anche fuori casa per qualificarsi ai playoff?
-
-5. è importante vincere contro le squadre delle propria division per vincere il titolo?
-
-6. l'effetto delle variabili esplicative è cambiato nel corso dsel tempo? (dummy temporale)
-
-7. ci sono arene percui giocare li aiuta a vincere o a qualificarsi ai playoff?
-
 
 ```{r}
 
-#Caricamento dei Dati:
 dataset = read.delim("0_Materiale/basketball_teams.txt")
+head (dataset)
+
 FIRST = 1976 # first year 
 LAST = 2011 # last year
 
 nba_model = dataset [dataset$lgID=="NBA" & dataset$year >= FIRST & dataset$year <= LAST & dataset$games==82,]
-(nba_model)
 
+
+str (dataset)
 dataset$lgID <- as.factor(dataset$lgID) # perchè mi permettono di poter generare variabili dummy
-summary(nba_model)
-
-# VERIFICA VALORI MANCANTI
-#sum(is.na(nba_model))
-#nba_model[which(complete.cases(nba_model))]
+summary(dataset)
 
 hist(nba_model$won)
 plot(density(nba_model$won))
+
+#TESTING
+plot(density(log(nba_model$won))) # non va bene
+
 
 M <- cor(as.matrix(nba_model[,c(11:25,54)])) # correlation matrix
 corrplot(M, method = 'number')
@@ -171,23 +333,36 @@ corrplot(M, method = 'number')
 boxplot(nba_model$won ~ nba_model$tmID, las=2)
 
 
-#DEAN'S 4 FACTORS (Covariate)
-  
-nba_model$o_canestriSuTotali = nba_model$o_fgm/nba_model$o_fga # proporzione tra tiri realizzati su tiri totali
-nba_model$d_canestriSuTotali = nba_model$d_fgm/nba_model$d_fga # proporzione tra tiri subiti su tiri totali
-nba_model$d_stoppateSuTiri = nba_model$d_blk/nba_model$d_fga # proporzione su quanti tiri tentati sono stati stoppati
-nba_model$o_rimbTiriSbagliati = nba_model$o_oreb/(nba_model$o_fga-nba_model$o_fgm) # percentuale di rimbalzi presi su tiri sbagliati in attacco
-nba_model$d_rimbDef = nba_model$d_dreb/(nba_model$d_fga-nba_model$d_fgm) # percentuale di rimbalzi difensivi presi in difesa
-# Modello di regressione 1
-#(linMod1 = lm(won ~ o_df1 + d_df1 + o_df2 + d_df2 + o_df3 + d_df3 + o_df4 + d_df4, data= nba_model))
+#DEAN'S 4 FACTORS
 
-(linMod1 = lm(won ~ o_canestriSuTotali + d_canestriSuTotali + d_stoppateSuTiri + o_rimbTiriSbagliati + d_rimbDef, data = nba_model ))
+nba_model$o_df1 = (nba_model$o_fgm + 0.5*nba_model$o_3pm) / nba_model$o_fga
+nba_model$d_df1 = (nba_model$d_fgm + 0.5*nba_model$d_3pm) / nba_model$d_fga
+nba_model$o_df2 = nba_model$o_to / (nba_model$o_to + nba_model$o_fga + 0.44*nba_model$o_fta)
+nba_model$d_df2 = nba_model$d_to / (nba_model$d_to + nba_model$d_fga + 0.44*nba_model$d_fta)
+nba_model$o_df3 = nba_model$o_oreb / (nba_model$o_oreb + nba_model$d_dreb)
+nba_model$d_df3 = nba_model$d_oreb / (nba_model$d_oreb + nba_model$o_dreb)
+nba_model$o_df4 = nba_model$o_ftm / nba_model$o_fga
+nba_model$d_df4 = nba_model$d_ftm / nba_model$d_fga
+
+(linMod1 = lm(won ~ o_df1 + d_df1 + o_df2 + d_df2 + o_df3 + d_df3 + o_df4 + d_df4, data= nba_model))
 summary (linMod1)
 
-# TODO: sistemare
 nba_model$o_df1_z = scale(nba_model$o_df1)
+nba_model$o_df2_z = scale(nba_model$o_df2)
+nba_model$o_df3_z = scale(nba_model$o_df3)
+nba_model$o_df4_z = scale(nba_model$o_df4)
 nba_model$d_df1_z = scale(nba_model$d_df1)
-# Modello di regressione 2
-(linMod1 = lm(won ~ o_df1_z + d_df1_z, data= nba_model))
+nba_model$d_df2_z = scale(nba_model$d_df2)
+nba_model$d_df3_z = scale(nba_model$d_df3)
+nba_model$d_df4_z = scale(nba_model$d_df4)
+
+
+(linMod1 = lm(won ~ o_df1_z + d_df1_z + o_df2_z + d_df2_z + o_df3_z + d_df3_z + o_df4_z + d_df4_z, data= nba_model))
 summary (linMod1)
+
+
+
+
+
+>>>>>>> 09da2f87a5c9b0784bed22c162f25892d6677bc5
 ```
