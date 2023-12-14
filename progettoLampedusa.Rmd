@@ -147,25 +147,23 @@ attenzione: qui considerare solo le squadre che hanno giocato 82 partite (datase
 
 ```{r}
 
+#Caricamento dei Dati:
 dataset = read.delim("0_Materiale/basketball_teams.txt")
-head (dataset)
-
 FIRST = 1976 # first year 
 LAST = 2011 # last year
 
 nba_model = dataset [dataset$lgID=="NBA" & dataset$year >= FIRST & dataset$year <= LAST & dataset$games==82,]
+(nba_model)
 
-
-str (dataset)
 dataset$lgID <- as.factor(dataset$lgID) # perchè mi permettono di poter generare variabili dummy
-summary(dataset)
+summary(nba_model)
+
+# VERIFICA VALORI MANCANTI
+#sum(is.na(nba_model))
+#nba_model[which(complete.cases(nba_model))]
 
 hist(nba_model$won)
 plot(density(nba_model$won))
-
-#TESTING
-plot(density(log(nba_model$won))) # non va bene
-
 
 M <- cor(as.matrix(nba_model[,c(11:25,54)])) # correlation matrix
 corrplot(M, method = 'number')
@@ -173,35 +171,23 @@ corrplot(M, method = 'number')
 boxplot(nba_model$won ~ nba_model$tmID, las=2)
 
 
-#DEAN'S 4 FACTORS
+#DEAN'S 4 FACTORS (Covariate)
+  
+nba_model$o_canestriSuTotali = nba_model$o_fgm/nba_model$o_fga # proporzione tra tiri realizzati su tiri totali
+nba_model$d_canestriSuTotali = nba_model$d_fgm/nba_model$d_fga # proporzione tra tiri subiti su tiri totali
+nba_model$d_stoppateSuTiri = nba_model$d_blk/nba_model$d_fga # proporzione su quanti tiri tentati sono stati stoppati
+nba_model$o_rimbTiriSbagliati = nba_model$o_oreb/(nba_model$o_fga-nba_model$o_fgm) # percentuale di rimbalzi presi su tiri sbagliati in attacco
+nba_model$d_rimbDef = nba_model$d_dreb/(nba_model$d_fga-nba_model$d_fgm) # percentuale di rimbalzi difensivi presi in difesa
+# Modello di regressione 1
+#(linMod1 = lm(won ~ o_df1 + d_df1 + o_df2 + d_df2 + o_df3 + d_df3 + o_df4 + d_df4, data= nba_model))
 
-nba_model$o_df1 = (nba_model$o_fgm + 0.5*nba_model$o_3pm) / nba_model$o_fga
-nba_model$d_df1 = (nba_model$d_fgm + 0.5*nba_model$d_3pm) / nba_model$d_fga
-nba_model$o_df2 = nba_model$o_to / (nba_model$o_to + nba_model$o_fga + 0.44*nba_model$o_fta)
-nba_model$d_df2 = nba_model$d_to / (nba_model$d_to + nba_model$d_fga + 0.44*nba_model$d_fta)
-nba_model$o_df3 = nba_model$o_oreb / (nba_model$o_oreb + nba_model$d_dreb)
-nba_model$d_df3 = nba_model$d_oreb / (nba_model$d_oreb + nba_model$o_dreb)
-nba_model$o_df4 = nba_model$o_ftm / nba_model$o_fga
-nba_model$d_df4 = nba_model$d_ftm / nba_model$d_fga
-
-(linMod1 = lm(won ~ o_df1 + d_df1 + o_df2 + d_df2 + o_df3 + d_df3 + o_df4 + d_df4, data= nba_model))
+(linMod1 = lm(won ~ o_canestriSuTotali + d_canestriSuTotali + d_stoppateSuTiri + o_rimbTiriSbagliati + d_rimbDef, data = nba_model ))
 summary (linMod1)
 
+# TODO: sistemare
 nba_model$o_df1_z = scale(nba_model$o_df1)
-nba_model$o_df2_z = scale(nba_model$o_df2)
-nba_model$o_df3_z = scale(nba_model$o_df3)
-nba_model$o_df4_z = scale(nba_model$o_df4)
 nba_model$d_df1_z = scale(nba_model$d_df1)
-nba_model$d_df2_z = scale(nba_model$d_df2)
-nba_model$d_df3_z = scale(nba_model$d_df3)
-nba_model$d_df4_z = scale(nba_model$d_df4)
-
-
-(linMod1 = lm(won ~ o_df1_z + d_df1_z + o_df2_z + d_df2_z + o_df3_z + d_df3_z + o_df4_z + d_df4_z, data= nba_model))
+# Modello di regressione 2
+(linMod1 = lm(won ~ o_df1_z + d_df1_z, data= nba_model))
 summary (linMod1)
-
-
-
-
-
 ```
