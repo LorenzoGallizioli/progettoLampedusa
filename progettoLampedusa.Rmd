@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 ---
 title: "ProgettoLampedusa"
 output: html_document
@@ -6,10 +6,13 @@ date: "2023-12-07"
 ---
 
 ```{r setup, include=FALSE}
+
 knitr::opts_chunk$set(echo = TRUE)
+
 library(here)
 knitr::opts_knit$set(root.dir = here("progettoLampedusa", "0_Materiale"))
 getwd()
+
 ```
 
 
@@ -150,7 +153,9 @@ hist(nba_model$won)
 plot(density(nba_model$won))
 
 M <- cor(as.matrix(nba_model[,c(11:25,54)])) # correlation matrix
-corrplot(M, method = 'number')
+corrplot(M, method="color", outline = TRUE,type="lower",order = "hclust",
+         tl.col="black", tl.srt=45, diag=FALSE,tl.cex = 1,mar=c(0,0,3,0),
+         title="Correlation Matrix between Predictor and Outcome variables")
 
 boxplot(nba_model$won ~ nba_model$tmID, las=2)
 
@@ -177,6 +182,22 @@ nba_model$d_rimbDef_z = scale(nba_model$d_rimbDef)
 # Modello di regressione 2
 (linModNormalized = lm(won ~ o_canestriSuTotali_z + d_canestriSuTotali_z + d_stoppateSuTiri_z + o_rimbTiriSbagliati_z + d_rimbDef_z, data = nba_model ))
 summary (linModNormalized)
+
+
+```
+
+```{r} 
+
+# Test di homoschedasticita' (Breusch-Pagan test) --> risultato suggerisce omoschedasiticita'
+lmtest::bptest(linModNormalized)
+
+# Divisione in Test e Train per evitare che il modello fitti troppo bene sui nostri dati
+sample <- sample(c(TRUE, FALSE), nrow(nba_model), replace=TRUE, prob=c(0.7,0.3))
+train  <- nba_model[sample, ]
+test   <- nba_model[!sample, ]
+
+m = lm(won ~ o_canestriSuTotali_z + d_canestriSuTotali_z + d_stoppateSuTiri_z + o_rimbTiriSbagliati_z + d_rimbDef_z, data = train)
+summary(m)
 
 ```
 
