@@ -154,25 +154,28 @@ corrplot(M, method = 'number')
 boxplot(nba_model$won ~ nba_model$tmID, las=2)
 
 
-#DEAN'S 4 FACTORS (Covariate)
+# Covariate
   
 nba_model$o_canestriSuTotali = nba_model$o_fgm/nba_model$o_fga # proporzione tra tiri realizzati su tiri totali
 nba_model$d_canestriSuTotali = nba_model$d_fgm/nba_model$d_fga # proporzione tra tiri subiti su tiri totali
 nba_model$d_stoppateSuTiri = nba_model$d_blk/nba_model$d_fga # proporzione su quanti tiri tentati sono stati stoppati
 nba_model$o_rimbTiriSbagliati = nba_model$o_oreb/(nba_model$o_fga-nba_model$o_fgm) # percentuale di rimbalzi presi su tiri sbagliati in attacco
 nba_model$d_rimbDef = nba_model$d_dreb/(nba_model$d_fga-nba_model$d_fgm) # percentuale di rimbalzi difensivi presi in difesa
+
 # Modello di regressione 1
-#(linMod1 = lm(won ~ o_df1 + d_df1 + o_df2 + d_df2 + o_df3 + d_df3 + o_df4 + d_df4, data= nba_model))
+(linMod = lm(won ~ o_canestriSuTotali + d_canestriSuTotali + d_stoppateSuTiri + o_rimbTiriSbagliati + d_rimbDef, data = nba_model ))
+summary (linMod)
 
-(linMod1 = lm(won ~ o_canestriSuTotali + d_canestriSuTotali + d_stoppateSuTiri + o_rimbTiriSbagliati + d_rimbDef, data = nba_model ))
-summary (linMod1)
-
-# TODO: sistemare
-nba_model$o_df1_z = scale(nba_model$o_df1)
-nba_model$d_df1_z = scale(nba_model$d_df1)
+# Normalizziamo le covariate
+nba_model$o_canestriSuTotali_z = scale(nba_model$o_canestriSuTotali)
+nba_model$d_canestriSuTotali_z = scale(nba_model$d_canestriSuTotali)
+nba_model$d_stoppateSuTiri_z = scale(nba_model$d_stoppateSuTiri)
+nba_model$o_rimbTiriSbagliati_z = scale(nba_model$o_rimbTiriSbagliati)
+nba_model$d_rimbDef_z = scale(nba_model$d_rimbDef)
+  
 # Modello di regressione 2
-(linMod1 = lm(won ~ o_df1_z + d_df1_z, data= nba_model))
-summary (linMod1)
+(linModNormalized = lm(won ~ o_canestriSuTotali_z + d_canestriSuTotali_z + d_stoppateSuTiri_z + o_rimbTiriSbagliati_z + d_rimbDef_z, data = nba_model ))
+summary (linModNormalized)
 
 ```
 
