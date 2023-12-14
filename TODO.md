@@ -39,4 +39,4 @@ Gli outlier multivariato lo si definisce dalla diagnostica e in quel caso bisogn
   per chi ha intenzione di usare var. risposta dicotomica e INTERPRETARE (odds rapporto tra p(Y=1) e p(Y=0)
 - intervallo di predict e previsione
 - Confronto LASSO vs modello di regressione e valutare il migliore per fare previsione (RMSE più alto vince) (glmnet)
-- METODO DI CONFRONTO DEI MODELLI: inserire la definizione
+- METODO DI CONFRONTO DEI MODELLI: inserire la definizione del metodo usato
