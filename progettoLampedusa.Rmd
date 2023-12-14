@@ -173,20 +173,8 @@ nba_model$d_df1_z = scale(nba_model$d_df1)
 # Modello di regressione 2
 (linMod1 = lm(won ~ o_df1_z + d_df1_z, data= nba_model))
 summary (linMod1)
-=======
----
-title: "ProgettoLampedusa"
-output: html_document
-date: "2023-12-07"
----
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-library(here)
-knitr::opts_knit$set(root.dir = here("progettoLampedusa", "0_Materiale"))
-getwd()
 ```
-
 
 ##LEGENDA:
 
@@ -361,8 +349,4 @@ nba_model$d_df4_z = scale(nba_model$d_df4)
 summary (linMod1)
 
 
-
-
-
->>>>>>> 09da2f87a5c9b0784bed22c162f25892d6677bc5
 ```
