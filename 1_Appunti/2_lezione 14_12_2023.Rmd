@@ -1,0 +1,299 @@
+---
+title: "Forest Fires"
+author: "Alice Giampino"
+date: "2023-12-01"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Forest fire
+
+Questo dataset è pubblico e a disposizione per la ricerca. I dettagli sul dataset possono essere trovati in Cortez
+e Morais (2007). Il dataset è composto dalle seguenti variabili:
+
+1. Coordinata spaziale dell'asse X all'interno della mappa del parco Montesinho: da 1 a 9
+2. Y coordinata spaziale dell'asse y all'interno della mappa del parco Montesinho: da 2 a 9
+3. mese: mese dell'anno: da "gen" a "dic"
+4. giorno della settimana: da "lunedì" a "domenica"
+5. Indice FFMC dal sistema FWI: da 18,7 a 96,20
+6. Indice DMC dal sistema FWI: da 1,1 a 291,3
+7. Indice DC dal sistema FWI: da 7,9 a 860,6
+8. Indice ISI del sistema FWI: da 0,0 a 56,10
+9. temperatura temporanea in gradi Celsius: da 2,2 a 33,30
+10. Umidità relativa RH in %: da 15,0 a 100
+11. velocità del vento in km/h: da 0,40 a 9,40
+12. pioggia in mm/m2: da 0,0 a 6,4
+13. area della superficie bruciata della foresta (in ettari): da 0,00 a 1090,84.
+
+In questo dataset siamo interessati a modellare l'area bruciata della foresta come funzione delle altre variabili.
+
+Cortez P. e Morais A. "Un approccio di data mining per prevedere gli incendi boschivi
+utilizzando dati meteorologici." In J. Neves, MF Santos e J. Machado Eds.,
+"Nuove tendenze nell'intelligenza artificiale", Atti della 13a EPIA 2007
+Conferenza portoghese sull'intelligenza artificiale, dicembre, Guimaraes, Por-
+tugal, pp. 512-523, 2007. APPIA, ISBN-13 978-989-95618-0-9. 18-0-9.
+Disponibile a:
+http://www3.dsi.uminho.pt/pcortez/fires.pdf
+
+Punti 1-4 di come scrivere un buon report:
+
+```{r, echo=F, message=F}
+# Carichiamo il dataset in formato .csv
+# Importante: bisogna specificare la directory dove il file è salvato.
+
+forest <- read.csv("C:/Users/bnsda/Downloads/forestfires.csv")
+
+# Vediamo il nome delle variabili:
+colnames(forest)
+
+# Il comando 'summary' ci consente di vedere un riassunto delle variabili del dataset (min, max, etc.)
+summary(forest)
+
+# Vediamo se ci sono valori mancanti nel dataset:
+sum(is.na(forest))
+
+# Consiglio di rimuovere X e Y (le coordinate) dal set di variabili dipendenti in uso:
+forest <- forest[,-c(1:2)]
+
+# Vediamo le prime 6 osservazioni che compongono il dataset:
+head(forest)
+
+# Dato che month e day vengono considerate come character e non factor le trasformiamo:
+forest$month <- as.factor(forest$month)
+forest$day <- as.factor(forest$day)
+
+# Vediamo un pochino meglio il dataset ora:
+summary(forest)
+table(forest$month)
+table(forest$day)
+table(forest$month, forest$day)
+
+# La variabile risposta è "area", studiamola più nello specifico:
+hist(forest$area)
+summary(forest$area)
+sum(forest$area==0)/length(forest$area) # circa 48% sono 0
+
+# Vediamo meglio il grafico della densità della variabile:
+plot(density(forest$area))
+# E' molto asimmetrica verso lo 0, proviamo a farne una trasformata:
+plot(density(log(forest$area)))
+
+# Dobbiamo però tener conto del numero di 0 presenti: log(0) = -Inf, quindi
+forest$area <- log(forest$area+1)
+summary(forest$area)
+
+# Correlazione tra variabili (quantitative):
+library(corrplot)
+M <- cor(as.matrix(forest[,-c(1,2)])) # correlation matrix
+corrplot(M, method = 'number')
+
+# OPZIONALE (non dà punti extra):
+# Siccome i mesi e giorni sono variabili qualitative con più livelli, R automaticamente splitta in livelli le variabili usando il modello lineare o lineare generalizzato.
+# Proviamo a farlo noi con una funzione implementata in R:
+# forest <- fastDummies::dummy_cols(forest, remove_first_dummy = TRUE)[-c(1,2)]
+# summary(forest)
+
+# Visualizzazione delle variabili:
+boxplot(forest[,-c(1,2)], col=rainbow(9))
+
+# c'è differenza nei giorni?
+boxplot(forest$area ~ forest$day)
+# cosa succede a Dicembre?
+boxplot(forest$area ~ forest$month) 
+```
+
+Potete prendere spunto da questo notebook: https://rstudio-pubs-static.s3.amazonaws.com/419751_b251adb1ab8e40f7aeab8b5c4a739c4f.html
+
+Punti 5-6 di come scrivere un buon report:
+
+```{r, message = F}
+# si divide il dataset in train e test (validation) così che si fitta il modello sul train e si guarda la capacità predittiva su nuovi dati, questo serve per evitare di over-fittare i dati di train e fare un modello che si adatta solo ai dati visti dal modello:
+
+# Optional:
+forest <- fastDummies::dummy_cols(forest, remove_first_dummy = TRUE)[-c(1,2)]
+
+# Regole classiche sono 70% training e 30% test (o 80-20 a vostra scelta)
+set.seed(125) # il seme serve per riprodurre le analisi (reproducibilità del codice)
+sample <- sample(c(TRUE, FALSE), nrow(forest), replace=TRUE, prob=c(0.7,0.3))
+train  <- forest[sample, ]
+test   <- forest[!sample, ]
+
+# Modello con una sola variabile:
+model = lm(area ~ rain, data = train)
+
+summary(model)
+
+# Modello con tutte le variabili:
+model1 = lm(area ~ ., data = train)
+summary(model1)
+
+# Diagnostic plot del modello:
+par(mfrow=c(2,2)) # finestra grafica 2x2
+plot(model1)
+par(mfrow=c(1,1)) # riportiamo ai valori di default
+
+# rimuovere outlier:
+# install.packages("olsrr")
+library(olsrr)
+ols_plot_resid_lev(model1)
+
+# Removing observations guardando numero dell'osservazione:
+train = train[-c(205, 57, 257, 380),]
+
+# Rimuovere osservazioni basandoci sui valori delle variabili:
+# train=train[!(train$temp>300),]
+
+# Modello 1 senza outlier:
+model2 = lm(area ~ ., data = train)
+summary(model2)
+
+# Modello con variabili scelte da noi (scelte casualmente al momento):
+model3 = lm(area ~ month_dec+wind+rain+temp+I(FFMC*month_aug), data = train)
+summary(model3)
+
+# Test ANOVA
+anova(model3)
+
+```
+
+### Confronto tra modelli:
+
+```{r, message = F}
+# Create vector with values
+a = c(AIC(model3), BIC(model3), AIC(model2), BIC(model2), AIC(model1), BIC(model1))
+
+# Akaike Information Criterion (AIC) estimates the in-sample prediction error and indicates the relative quality of statistical models for a given dataset (it is only useful to compare models based on the same data). Bayesian Information Criterion (BIC) is a penalized-likelihood criterion derived from Bayesian probability. It is closely related to AIC. Generally, lower values of BIC and AIC are preferred.
+
+# Create vector with nforest
+b = c("AIC lm 3", "BIC lm 3", "AIC lm 2", "BIC lm 2", "AIC lm 1", "BIC lm 1")
+
+# Link the values with nforest
+names(a) = b
+print(a)
+```
+
+### Previsioni con Model2:
+```{r, message = F}
+#use lasso regression model to predict response value
+new = test
+previsioni_mod3 = predict(model3, newdata = new)
+
+#find SST and SSE
+sst <- sum((test$area - mean(test$area))^2)
+sse <- sum((previsioni_mod3 - test$area)^2)
+
+# Root Mean Squared Error: è una misura dell'errore che compiamo
+sqrt(mean((test$area - previsioni_mod3)^2))
+
+# intervallo di previsione
+predict(model3,new,interval="predict", level=0.95)
+```
+
+### LASSO regression:
+
+```{r, message = F}
+# install.packages("glmnet") # se non è già stato installato
+library(glmnet) 
+
+#define response variable
+y <- train$area
+
+#define matrix of predictor variables (uso solo poche variabili ma potete farlo con tutte da togliere però la risposta area)
+x <- data.matrix(train[, c("month_dec","wind","rain","temp","FFMC","month_aug")])
+
+#perform k-fold cross-validation to find optimal lambda value, la cross-validation è un ottimo modo per non overfittare e trovare il miglior modello
+cv_model <- cv.glmnet(x, y, alpha = 1)
+
+#find optimal lambda value that minimizes test MSE
+best_lambda <- cv_model$lambda.min
+best_lambda
+
+#produce plot of test MSE by lambda value
+plot(cv_model) 
+
+# Fittiamo il modello con il best lambda (penalizzazione)
+
+best_model <- glmnet(x, y, alpha = 1, lambda = best_lambda)
+coef(best_model)
+```
+
+### Previsioni con Lasso:
+```{r, message = F}
+#use lasso regression model to predict response value
+new = data.matrix(test[,c("month_dec","wind","rain","temp","FFMC","month_aug")])
+previsioni = predict(best_model, s = best_lambda, newx = new)
+
+# Root Mean Squared Error (RMSE): è una misura dell'errore che compiamo
+sqrt(mean((test$area - previsioni)^2))
+
+```
+
+Ora potete confrontare modelli diversi con lasso e lm classici, vedete cosa vi dice BIC/AIC e RMSE per decidere quale è il modello ottimale.
+
+## Modello con soglia scelta: logit - glm
+```{r}
+forest$area2 <- as.factor(ifelse(forest$area>0.5,1,0))
+
+# Regole classiche sono 70% training e 30% test (o 80-20 a vostra scelta)
+set.seed(125) # il seme serve per riprodurre le analisi (reproducibilità del codice)
+sample <- sample(c(TRUE, FALSE), nrow(forest), replace=TRUE, prob=c(0.7,0.3))
+train  <- forest[sample, ]
+test   <- forest[!sample, ]
+
+# Modello con una sola variabile:
+model = glm(area2 ~ rain, data = train, family = binomial(link="logit"))
+# o va bene anche: family="binomial"
+summary(model)
+
+# Modello con tutte le variabili:
+model1 = glm(area2 ~ ., data = train, family = binomial(link="logit"))
+summary(model1)
+
+# Removing observations guardando numero dell'osservazione:
+train = train[-c(145,142,258),]
+
+# Rimuovere osservazioni basandoci sui valori delle variabili:
+# train=train[!(train$temp>300),]
+
+# Modello 1 senza outlier:
+model2 = glm(area2 ~ ., data = train, family = binomial(link="logit"))
+summary(model2)
+
+# Modello con variabili scelte da noi (scelte casualmente al momento):
+model3 = glm(area2 ~ month_dec+wind+rain+temp+I(FFMC*month_aug), data = train, family = binomial(link="logit"))
+summary(model3)
+# per un aumento unitario di variabile_X_modello c'è un aumento del tot% del log dell'odds.
+# per un aumento unitario di variabile_X_modello c'è un aumento di exp(valore) = valore_new volte dell'odds. ES. Se P(Y=1) = 0.5, P(Y=1)/P(Y=0) passa da 1 a valore_new 
+# (Il vecchio odds và moltiplicato per exp(beta) )
+
+#use lasso regression model to predict response value
+new = test
+previsioni_mod3 = predict(model3, newdata = new, type="response")
+# la previsione è la probabilità di essere 1!
+
+prev <- ifelse(previsioni_mod3 > 0.5,"1","0")
+
+prev<- as.factor(as.vector(prev))
+
+# Questa tabella mostra previsioni vs valore reale, è chiamata: confusionMatrix
+table(prev, test$area2)
+
+cm <- table(prev, test$area2)
+
+# Indicatori per vedere la bontà del modello:
+accuracy <- sum(cm[1], cm[4]) / sum(cm[1:4])
+precision <- cm[4] / sum(cm[4], cm[2])
+sensitivity <- cm[4] / sum(cm[4], cm[3])
+fscore <- (2 * (sensitivity * precision))/(sensitivity + precision)
+specificity <- cm[1] / sum(cm[1], cm[2])
+
+# install.packages("pROC")
+library(pROC)
+roc_object <- roc( as.numeric(test$area2), as.numeric(prev))
+plot(roc_object)
+# calculate area under curve
+auc(roc_object)
+```
