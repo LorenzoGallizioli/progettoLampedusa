@@ -102,3 +102,6 @@ summary(m)
 
 ```
 
+
+```{r}
+#test da eseguire sul modello:
