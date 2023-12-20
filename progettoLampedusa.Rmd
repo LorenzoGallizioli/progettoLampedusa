@@ -48,6 +48,7 @@ corrplot(M, method="color", outline = TRUE,type="lower",order = "hclust",
 
 boxplot(df$won ~ df$tmID, las=2)
 
+
 ```
 $\text{Formula1} = \frac{\text{Rimbalzi offensivi in attacco}}{\text{Tiri sbagliati su azione}}$
 $\text{Formula2} = \frac{\text{Rimbalzi difensivi in difesa presi}}{\text{Tiri sbagliati su azione degli avversari}}$
@@ -143,16 +144,24 @@ summary(m)
 
 ```
 
-<<<<<<< HEAD
 
 ```{r}
 
+teams <- c()
 
-df$reb <- c(df$o_reb + df$d_reb, )
-summary(df$reb)
+for (team in df$tmID)
+{
+  teams <- unique(c(teams, team))
+}
 
-hist (df$reb, col = 'steelblue', main = 'caccaculo',
-     xlab = 'Petal Width')
+teams <- sort(teams)
+
+values <- aggregate(cbind(o_oreb, o_dreb, d_oreb, d_dreb, o_reb, d_reb) ~ tmID, data = df, FUN = sum)
+
+temp <- 
+
+hist (temp, col = 'steelblue', main = 'caccaculo',
+     xlab = 'balls')
 
 plot(density(df$reb))
 
@@ -171,7 +180,7 @@ legend("topright", legend = c("Group 1", "Group 2"), fill = c("#1b98e0", "#35343
 
 boxplot(df$won ~ df$reb, las=2)
 
-heatmap(cbind(df$o_reb, df$d_reb))
+heatmap(cbind(df$d_reb, df$o_reb))
 
 
 
