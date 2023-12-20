@@ -167,9 +167,10 @@ nba_model$d_canestriSuTotali = nba_model$d_fgm/nba_model$d_fga # proporzione tra
 nba_model$d_stoppateSuTiri = nba_model$d_blk/nba_model$d_fga # proporzione su quanti tiri tentati sono stati stoppati
 nba_model$o_rimbTiriSbagliati = nba_model$o_oreb/(nba_model$o_fga-nba_model$o_fgm) # percentuale di rimbalzi presi su tiri sbagliati in attacco
 nba_model$d_rimbDef = nba_model$d_dreb/(nba_model$d_fga-nba_model$d_fgm) # percentuale di rimbalzi difensivi presi in difesa
+nba_model$formula_metric = nba_model$d_pf * (nba_model$o_ftm / nba_model$o_fta)^2 * (nba_model$o_ftm / (nba_model$o_ftm + 2 * (nba_model$o_fgm - nba_model$o_3pm) + 3 * nba_model$o_3pm))
 
 # Modello di regressione 1
-(linMod = lm(won ~ o_canestriSuTotali + d_canestriSuTotali + d_stoppateSuTiri + o_rimbTiriSbagliati + d_rimbDef, data = nba_model ))
+(linMod = lm(won ~ o_canestriSuTotali + d_canestriSuTotali + d_stoppateSuTiri + o_rimbTiriSbagliati + d_rimbDef + formula_metric, data = nba_model ))
 summary (linMod)
 
 # Normalizziamo le covariate
