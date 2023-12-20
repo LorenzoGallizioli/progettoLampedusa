@@ -104,4 +104,66 @@ summary(m)
 
 
 ```{r}
-#test da eseguire sul modello:
+
+
+df$reb = df$o_reb + df$d_reb
+summary(df$reb)
+
+hist (df$reb, col = 'steelblue', main = 'caccaculo',
+     xlab = 'Petal Width')
+
+plot(density(df$reb))
+
+
+df_reb <- data.frame (df$reb, df$o_reb, df$d_reb)
+M <- cor(df_reb) # correlation matrix
+corrplot(M, method="color", outline = TRUE,type="lower",order = "hclust",
+         tl.col="black", tl.srt=45, diag=FALSE,tl.cex = 1,mar=c(0,0,3,0),
+         title="Correlation Matrix between Predictor and Outcome variables")
+
+pie(df$reb, labels=df$tmID)
+
+barplot(df$reb, col = c("#1b98e0", "#353436"))
+
+legend("topright", legend = c("Group 1", "Group 2"), fill = c("#1b98e0", "#353436"))
+
+boxplot(df$won ~ df$reb, las=2)
+
+heatmap(cbind(df$o_reb, df$d_reb))
+
+
+
+#TEST ANDERSON-DARLING
+
+install.packages('nortest')
+library(nortest)
+
+ad.test(df$reb)
+
+
+'''Con un livello di significatività (α) di 0.01 e un p-value molto piccolo (3.1e-09) ottenuto dal test di normalità di Anderson-Darling per i dati della variabile df$reb, puoi concludere che hai sufficiente evidenza statistica per respingere lipotesi nulla che i dati seguono una distribuzione normale.
+
+Con il tuo livello di significatività del 0.01 e il p-value molto piccolo (3.1e-09), il p-value è inferiore al livello di significatività, quindi respingeresti lipotesi nulla. Questo suggerisce che i dati nella variabile df$reb non seguono una distribuzione normale al livello di significatività del 0.01.
+
+In termini più pratici, hai abbastanza evidenza statistica per concludere che la variabile df$reb non segue una distribuzione normale basandoti sui risultati del test di Anderson-Darling. '''
+
+
+#TEST KOLMOGOROV SMIRNOV
+
+ks.test(df$reb, "pnorm")
+
+''' Il risultato che hai ottenuto riguarda il test di Kolmogorov-Smirnov a campione singolo sui dati contenuti nella variabile df$reb. Il test KS confronta la distribuzione empirica dei tuoi dati con una distribuzione teorica (spesso una distribuzione uniforme).
+
+In breve, il risultato suggerisce che i tuoi dati non seguono la distribuzione teorica presunta, e cè un elevata probabilità che la differenza osservata sia statisticamente significativa.'''
+
+
+#TEST SHAPIRO WILK
+
+sf.test(df$reb)
+
+''' In sintesi, il risultato del test di Shapiro-Francia indica che i tuoi dati nella variabile df$reb non seguono una distribuzione normale. Questo è supportato dal valore basso del p-value, il quale suggerisce che la differenza tra la distribuzione dei tuoi dati e una distribuzione normale è statisticamente significativa. '''
+
+```
+
+
+
