@@ -25,11 +25,11 @@ COVARIATE: tutte le altre (o uno specifico insieme di queste, in base all'obiett
 
 # INIZIALIZZAZIONE DATI E GRAFICI DATI
 
-dataset = read.delim("0_Materiale/basketball_teams.txt") # andiamo a leggere il database fornito
-FIRST = 1976 # primo anno del range da considerare per lo studio
-LAST = 2011 # ultimo anno del range da considerare per lo studio
+dataset <- read.delim("0_Materiale/basketball_teams.txt") # andiamo a leggere il database fornito
+FIRST <- 1976 # primo anno del range da considerare per lo studio
+LAST <- 2011 # ultimo anno del range da considerare per lo studio
 
-nba_model = dataset [dataset$lgID=="NBA" & dataset$year >= FIRST & dataset$year <= LAST & dataset$games==82]
+nba_model <- dataset [dataset$lgID=="NBA" & dataset$year >= FIRST & dataset$year <= LAST & dataset$games==82]
 
 dataset$lgID <- as.factor(dataset$lgID) # perchè mi permettono di poter generare variabili dummy
 summary(nba_model)
@@ -54,15 +54,15 @@ boxplot(nba_model$won ~ nba_model$tmID, las=2)
 
 # INIZIALIZZAZIONE MODELLO DI REGRESSIONE LINEARE
   
-nba_model$o_canestriSuTotali = nba_model$o_fgm/nba_model$o_fga # proporzione tra tiri realizzati su tiri totali
-nba_model$d_canestriSuTotali = nba_model$d_fgm/nba_model$d_fga # proporzione tra tiri subiti su tiri totali
-nba_model$d_stoppateSuTiri = nba_model$d_blk/nba_model$d_fga # proporzione su quanti tiri tentati sono stati stoppati
-nba_model$o_rimbTiriSbagliati = nba_model$o_oreb/(nba_model$o_fga-nba_model$o_fgm) # percentuale di rimbalzi presi su tiri sbagliati in attacco
-nba_model$d_rimbDef = nba_model$d_dreb/(nba_model$d_fga-nba_model$d_fgm) # percentuale di rimbalzi difensivi presi in difesa
-nba_model$formula_metric = nba_model$d_pf * (nba_model$o_ftm / nba_model$o_fta)^2 * (nba_model$o_ftm / (nba_model$o_ftm + 2 * (nba_model$o_fgm - nba_model$o_3pm) + 3 * nba_model$o_3pm))
+nba_model$o_canestriSuTotali <- nba_model$o_fgm/nba_model$o_fga # proporzione tra tiri realizzati su tiri totali
+nba_model$d_canestriSuTotali <- nba_model$d_fgm/nba_model$d_fga # proporzione tra tiri subiti su tiri totali
+nba_model$d_stoppateSuTiri <- nba_model$d_blk/nba_model$d_fga # proporzione su quanti tiri tentati sono stati stoppati
+nba_model$o_rimbTiriSbagliati <- nba_model$o_oreb/(nba_model$o_fga-nba_model$o_fgm) # percentuale di rimbalzi presi su tiri sbagliati in attacco
+nba_model$d_rimbDef <- nba_model$d_dreb/(nba_model$d_fga-nba_model$d_fgm) # percentuale di rimbalzi difensivi presi in difesa
+nba_model$formula_metric <- nba_model$d_pf * (nba_model$o_ftm / nba_model$o_fta)^2 * (nba_model$o_ftm / (nba_model$o_ftm + 2 * (nba_model$o_fgm - nba_model$o_3pm) + 3 * nba_model$o_3pm))
 
 # Modello di regressione 1
-(linMod = lm(won ~ o_canestriSuTotali + d_canestriSuTotali + d_stoppateSuTiri + o_rimbTiriSbagliati + d_rimbDef + formula_metric, data = nba_model ))
+(linMod <- lm(won ~ o_canestriSuTotali + d_canestriSuTotali + d_stoppateSuTiri + o_rimbTiriSbagliati + d_rimbDef + formula_metric, data = nba_model ))
 summary (linMod)
 
 ```
@@ -73,14 +73,14 @@ summary (linMod)
 # in un chunk diverso per minimizzare cpu-time
 
 # Normalizziamo le covariate
-nba_model$o_canestriSuTotali_z = scale(nba_model$o_canestriSuTotali)
-nba_model$d_canestriSuTotali_z = scale(nba_model$d_canestriSuTotali)
-nba_model$d_stoppateSuTiri_z = scale(nba_model$d_stoppateSuTiri)
-nba_model$o_rimbTiriSbagliati_z = scale(nba_model$o_rimbTiriSbagliati)
-nba_model$d_rimbDef_z = scale(nba_model$d_rimbDef)
+nba_model$o_canestriSuTotali_z <- scale(nba_model$o_canestriSuTotali)
+nba_model$d_canestriSuTotali_z <- scale(nba_model$d_canestriSuTotali)
+nba_model$d_stoppateSuTiri_z <- scale(nba_model$d_stoppateSuTiri)
+nba_model$o_rimbTiriSbagliati_z <- scale(nba_model$o_rimbTiriSbagliati)
+nba_model$d_rimbDef_z <- scale(nba_model$d_rimbDef)
   
 # Modello di regressione 2
-(linModNormalized = lm(won ~ o_canestriSuTotali_z + d_canestriSuTotali_z + d_stoppateSuTiri_z + o_rimbTiriSbagliati_z + d_rimbDef_z, data = nba_model ))
+(linModNormalized <- lm(won ~ o_canestriSuTotali_z + d_canestriSuTotali_z + d_stoppateSuTiri_z + o_rimbTiriSbagliati_z + d_rimbDef_z, data = nba_model ))
 summary (linModNormalized)
 
 
@@ -98,7 +98,7 @@ sample <- sample(c(TRUE, FALSE), nrow(nba_model), replace=TRUE, prob=c(0.7,0.3))
 train  <- nba_model[sample, ]
 test   <- nba_model[!sample, ]
 
-m = lm(won ~ o_canestriSuTotali_z + d_canestriSuTotali_z + d_stoppateSuTiri_z + o_rimbTiriSbagliati_z + d_rimbDef_z, data = train)
+m <- lm(won ~ o_canestriSuTotali_z + d_canestriSuTotali_z + d_stoppateSuTiri_z + o_rimbTiriSbagliati_z + d_rimbDef_z, data = train)
 summary(m)
 
 ```
