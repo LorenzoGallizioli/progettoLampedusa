@@ -33,8 +33,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ### BASKETBALL TEAMS' DATASET
 ```{r}
-setwd("C:\\Users\\bnsda\\Desktop\\Progetti_R\\PROGETTO\\MATERIALE")
-ds = read.delim("basketball_teams.txt")
+setwd("C:\\Users\\thoma\\Nextcloud\\UniBG\\2023-2024\\Statistica\\progettoLampedusa")
+ds = read.delim("0_Materiale/basketball_teams.txt")
 head (ds)
 
 ```

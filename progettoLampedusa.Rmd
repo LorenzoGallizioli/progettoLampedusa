@@ -1,14 +1,19 @@
-
 ---
 title: "ProgettoLampedusa"
+<<<<<<< HEAD
 date: "2023-12-07"
 output:
   pdf_document: default
   html_document: default
   word_document: default
+=======
+author: "Lampedusa_Group"
+date: "`r Sys.Date()`"
+output: html_document
+>>>>>>> fceeb704869ea08a9ddfef50e705ab6ad6e4df3f
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=TRUE}
 
 knitr::opts_chunk$set(echo = TRUE)
 
@@ -27,7 +32,7 @@ tinytex::tinytex_root()
 # Progetto numero 5
 NBA moderna (1976-2011): VARIABILE DIPENDENTE: numero di vittorie in stagione
 COVARIATE: tutte le altre (o uno specifico insieme di queste, in base all'obiettivo di analisi)
-> Considerare solo le squadre che hanno giocato 82 partite (dataset$games==82)
+Considerare solo le squadre che hanno giocato 82 partite (dataset$games==82)
 
 ## INIZIALIZZAZIONE DATI E GRAFICI DATI
 ```{r}
@@ -107,10 +112,18 @@ df$f3 <- (df$o_oreb + 1.5 * df$d_dreb)/(df$o_dreb + 2 * df$d_oreb)
 df$f4 <- (df$o_oreb - df$o_dreb) + 1.5 * (df$d_dreb - df$d_oreb)
 df$f5 <- (df$d_oreb / df$d_to) / (df$o_dreb / df$o_to)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> fceeb704869ea08a9ddfef50e705ab6ad6e4df3f
 linMod <- lm(won ~ f1 + f2 + f3 + f4 + f5, data = df)
 summary (linMod)
 
 plot(linMod)
+<<<<<<< HEAD
+=======
+
+>>>>>>> fceeb704869ea08a9ddfef50e705ab6ad6e4df3f
 ```
 
 ## INIZIALIZZAZIONE MODELLO DI REGRESSIONE LINEARE NORMALIZZATO
@@ -174,26 +187,103 @@ test   <- df[!sample, ]
 ```
 Il risultato suggerisce omoschedasiticita'
 
+<<<<<<< HEAD
 
 ```{r}
 
 values <- aggregate(cbind(o_oreb, o_dreb, d_oreb, d_dreb, o_reb, d_reb) ~ tmID, data = df, FUN = sum)
 
 # temp <- hist (temp, col = 'steelblue', main = 'caccaculo', xlab = 'balls')
+=======
+### SANDBOX
+
+```{r}
+
+teams <- c()
+
+df$reb <- c(df$o_reb + df$d_reb)
+
+summary(df$reb)
+
+for (team in df$tmID)
+{
+  teams <- unique(c(teams, team))
+}
+
+teams <- sort(teams)
+
+values <- aggregate(cbind(o_oreb, o_dreb, d_oreb, d_dreb, o_reb, d_reb) ~ tmID, data = df, FUN = sum)
+
+x <- seq(-4, 4, by = 0.01)
+y <- dnorm(x, mean = 0, sd = 1)
+plot (x,y, type="l")
+normal <- data.frame(x, y)
+
+
+df$reb <- df$o_reb + df$d_reb
+hist (df$reb, col = 'steelblue', main = 'caccaculo', xlab = 'balls')
+
+>>>>>>> fceeb704869ea08a9ddfef50e705ab6ad6e4df3f
 
 plot(density(df$reb))
+lines(density(normal), col = "green")
+
+
+hist(df$reb, col = 'steelblue', prob = TRUE, main = "Istogramma con Densità")
+
+# Aggiungere la linea di densità per i dati del dataframe
+lines(density(df$reb), col = "red", lwd = 2)
+
+# Aggiungere la linea di densità per la distribuzione normale
+lines(density(normal), col = "green", lwd = 2)
+
+# Aggiungere una legenda
+legend("topright", legend = c("Dati", "Densità Normale"), col = c("red", "green"), lwd = 2)
+
 
 df_reb <- data.frame (df$reb, df$o_reb, df$d_reb)
 M <- cor(df_reb) # correlation matrix
 corrplot(M, method="color", outline = TRUE,type="lower",order = "hclust",
          tl.col="black", tl.srt=45, diag=FALSE,tl.cex = 1,mar=c(0,0,3,0),
-         title="Correlation Matrix between Predictor and Outcome variables")
+         title="culocacca")
 
+
+#TEST ANDERSON-DARLING
+
+install.packages('nortest')
+library(nortest)
+
+ad.test(df$reb)
+
+#Con un livello di significatività (α) di 0.01 e un p-value molto piccolo (3.1e-09) ottenuto dal test di normalità di Anderson-Darling per i dati della variabile df$reb, puoi concludere che hai sufficiente evidenza statistica per respingere lipotesi nulla che i dati seguono una distribuzione normale.Con il tuo livello di significatività del 0.01 e il p-value molto piccolo (3.1e-09), il p-value è inferiore al livello di significatività, quindi respingeresti lipotesi nulla. Questo suggerisce che i dati nella variabile df$reb non seguono una distribuzione normale al livello di significatività del 0.01. In termini più pratici, hai abbastanza evidenza statistica per concludere che la variabile df$reb non segue una distribuzione normale basandoti sui risultati del test di Anderson-Darling.
+
+
+#TEST KOLMOGOROV SMIRNOV
+
+ks.test(df$reb, "pnorm")
+
+# Il risultato che hai ottenuto riguarda il test di Kolmogorov-Smirnov a campione singolo sui dati contenuti nella variabile df$reb. Il test KS confronta la distribuzione empirica dei tuoi dati con una distribuzione teorica (spesso una distribuzione uniforme). In breve, il risultato suggerisce che i tuoi dati non seguono la distribuzione teorica presunta, e cè un elevata probabilità che la differenza osservata sia statisticamente significativa.
+
+
+#TEST SHAPIRO WILK
+
+sf.test(df$reb)
+
+#In sintesi, il risultato del test di Shapiro-Francia indica che i tuoi dati nella variabile df$reb non seguono una distribuzione normale. Questo è supportato dal valore basso del p-value, il quale suggerisce che la differenza tra la distribuzione dei tuoi dati e una distribuzione normale è statisticamente significativa.
+
+<<<<<<< HEAD
+=======
+
+>>>>>>> fceeb704869ea08a9ddfef50e705ab6ad6e4df3f
 barplot(df$reb, col = c("#1b98e0", "#353436"))
 
 legend("topright", legend = c("Group 1", "Group 2"), fill = c("#1b98e0", "#353436"))
 
+
+
+# Fare URIEL ---> da SISTEMARE
+heatmap(cbind(df$d_reb, df$o_reb))
+pie()
 boxplot(df$won ~ df$reb, las=2)
 
-heatmap(cbind(df$d_reb, df$o_reb))
 ```
