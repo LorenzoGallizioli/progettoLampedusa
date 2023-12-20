@@ -25,13 +25,13 @@ COVARIATE: tutte le altre (o uno specifico insieme di queste, in base all'obiett
 
 # INIZIALIZZAZIONE DATI E GRAFICI DATI
 
-dataset <- read.delim("0_Materiale/basketball_teams.txt") # andiamo a leggere il database fornito
+full_df <- read.csv("0_Materiale/basketball_teams_comma.csv") # andiamo a leggere il database fornito
 FIRST <- 1976 # primo anno del range da considerare per lo studio
 LAST <- 2011 # ultimo anno del range da considerare per lo studio
 
-df <- dataset [dataset$lgID=="NBA" & dataset$year >= FIRST & dataset$year <= LAST & dataset$games==82]
+df <- full_df [full_df$lgID=="NBA" & full_df$year >= FIRST & full_df$year <= LAST & full_df$games==82,]
 
-dataset$lgID <- as.factor(dataset$lgID) # perchè mi permettono di poter generare variabili dummy
+df$lgID <- as.factor(df$lgID) # perchè mi permettono di poter generare variabili dummy
 summary(df)
 
 # DEGUB: VERIFICA VALORI MANCANTI
@@ -82,7 +82,6 @@ df$d_rimbDef_z <- scale(df$d_rimbDef)
 # Modello di regressione 2
 (linModNormalized <- lm(won ~ o_canestriSuTotali_z + d_canestriSuTotali_z + d_stoppateSuTiri_z + o_rimbTiriSbagliati_z + d_rimbDef_z, data = df ))
 summary (linModNormalized)
-
 
 ```
 
