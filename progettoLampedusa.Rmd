@@ -89,7 +89,7 @@ $\text{Formula3} = \frac{\text{Palle riprese in attacco} + 1.5 \times \text{Pall
 # canestro
 
 # Formula 4:
-# 
+# - Abbiamo trovato questa formula importante perch
 
 
 df$f1 <- (df$o_oreb)/(df$o_fga-df$o_fgm)
@@ -112,15 +112,17 @@ plot(linMod)
 # in un chunk diverso per minimizzare cpu-time
 
 # Normalizziamo le covariate
-df$o_canestriSuTotali_z <- scale(df$o_canestriSuTotali)
-df$d_canestriSuTotali_z <- scale(df$d_canestriSuTotali)
-df$d_stoppateSuTiri_z <- scale(df$d_stoppateSuTiri)
-df$o_rimbTiriSbagliati_z <- scale(df$o_rimbTiriSbagliati)
-df$d_rimbDef_z <- scale(df$d_rimbDef)
+df$f1_z <- scale(df$f1)
+df$f2_z <- scale(df$f2)
+df$f3_z <- scale(df$f3)
+df$f4_z <- scale(df$f4)
+df$f5_z <- scale(df$f5)
   
 # Modello di regressione 2
-(linModNormalized <- lm(won ~ o_canestriSuTotali_z + d_canestriSuTotali_z + d_stoppateSuTiri_z + o_rimbTiriSbagliati_z + d_rimbDef_z, data = df ))
+linModNormalized <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z, data = df)
 summary (linModNormalized)
+
+plot(linModNormalized)
 
 ```
 
