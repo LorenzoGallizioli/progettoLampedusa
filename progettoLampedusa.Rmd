@@ -25,13 +25,13 @@ COVARIATE: tutte le altre (o uno specifico insieme di queste, in base all'obiett
 
 # INIZIALIZZAZIONE DATI E GRAFICI DATI
 
-full_df <- read.csv("0_Materiale/basketball_teams_comma.csv") # andiamo a leggere il database fornito
+dataset <- read.delim("0_Materiale/basketball_teams.txt") # andiamo a leggere il database fornito
 FIRST <- 1976 # primo anno del range da considerare per lo studio
 LAST <- 2011 # ultimo anno del range da considerare per lo studio
 
-df <- full_df [full_df$lgID=="NBA" & full_df$year >= FIRST & full_df$year <= LAST & full_df$games==82,]
+df <- dataset [dataset$lgID=="NBA" & dataset$year >= FIRST & dataset$year <= LAST & dataset$games==82,]
 
-df$lgID <- as.factor(df$lgID) # perchè mi permettono di poter generare variabili dummy
+dataset$lgID <- as.factor(dataset$lgID) # perchè mi permettono di poter generare variabili dummy
 summary(df)
 
 # DEGUB: VERIFICA VALORI MANCANTI
