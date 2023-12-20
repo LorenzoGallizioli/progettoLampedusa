@@ -106,12 +106,6 @@ df$f3 <- (df$o_oreb + 1.5 * df$d_dreb)/(df$o_dreb + 2 * df$d_oreb)
 df$f4 <- (df$o_oreb - df$o_dreb) + 1.5 * (df$d_dreb - df$d_oreb)
 df$f5 <- (df$d_oreb / df$d_to) / (df$o_dreb / df$o_to)
 
-# Modello di regressione 1
-linMod <- lm(won ~ f1 + f2 + f3 + f4 + f5, data = df)
-summary (linMod)
-
-plot(linMod)
-
 ```
 
 ```{r}
@@ -128,15 +122,37 @@ df$f5_z <- scale(df$f5)
   
 # Modello di regressione 2
 linModNormalized <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z, data = df)
-summary (linModNormalized)
-
-plot(linModNormalized)
 
 ```
 
 ```{r}
 
 # TEST SUL MODELLO DI REGRESSIONE LINEARE
+
+#1 Summary
+summary (linModNormalized)
+
+#2 R-quadrato e R-quadrato Adattato
+summary_linModNormalized <- summary(linModNormalized)
+r_squared <- summary_linModNormalized$r.squared
+cat("R-squared:", r_squared, "\n")
+
+
+n <- length(df$o_oreb)
+k <- length(linModNormalized$coefficients) - 1
+adjusted_r_squared <- 1 - ((1 - r_squared) * (n - 1) / (n - k - 1))
+cat("Adjusted R-squared:", adjusted_r_squared, "\n")
+
+#2 test Shapiro per valutare la normalita' dei residui
+shapiro.test(residuals(linModNormalized))
+
+#3 test di omoschedasticita'
+bptest(linModNormalized)
+
+#4 test di multicollinearita'
+car::vif(linModNormalized)
+
+
 
 # Test di homoschedasticita' (Breusch-Pagan test) --> risultato suggerisce omoschedasiticita'
 lmtest::bptest(linModNormalized)
@@ -151,24 +167,20 @@ summary(m)
 
 ```
 
-<<<<<<< HEAD
-
-=======
->>>>>>> f7f1feea52913bf9662d97ff768f7d7c704de895
 
 ```{r}
 
 teams <- c()
 
-<<<<<<< HEAD
+
 df$reb <- c(df$o_reb + df$d_reb)
 summary(df$reb)
-=======
+
 for (team in df$tmID)
 {
   teams <- unique(c(teams, team))
 }
->>>>>>> f7f1feea52913bf9662d97ff768f7d7c704de895
+
 
 teams <- sort(teams)
 
@@ -188,7 +200,7 @@ corrplot(M, method="color", outline = TRUE,type="lower",order = "hclust",
          tl.col="black", tl.srt=45, diag=FALSE,tl.cex = 1,mar=c(0,0,3,0),
          title="Correlation Matrix between Predictor and Outcome variables")
 
-pie(df$reb, labels=df$tmID)
+pie()
 
 barplot(df$reb, col = c("#1b98e0", "#353436"))
 
