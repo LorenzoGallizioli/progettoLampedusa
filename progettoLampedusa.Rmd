@@ -163,30 +163,34 @@ teams <- sort(teams)
 
 values <- aggregate(cbind(o_oreb, o_dreb, d_oreb, d_dreb, o_reb, d_reb) ~ tmID, data = df, FUN = sum)
 
-temp <- 
 
-hist (temp, col = 'steelblue', main = 'caccaculo',
-     xlab = 'balls')
+x <- seq(-4, 4, by = 0.01)
+y <- dnorm(x, mean = 0, sd = 1)
+plot (x,y, type="l")
+normal <- data.frame(x, y)
+
+
+df$reb <- df$o_reb + df$d_reb
+hist (df$reb, col = 'steelblue', main = 'caccaculo', xlab = 'balls')
+
 
 plot(density(df$reb))
+lines(density(normal), col = "green")
+
+
+hist(df$reb, col = 'steelblue', prob = TRUE)
+lines(density(df$reb), col = "red")
+lines(density(normal), col = "green")
 
 
 df_reb <- data.frame (df$reb, df$o_reb, df$d_reb)
 M <- cor(df_reb) # correlation matrix
 corrplot(M, method="color", outline = TRUE,type="lower",order = "hclust",
          tl.col="black", tl.srt=45, diag=FALSE,tl.cex = 1,mar=c(0,0,3,0),
-         title="Correlation Matrix between Predictor and Outcome variables")
+         title="culocacca")
 
-pie(df$reb, labels=df$tmID)
-
-barplot(df$reb, col = c("#1b98e0", "#353436"))
-
-legend("topright", legend = c("Group 1", "Group 2"), fill = c("#1b98e0", "#353436"))
 
 boxplot(df$won ~ df$reb, las=2)
-
-heatmap(cbind(df$d_reb, df$o_reb))
-
 
 
 #TEST ANDERSON-DARLING
