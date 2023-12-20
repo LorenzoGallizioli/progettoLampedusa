@@ -1,8 +1,16 @@
 ---
 title: "ProgettoLampedusa"
+<<<<<<< HEAD
+date: "2023-12-07"
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
+=======
 author: "Lampedusa_Group"
 date: "`r Sys.Date()`"
 output: html_document
+>>>>>>> fceeb704869ea08a9ddfef50e705ab6ad6e4df3f
 ---
 
 ```{r setup, include=TRUE}
@@ -10,20 +18,25 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 
 library(here)
-knitr::opts_knit$set(root.dir = here("progettoLampedusa", "0_Materiale"))
+library(corrplot)
+library(nortest)
+library(lmtest)
+library(car)
+knitr::opts_knit$set(root.dir = here("0_Materiale"))
 getwd()
+
+tinytex::tinytex_root()
 
 ```
 
 # Progetto numero 5
-
 NBA moderna (1976-2011): VARIABILE DIPENDENTE: numero di vittorie in stagione
 COVARIATE: tutte le altre (o uno specifico insieme di queste, in base all'obiettivo di analisi)
 Considerare solo le squadre che hanno giocato 82 partite (dataset$games==82)
 
 ## INIZIALIZZAZIONE DATI E GRAFICI DATI
 ```{r}
-dataset <- read.delim("0_Materiale/basketball_teams.txt") # andiamo a leggere il database fornito
+dataset <- read.delim("basketball_teams.txt") # andiamo a leggere il database fornito
 FIRST <- 1976 # primo anno del range da considerare per lo studio
 LAST <- 2011 # ultimo anno del range da considerare per lo studio
 
@@ -32,6 +45,10 @@ df <- dataset [dataset$lgID=="NBA" & dataset$year >= FIRST & dataset$year <= LAS
 dataset$lgID <- as.factor(dataset$lgID) # perchè mi permettono di poter generare variabili dummy
 summary(df)
 
+M <- cor(as.matrix(df[, c(11:25, 54)])) # correlation matrix
+corrplot(M, method="color", outline = TRUE,type="lower",order = "hclust",
+        tl.col="black", tl.srt=45, diag=FALSE,tl.cex = 1,mar=c(0,0,3,0),
+        title="Correlation Matrix between Predictor and Outcome variables")
 
 
 
@@ -123,17 +140,17 @@ par(las = 2, cex.axis = 0.8)
 
 
 
+df$reb <- df$o_reb + df$d_reb
+
 ```
 
 ## TESTS DI VERIFICA
 
 ### TEST ANDERSON-DARLING
 ```{r}
-install.packages('nortest')
-library(nortest)
 ad.test(df$reb)
 ```
-Con un livello di significatività (α) di 0.01 e un p-value molto piccolo (3.1e-09) ottenuto dal test di normalità di Anderson-Darling per i dati della variabile df\$reb, puoi concludere che hai sufficiente evidenza statistica per respingere lipotesi nulla che i dati seguono una distribuzione normale.Con il tuo livello di significatività del 0.01 e il p-value molto piccolo (3.1e-09), il p-value è inferiore al livello di significatività, quindi respingeresti lipotesi nulla. Questo suggerisce che i dati nella variabile df\$reb non seguono una distribuzione normale al livello di significatività del 0.01. In termini più pratici, hai abbastanza evidenza statistica per concludere che la variabile df\$reb non segue una distribuzione normale basandoti sui risultati del test di Anderson-Darling.
+Con un livello di significatività ($\alpha$) di 0.01 e un p-value molto piccolo (3.1e-09) ottenuto dal test di normalità di Anderson-Darling per i dati della variabile df\$reb, puoi concludere che hai sufficiente evidenza statistica per respingere lipotesi nulla che i dati seguono una distribuzione normale.Con il tuo livello di significatività del 0.01 e il p-value molto piccolo (3.1e-09), il p-value è inferiore al livello di significatività, quindi respingeresti lipotesi nulla. Questo suggerisce che i dati nella variabile df\$reb non seguono una distribuzione normale al livello di significatività del 0.01. In termini più pratici, hai abbastanza evidenza statistica per concludere che la variabile df\$reb non segue una distribuzione normale basandoti sui risultati del test di Anderson-Darling.
 
 ### TEST KOLMOGOROV SMIRNOV
 ```{r}
@@ -245,14 +262,20 @@ sample <- sample(c(TRUE, FALSE), nrow(df), replace=TRUE, prob=c(0.7, 0.3))
 train  <- df[sample, ]
 test   <- df[!sample, ]
 
-m <- lm(won ~ o_canestriSuTotali_z + d_canestriSuTotali_z + d_stoppateSuTiri_z + o_rimbTiriSbagliati_z + d_rimbDef_z, data = train)
-summary(m)
+# m <- lm(won ~ o_canestriSuTotali_z + d_canestriSuTotali_z + d_stoppateSuTiri_z + o_rimbTiriSbagliati_z + d_rimbDef_z, data = # train)
+# summary(m)
 ```
 Il risultato suggerisce omoschedasiticita'
 
-### SANDBOX
 
 ```{r}
+
+values <- aggregate(cbind(o_oreb, o_dreb, d_oreb, d_dreb, o_reb, d_reb) ~ tmID, data = df, FUN = sum)
+
+# temp <- hist (temp, col = 'steelblue', main = 'caccaculo', xlab = 'balls')
+
+### SANDBOX
+
 
 teams <- c()
 
@@ -501,6 +524,8 @@ sf.test(df$reb)
 
 #In sintesi, il risultato del test di Shapiro-Francia indica che i tuoi dati nella variabile df$reb non seguono una distribuzione normale. Questo è supportato dal valore basso del p-value, il quale suggerisce che la differenza tra la distribuzione dei tuoi dati e una distribuzione normale è statisticamente significativa.
 
+
+barplot(df$reb, col = c("#1b98e0", "#353436"))
 
 
 
