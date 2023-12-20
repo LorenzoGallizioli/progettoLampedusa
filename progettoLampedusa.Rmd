@@ -1,7 +1,9 @@
 
 ---
 title: "ProgettoLampedusa"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 date: "2023-12-07"
 ---
 
@@ -141,12 +143,12 @@ summary(m)
 
 ```
 
-<<<<<<< HEAD
+
 
 ```{r}
 
 
-df$reb <- c(df$o_reb + df$d_reb, )
+df$reb <- c(df$o_reb + df$d_reb)
 summary(df$reb)
 
 hist (df$reb, col = 'steelblue', main = 'caccaculo',
@@ -199,6 +201,3 @@ sf.test(df$reb)
 ```
 
 
-
-=======
->>>>>>> c58d6ef503b11e61455634ae66b5a07ca0d71a70
