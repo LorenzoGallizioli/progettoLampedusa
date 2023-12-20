@@ -196,15 +196,21 @@ normal <- data.frame(x, y)
 df$reb <- df$o_reb + df$d_reb
 hist (df$reb, col = 'steelblue', main = 'caccaculo', xlab = 'balls')
 
-temp <- hist (temp, col = 'steelblue', main = 'caccaculo', xlab = 'balls')
 
 plot(density(df$reb))
 lines(density(normal), col = "green")
 
 
-hist(df$reb, col = 'steelblue', prob = TRUE)
-lines(density(df$reb), col = "red")
-lines(density(normal), col = "green")
+hist(df$reb, col = 'steelblue', prob = TRUE, main = "Istogramma con Densità")
+
+# Aggiungere la linea di densità per i dati del dataframe
+lines(density(df$reb), col = "red", lwd = 2)
+
+# Aggiungere la linea di densità per la distribuzione normale
+lines(density(normal), col = "green", lwd = 2)
+
+# Aggiungere una legenda
+legend("topright", legend = c("Dati", "Densità Normale"), col = c("red", "green"), lwd = 2)
 
 
 df_reb <- data.frame (df$reb, df$o_reb, df$d_reb)
