@@ -50,18 +50,20 @@ boxplot(df$won ~ df$tmID, las=2)
 
 
 ```
+
 $\text{Formula1} = \frac{\text{Rimbalzi offensivi in attacco}}{\text{Tiri sbagliati su azione}}$
 $\text{Formula2} = \frac{\text{Rimbalzi difensivi in difesa presi}}{\text{Tiri sbagliati su azione degli avversari}}$
-$\text{Formula3} = \frac{\text{Palle riprese in attacco} + 1.5 \times \text{Palle riprese in difesa}}{\text{Palle perse in attacco} + 2 \times \text{Palle perse in difesa}}$
+$\text{Formula3} = \frac{\text{Palle riprese in attacco} + 1.5 \times \text{Palle riprese in difesa}}{\text{Palle perse in attacco} + 2 \times \text{Rimbalzi subiti in difesa}}$
+$\text{Formula4} = (\text{Palle riprese in attacco - Palle perse in attacco}) + 1.5*(\text{Palle riprese in difesa - Palle perse in difesa})$
+$\text{Formula5} = \frac{(\frac{\text{Rimbalzi subiti in difesa}}{\text{Palle perse in difesa}})}{(\frac{\text{Rimbalzi subiti in attacco}}{\text{Palle perse in attacco}})}$
 ```{r}
-
 # INIZIALIZZAZIONE MODELLO DI REGRESSIONE LINEARE
 # """
-# o_oreb = palle riprese dopo azione in attacco
-# o_dreb = palle perse dopo azione in attacco
+# o_oreb = Rimbalzi ottenuti in attacco
+# o_dreb = Rimbalzi subiti in attacco
 # o_reb  = totale rimbalzi in attacco
-# d_oreb = palle perse dopo azione subita
-# d_dreb = palle riprese dopo azione subita
+# d_oreb = Rimbalzi subiti in difesa
+# d_dreb = Rimbalzi ottenuti in difesa
 # d_reb  = totale rimbalzi in difesa
 
 # formula rapporto:
@@ -89,8 +91,11 @@ $\text{Formula3} = \frac{\text{Palle riprese in attacco} + 1.5 \times \text{Pall
 # sono stati scelti in base a ciò che riteniamo più importante in una partita, ossia la difesa del proprio
 # canestro
 
-# Formula 4:
-# - Abbiamo trovato questa formula importante perch
+## Formula 4:
+ # - Abbiamo trovato questa formula importante perchè cresce all'aumentare dei rimbalzi ottenuti e diminuisce all'aumentare dei rimbalzi subiti, considerando anche un coefficiente che da particolare importanza alla difesa
+
+## Formula 5:
+ # - Abbiamo trovato questa formula importante perchè ci mostra quanto sono influenti i rimbalzi nel rapporto tra le palle perse dalla squadra e le palle perse dagli avversari
 
 
 df$f1 <- (df$o_oreb)/(df$o_fga-df$o_fgm)
