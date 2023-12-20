@@ -1,8 +1,11 @@
 
 ---
 title: "ProgettoLampedusa"
-output: html_document
 date: "2023-12-07"
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -10,20 +13,25 @@ date: "2023-12-07"
 knitr::opts_chunk$set(echo = TRUE)
 
 library(here)
-knitr::opts_knit$set(root.dir = here("progettoLampedusa", "0_Materiale"))
+library(corrplot)
+library(nortest)
+library(lmtest)
+library(car)
+knitr::opts_knit$set(root.dir = here("0_Materiale"))
 getwd()
+
+tinytex::tinytex_root()
 
 ```
 
 # Progetto numero 5
-
 NBA moderna (1976-2011): VARIABILE DIPENDENTE: numero di vittorie in stagione
 COVARIATE: tutte le altre (o uno specifico insieme di queste, in base all'obiettivo di analisi)
 > Considerare solo le squadre che hanno giocato 82 partite (dataset$games==82)
 
 ## INIZIALIZZAZIONE DATI E GRAFICI DATI
 ```{r}
-dataset <- read.delim("0_Materiale/basketball_teams.txt") # andiamo a leggere il database fornito
+dataset <- read.delim("basketball_teams.txt") # andiamo a leggere il database fornito
 FIRST <- 1976 # primo anno del range da considerare per lo studio
 LAST <- 2011 # ultimo anno del range da considerare per lo studio
 
@@ -36,10 +44,12 @@ plot(density(df$won))
 
 M <- cor(as.matrix(df[, c(11:25, 54)])) # correlation matrix
 corrplot(M, method="color", outline = TRUE,type="lower",order = "hclust",
-         tl.col="black", tl.srt=45, diag=FALSE,tl.cex = 1,mar=c(0,0,3,0),
-         title="Correlation Matrix between Predictor and Outcome variables")
+        tl.col="black", tl.srt=45, diag=FALSE,tl.cex = 1,mar=c(0,0,3,0),
+        title="Correlation Matrix between Predictor and Outcome variables")
 
 boxplot(df$won ~ df$tmID, las=2)
+
+df$reb <- df$o_reb + df$d_reb
 
 ```
 
@@ -47,11 +57,9 @@ boxplot(df$won ~ df$tmID, las=2)
 
 ### TEST ANDERSON-DARLING
 ```{r}
-install.packages('nortest')
-library(nortest)
 ad.test(df$reb)
 ```
-Con un livello di significatività (α) di 0.01 e un p-value molto piccolo (3.1e-09) ottenuto dal test di normalità di Anderson-Darling per i dati della variabile df\$reb, puoi concludere che hai sufficiente evidenza statistica per respingere lipotesi nulla che i dati seguono una distribuzione normale.Con il tuo livello di significatività del 0.01 e il p-value molto piccolo (3.1e-09), il p-value è inferiore al livello di significatività, quindi respingeresti lipotesi nulla. Questo suggerisce che i dati nella variabile df\$reb non seguono una distribuzione normale al livello di significatività del 0.01. In termini più pratici, hai abbastanza evidenza statistica per concludere che la variabile df\$reb non segue una distribuzione normale basandoti sui risultati del test di Anderson-Darling.
+Con un livello di significatività ($\alpha$) di 0.01 e un p-value molto piccolo (3.1e-09) ottenuto dal test di normalità di Anderson-Darling per i dati della variabile df\$reb, puoi concludere che hai sufficiente evidenza statistica per respingere lipotesi nulla che i dati seguono una distribuzione normale.Con il tuo livello di significatività del 0.01 e il p-value molto piccolo (3.1e-09), il p-value è inferiore al livello di significatività, quindi respingeresti lipotesi nulla. Questo suggerisce che i dati nella variabile df\$reb non seguono una distribuzione normale al livello di significatività del 0.01. In termini più pratici, hai abbastanza evidenza statistica per concludere che la variabile df\$reb non segue una distribuzione normale basandoti sui risultati del test di Anderson-Darling.
 
 ### TEST KOLMOGOROV SMIRNOV
 ```{r}
@@ -99,14 +107,10 @@ df$f3 <- (df$o_oreb + 1.5 * df$d_dreb)/(df$o_dreb + 2 * df$d_oreb)
 df$f4 <- (df$o_oreb - df$o_dreb) + 1.5 * (df$d_dreb - df$d_oreb)
 df$f5 <- (df$d_oreb / df$d_to) / (df$o_dreb / df$o_to)
 
-<<<<<<< HEAD
-=======
 linMod <- lm(won ~ f1 + f2 + f3 + f4 + f5, data = df)
 summary (linMod)
 
 plot(linMod)
-
->>>>>>> bce39be4787c54fec5f56876cf247e6aab72dee0
 ```
 
 ## INIZIALIZZAZIONE MODELLO DI REGRESSIONE LINEARE NORMALIZZATO
@@ -129,7 +133,6 @@ linModNormalized <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z, data = df)
 
 ### TEST BREUSCH-PAGAN (Test di omoschedasticità)
 ```{r}
-<<<<<<< HEAD
 
 # TEST SUL MODELLO DI REGRESSIONE LINEARE
 
@@ -159,48 +162,24 @@ car::vif(linModNormalized)
 
 
 # Test di homoschedasticita' (Breusch-Pagan test) --> risultato suggerisce omoschedasiticita'
-=======
->>>>>>> bce39be4787c54fec5f56876cf247e6aab72dee0
+
 lmtest::bptest(linModNormalized)
 # Divisione in Test e Train per evitare che il modello fitti troppo bene sui nostri dati
 sample <- sample(c(TRUE, FALSE), nrow(df), replace=TRUE, prob=c(0.7, 0.3))
 train  <- df[sample, ]
 test   <- df[!sample, ]
 
-m <- lm(won ~ o_canestriSuTotali_z + d_canestriSuTotali_z + d_stoppateSuTiri_z + o_rimbTiriSbagliati_z + d_rimbDef_z, data = train)
-summary(m)
+# m <- lm(won ~ o_canestriSuTotali_z + d_canestriSuTotali_z + d_stoppateSuTiri_z + o_rimbTiriSbagliati_z + d_rimbDef_z, data = # train)
+# summary(m)
 ```
 Il risultato suggerisce omoschedasiticita'
 
-<<<<<<< HEAD
 
-=======
-### SANDBOX
->>>>>>> bce39be4787c54fec5f56876cf247e6aab72dee0
 ```{r}
-teams <- c()
-
-<<<<<<< HEAD
-
-df$reb <- c(df$o_reb + df$d_reb)
-summary(df$reb)
-
-for (team in df$tmID)
-{
-  teams <- unique(c(teams, team))
-}
-
-=======
-for (team in df$tmID){
-  teams <- unique(c(teams, team))
-}
->>>>>>> bce39be4787c54fec5f56876cf247e6aab72dee0
-
-teams <- sort(teams)
 
 values <- aggregate(cbind(o_oreb, o_dreb, d_oreb, d_dreb, o_reb, d_reb) ~ tmID, data = df, FUN = sum)
 
-temp <- hist (temp, col = 'steelblue', main = 'caccaculo', xlab = 'balls')
+# temp <- hist (temp, col = 'steelblue', main = 'caccaculo', xlab = 'balls')
 
 plot(density(df$reb))
 
@@ -209,8 +188,6 @@ M <- cor(df_reb) # correlation matrix
 corrplot(M, method="color", outline = TRUE,type="lower",order = "hclust",
          tl.col="black", tl.srt=45, diag=FALSE,tl.cex = 1,mar=c(0,0,3,0),
          title="Correlation Matrix between Predictor and Outcome variables")
-
-pie()
 
 barplot(df$reb, col = c("#1b98e0", "#353436"))
 
