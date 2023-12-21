@@ -74,7 +74,6 @@ for (variables in 1:(dim(df_reb)[2])){
   polygon(d, col="cyan", border="blue")
   title("Density plots for all Model Variables", line = -19, outer = TRUE)}
 
-
 #verifica della presenza zeri nel dataset
 print(paste("Percentage non-zero o_oreb: ",round(length(which(df_reb$o_oreb>0)) /dim(df_reb)[1]*100,2)))
 print(paste("Percentage non-zero o_dreb: ",round(length(which(df_reb$o_dreb>0)) /dim(df_reb)[1]*100,2)))
@@ -295,25 +294,52 @@ cat("Adjusted R-squared:", adjusted_r_squared, "\n")
 #2 test Shapiro per valutare la normalita' dei residui
 shapiro.test(residuals(linModNormalized))
 
-#3 test di omoschedasticita'
+#3 test di omoschedasticita' (Breusch-Pagan test) --> risultato suggerisce omoschedasiticita'
 bptest(linModNormalized)
 
 #4 test di multicollinearita'
 car::vif(linModNormalized)
 
+```
+
+Possiamo ora verificare la presenza di outlayers, ovvero dati anomali o fuori norma che possono influenzare in modo molto significativo il modello rispetto al resto dei dati presi in cosiderazione.
+Provvediamo quindi a rimuoverli e a ricreare il modello.
+```{r, include=TRUE}
+influencePlot(linModNormalized,5)
+
+#rimuovo gli outlayers e ricreo il modello
+df_1 <- df[-which(row.names(df) %in% c(822, 957)),]
+
+df_1$f1 <- (df_1$o_oreb)/(df_1$o_fga-df_1$o_fgm)
+df_1$f2 <- (df_1$d_dreb)/(df_1$d_fga-df_1$d_fgm)
+df_1$f3 <- (df_1$o_oreb + 1.5 * df_1$d_dreb)/(df_1$o_dreb + 2 * df_1$d_oreb)
+df_1$f4 <- (df_1$o_oreb - df_1$o_dreb) + 1.5 * (df_1$d_dreb - df_1$d_oreb)
+df_1$f5 <- (df_1$d_oreb / df_1$d_to) / (df_1$o_dreb / df_1$o_to)
+
+df_1$f1_z <- scale(df_1$f1)
+df_1$f2_z <- scale(df_1$f2)
+df_1$f3_z <- scale(df_1$f3)
+df_1$f4_z <- scale(df_1$f4)
+df_1$f5_z <- scale(df_1$f5)
+
+linModNormalized_1 <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z, data = df_1)
+
+influencePlot(linModNormalized_1,5)
 
 
-# Test di homoschedasticita' (Breusch-Pagan test) --> risultato suggerisce omoschedasiticita'
+```
 
-lmtest::bptest(linModNormalized)
+
+
+```{r}
 # Divisione in Test e Train per evitare che il modello fitti troppo bene sui nostri dati
 sample <- sample(c(TRUE, FALSE), nrow(df), replace=TRUE, prob=c(0.7, 0.3))
 train  <- df[sample, ]
 test   <- df[!sample, ]
 
-# m <- lm(won ~ o_canestriSuTotali_z + d_canestriSuTotali_z + d_stoppateSuTiri_z + o_rimbTiriSbagliati_z + d_rimbDef_z, data = # train)
-# summary(m)
+
 ```
+
 
 Il risultato suggerisce omoschedasiticita'
 
