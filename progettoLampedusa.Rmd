@@ -1,16 +1,13 @@
 ---
 title: "ProgettoLampedusa"
-<<<<<<< HEAD
 date: "2023-12-07"
 output:
   pdf_document: default
   html_document: default
   word_document: default
-=======
 author: "Lampedusa_Group"
 date: "`r Sys.Date()`"
 output: html_document
->>>>>>> fceeb704869ea08a9ddfef50e705ab6ad6e4df3f
 ---
 
 ```{r setup, include=TRUE}
@@ -22,11 +19,8 @@ library(corrplot)
 library(nortest)
 library(lmtest)
 library(car)
+
 knitr::opts_knit$set(root.dir = here("0_Materiale"))
-getwd()
-
-tinytex::tinytex_root()
-
 ```
 
 # Progetto numero 5
