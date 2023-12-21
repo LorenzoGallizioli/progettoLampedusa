@@ -11,7 +11,7 @@ editor_options:
     wrap: 72
 ---
 
-```{r setup, include=TRUE}
+```{r setup, include=TRUE, warning=FALSE, message=FALSE, error=FALSE}
 
 library(here)
 library(corrplot)
