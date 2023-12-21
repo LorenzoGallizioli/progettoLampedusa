@@ -2,33 +2,41 @@
 title: "ProgettoLampedusa"
 date: "2023-12-07"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
   word_document: default
 author: "Lampedusa_Group"
-date: "`r Sys.Date()`"
-output: html_document
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
 ```{r setup, include=TRUE}
 
-knitr::opts_chunk$set(echo = TRUE)
-
+knitr::opts_chunk$set(
+	message = FALSE,
+	warning = FALSE,
+	include = FALSE
+)
 library(here)
 library(corrplot)
 library(nortest)
 library(lmtest)
 library(car)
+library(heatmaply)
+library(ggheatmap)
+library(ggplot2)
+library(viridis)
 
 knitr::opts_knit$set(root.dir = here("0_Materiale"))
 ```
 
 # Progetto numero 5
-NBA moderna (1976-2011): VARIABILE DIPENDENTE: numero di vittorie in stagione
-COVARIATE: tutte le altre (o uno specifico insieme di queste, in base all'obiettivo di analisi)
-Considerare solo le squadre che hanno giocato 82 partite (dataset$games==82)
+
+NBA moderna (1976-2011): VARIABILE DIPENDENTE: numero di vittorie in stagione COVARIATE: tutte le altre (o uno specifico insieme di queste, in base all'obiettivo di analisi) Considerare solo le squadre che hanno giocato 82 partite (dataset\$games==82)
 
 ## INIZIALIZZAZIONE DATI E GRAFICI DATI
+
 ```{r}
 dataset <- read.delim("basketball_teams.txt") # andiamo a leggere il database fornito
 FIRST <- 1976 # primo anno del range da considerare per lo studio
@@ -141,42 +149,42 @@ df$reb <- df$o_reb + df$d_reb
 ## TESTS DI VERIFICA
 
 ### TEST ANDERSON-DARLING
+
 ```{r}
 ad.test(df$reb)
 ```
+
 Con un livello di significatività ($\alpha$) di 0.01 e un p-value molto piccolo (3.1e-09) ottenuto dal test di normalità di Anderson-Darling per i dati della variabile df\$reb, puoi concludere che hai sufficiente evidenza statistica per respingere lipotesi nulla che i dati seguono una distribuzione normale.Con il tuo livello di significatività del 0.01 e il p-value molto piccolo (3.1e-09), il p-value è inferiore al livello di significatività, quindi respingeresti lipotesi nulla. Questo suggerisce che i dati nella variabile df\$reb non seguono una distribuzione normale al livello di significatività del 0.01. In termini più pratici, hai abbastanza evidenza statistica per concludere che la variabile df\$reb non segue una distribuzione normale basandoti sui risultati del test di Anderson-Darling.
 
 ### TEST KOLMOGOROV SMIRNOV
+
 ```{r}
 ks.test(df$reb, "pnorm")
 ```
-Il risultato che hai ottenuto riguarda il test di Kolmogorov-Smirnov a campione singolo sui dati contenuti nella variabile df$reb. Il test KS confronta la distribuzione empirica dei tuoi dati con una distribuzione teorica (spesso una distribuzione uniforme). In breve, il risultato suggerisce che i tuoi dati non seguono la distribuzione teorica presunta, e cè un elevata probabilità che la differenza osservata sia statisticamente significativa.
+
+Il risultato che hai ottenuto riguarda il test di Kolmogorov-Smirnov a campione singolo sui dati contenuti nella variabile df\$reb. Il test KS confronta la distribuzione empirica dei tuoi dati con una distribuzione teorica (spesso una distribuzione uniforme). In breve, il risultato suggerisce che i tuoi dati non seguono la distribuzione teorica presunta, e cè un elevata probabilità che la differenza osservata sia statisticamente significativa.
 
 ### TEST SHAPIRO WILK
+
 ```{r}
 sf.test(df$reb)
 ```
-In sintesi, il risultato del test di Shapiro-Francia indica che i tuoi dati nella variabile df$reb non seguono una distribuzione normale. Questo è supportato dal valore basso del p-value, il quale suggerisce che la differenza tra la distribuzione dei tuoi dati e una distribuzione normale è statisticamente significativa.
 
+In sintesi, il risultato del test di Shapiro-Francia indica che i tuoi dati nella variabile df\$reb non seguono una distribuzione normale. Questo è supportato dal valore basso del p-value, il quale suggerisce che la differenza tra la distribuzione dei tuoi dati e una distribuzione normale è statisticamente significativa.
 
 ## INIZIALIZZAZIONE MODELLO DI REGRESSIONE LINEARE
 
 ### L'IMPORTANZA DEI RIMBALZI
 
-$\text{Formula1} = \frac{\text{Rimbalzi offensivi in attacco}}{\text{Tiri sbagliati su azione}}$
-Rappresenta la capacità della squadra di ripossesso della palla dopo un tiro che non va a canestro e colpisce il tabellone.
+$\text{Formula1} = \frac{\text{Rimbalzi offensivi in attacco}}{\text{Tiri sbagliati su azione}}$ Rappresenta la capacità della squadra di ripossesso della palla dopo un tiro che non va a canestro e colpisce il tabellone.
 
-$\text{Formula2} = \frac{\text{Rimbalzi difensivi in difesa presi}}{\text{Tiri sbagliati su azione degli avversari}}$
-Rappresenta la capacità della squadra di impossessarsi della palla dopo un tiro sbagliato della squadra avversaria che colpisce il tabellone, che troviamo un buon stimatore della capacità di contropiede della squadra.
+$\text{Formula2} = \frac{\text{Rimbalzi difensivi in difesa presi}}{\text{Tiri sbagliati su azione degli avversari}}$ Rappresenta la capacità della squadra di impossessarsi della palla dopo un tiro sbagliato della squadra avversaria che colpisce il tabellone, che troviamo un buon stimatore della capacità di contropiede della squadra.
 
-$\text{Formula3} = \frac{\text{Palle riprese in attacco} + 1.5 \times \text{Palle riprese in difesa}}{\text{Palle perse in attacco} + 2 \times \text{Rimbalzi subiti in difesa}}$
-Rappresenta il rapporto tra le palle riprese nei rimbalzi (sia offensivi che difensivi) rispetto alle palle perse nei rimbalzi (sia offensivi che difensivi). I coefficienti sono stati scelti in base a ciò che riteniamo più importante in una partita, ossia la difesa del proprio canestro.
+$\text{Formula3} = \frac{\text{Palle riprese in attacco} + 1.5 \times \text{Palle riprese in difesa}}{\text{Palle perse in attacco} + 2 \times \text{Rimbalzi subiti in difesa}}$ Rappresenta il rapporto tra le palle riprese nei rimbalzi (sia offensivi che difensivi) rispetto alle palle perse nei rimbalzi (sia offensivi che difensivi). I coefficienti sono stati scelti in base a ciò che riteniamo più importante in una partita, ossia la difesa del proprio canestro.
 
-$\text{Formula4} = (\text{Palle riprese in attacco - Palle perse in attacco}) + 1.5*(\text{Palle riprese in difesa - Palle perse in difesa})$
-Cresce all'aumentare dei rimbalzi ottenuti e diminuisce all'aumentare dei rimbalzi subiti, considerando anche un coefficiente che da particolare importanza alla difesa.
+$\text{Formula4} = (\text{Palle riprese in attacco - Palle perse in attacco}) + 1.5*(\text{Palle riprese in difesa - Palle perse in difesa})$ Cresce all'aumentare dei rimbalzi ottenuti e diminuisce all'aumentare dei rimbalzi subiti, considerando anche un coefficiente che da particolare importanza alla difesa.
 
-$\text{Formula5} = \frac{(\frac{\text{Rimbalzi subiti in difesa}}{\text{Palle perse in difesa}})}{(\frac{\text{Rimbalzi subiti in attacco}}{\text{Palle perse in attacco}})}$
-Mostra quanto siano influenti i rimbalzi nel rapporto tra le palle perse dalla squadra e le palle perse dagli avversari.
+$\text{Formula5} = \frac{(\frac{\text{Rimbalzi subiti in difesa}}{\text{Palle perse in difesa}})}{(\frac{\text{Rimbalzi subiti in attacco}}{\text{Palle perse in attacco}})}$ Mostra quanto siano influenti i rimbalzi nel rapporto tra le palle perse dalla squadra e le palle perse dagli avversari.
 
 ```{r}
 # o_oreb = Rimbalzi ottenuti in attacco
@@ -214,11 +222,15 @@ df$f5_z <- scale(df$f5)
 
 linModNormalized <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z, data = df)
 
+summary(linModNormalized)
+plot(linModNormalized)
+
 ```
 
 ## TEST SUL MODELLO DI REGRESSIONE LINEARE
 
 ### TEST BREUSCH-PAGAN (Test di omoschedasticità)
+
 ```{r}
 
 # TEST SUL MODELLO DI REGRESSIONE LINEARE
@@ -259,10 +271,13 @@ test   <- df[!sample, ]
 # m <- lm(won ~ o_canestriSuTotali_z + d_canestriSuTotali_z + d_stoppateSuTiri_z + o_rimbTiriSbagliati_z + d_rimbDef_z, data = # train)
 # summary(m)
 ```
+
 Il risultato suggerisce omoschedasiticita'
 
-
 ```{r}
+
+# SANDBOX TESTING
+# QUI SI TESTA TUTTO CIÒ CHE POI VERRÀ AGGGIUNTO NEL DOCUMENTO SOPRA
 
 values <- aggregate(cbind(o_oreb, o_dreb, d_oreb, d_dreb, o_reb, d_reb) ~ tmID, data = df, FUN = sum)
 
@@ -471,10 +486,6 @@ text(max(df$reb) + 0.2, median(df$won), "Mediana", col = "red", pos = 2, offset 
 
 #BOXPLOT (2° Versione)
 
-# Supponendo che df sia il tuo DataFrame
-install.packages(ggplot2)
-library(ggplot2)
-
 # Creare categorie per i rimbalzi
 df$reb_categories <- cut(df$reb, breaks = c(-Inf, 5, 10, 15, Inf), labels = c("0-5", "6-10", "11-15", "16+"))
 
@@ -495,11 +506,6 @@ ggplot(df, aes(x = reb_categories, y = won, fill = reb_categories)) +
 
 
 #TEST ANDERSON-DARLING
-
-install.packages('nortest')
-
-library(nortest)
-
 ad.test(df$reb)
 
 #Con un livello di significatività (α) di 0.01 e un p-value molto piccolo (3.1e-09) ottenuto dal test di normalità di Anderson-Darling per i dati della variabile df$reb, puoi concludere che hai sufficiente evidenza statistica per respingere lipotesi nulla che i dati seguono una distribuzione normale.Con il tuo livello di significatività del 0.01 e il p-value molto piccolo (3.1e-09), il p-value è inferiore al livello di significatività, quindi respingeresti lipotesi nulla. Questo suggerisce che i dati nella variabile df$reb non seguono una distribuzione normale al livello di significatività del 0.01. In termini più pratici, hai abbastanza evidenza statistica per concludere che la variabile df$reb non segue una distribuzione normale basandoti sui risultati del test di Anderson-Darling.
@@ -521,13 +527,23 @@ sf.test(df$reb)
 
 barplot(df$reb, col = c("#1b98e0", "#353436"))
 
+```
 
+```{r}
 
-
+heatmap_df <- subset(values, select = -c(o_oreb, o_dreb, d_oreb, d_dreb))
+rownames(heatmap_df) <- heatmap_df$tmID
+heatmap_df <- heatmap_df[,-1]
 
 # Fare URIEL ---> da SISTEMARE
-heatmap(cbind(df$d_reb, df$o_reb))
-pie()
+heatmaply(
+  percentize(heatmap_df),
+  colors = viridis(n = 256,  option = "magma"),
+  k_col = 2,
+  k_row = 4,
+  seriate = "OLO"
+)
+# pie()
 barplot(df$reb, col = c("#1b98e0", "#353436"))
 legend("topright", legend = c("Group 1", "Group 2"), fill = c("#1b98e0", "#353436"))
 
