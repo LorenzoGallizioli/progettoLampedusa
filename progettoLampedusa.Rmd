@@ -330,8 +330,9 @@ summary(linModNormalized)
 summary(linModNormalized_1)
 
 ```
-Nel complesso, entrambi i modelli sembrano essere buoni modelli di regressione, Entrambi i modelli spiegano circa l'84% della varianza nella variabile dipendente "won".
+Nel complesso, entrambi i modelli sembrano essere buoni modelli di regressione, spiegano entrambi circa l'84% della varianza nella variabile dipendente "won", anche se la rimozione degli otlayers ha migliorato leggermente i risultati.
 
+Dato che la differenza tra i due modelli e' molto ridotta (<1%), tale da essere trascurabile, abbiamo deciso di utilizzare il modello comprendente gli outlayers.
 
 ```{r}
 # Divisione in Test e Train per evitare che il modello fitti troppo bene sui nostri dati
