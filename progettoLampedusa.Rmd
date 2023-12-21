@@ -11,6 +11,16 @@ editor_options:
     wrap: 72
 ---
 
+##I Rimbalzi Nel Basket
+
+
+| Con questo report ci siamo interessati allo studio di un modello lienare predittivo per le vittorie, basato sul numero di rimbalzi annuali effettuati      dalle squadre nel campionato NBA.
+| vengono prese in considerazione solo le squadre con almeno 82 partite disputate, con riferimento agli anni dal 1976 al 2011.
+
+| La previsione del modello lineare e' basata sull'uso di coefficienti ideati per essere il piu possibile significativi e conforme alla nostra idea di       incidenza sulle vittorie di certe variabili riespetto ad altre.
+
+| I dettagli su come eseguire il programma e utilizzare la funzione predittiva si trovano direttamente di seguito, assieme al processo di realizzazione e    verifica del modello stesso.
+
 ```{r setup, include=TRUE, warning=FALSE, message=FALSE, error=FALSE}
 
 library(here)
@@ -31,8 +41,9 @@ knitr::opts_knit$set(root.dir = here("0_Materiale"))
 NBA moderna (1976-2011): VARIABILE DIPENDENTE: numero di vittorie in stagione COVARIATE: tutte le altre (o uno specifico insieme di queste, in base all'obiettivo di analisi) Considerare solo le squadre che hanno giocato 82 partite (dataset\$games==82)
 
 ## INIZIALIZZAZIONE DATI E GRAFICI DATI
-
 ```{r}
+#SCREMATURA DEL SET
+
 dataset <- read.delim("basketball_teams.txt") # andiamo a leggere il database fornito
 FIRST <- 1976 # primo anno del range da considerare per lo studio
 LAST <- 2011 # ultimo anno del range da considerare per lo studio
@@ -41,6 +52,43 @@ df <- dataset [dataset$lgID=="NBA" & dataset$year >= FIRST & dataset$year <= LAS
 
 dataset$lgID <- as.factor(dataset$lgID) # perchè mi permettono di poter generare variabili dummy
 summary(df)
+
+```
+
+```{r}
+#STUDIO DATI RELATIVI AI RIMBALZI
+
+# o_oreb = Rimbalzi ottenuti in attacco
+# o_dreb = Rimbalzi subiti in attacco
+# o_reb  = totale rimbalzi in attacco
+# d_oreb = Rimbalzi subiti in difesa
+# d_dreb = Rimbalzi ottenuti in difesa
+# d_reb  = totale rimbalzi in difesa
+
+df_reb <- subset(df, select = c("o_oreb", "o_dreb", "o_reb", "d_oreb", "d_dreb", "d_reb"))
+  
+for (variables in 1:(dim(df_reb)[2])){
+  thisvar = df_reb[,variables]
+  d <- density(thisvar)
+  plot(d, main = names(df_reb[variables]),xlab="")
+  polygon(d, col="cyan", border="blue")
+  title("Density plots for all Model Variables", line = -19, outer = TRUE)}
+
+
+#verifica della presenza zeri nel dataset
+print(paste("Percentage non-zero o_oreb: ",round(length(which(df_reb$o_oreb>0)) /dim(df_reb)[1]*100,2)))
+print(paste("Percentage non-zero o_dreb: ",round(length(which(df_reb$o_dreb>0)) /dim(df_reb)[1]*100,2)))
+print(paste("Percentage non-zero o_reb: ",round(length(which(df_reb$o_reb>0)) /dim(df_reb)[1]*100,2)))
+print(paste("Percentage non-zero d_oreb: ",round(length(which(df_reb$d_oreb>0)) /dim(df_reb)[1]*100,2)))
+print(paste("Percentage non-zero d_dreb: ",round(length(which(df_reb$d_dreb>0)) /dim(df_reb)[1]*100,2)))
+print(paste("Percentage non-zero d_reb: ",round(length(which(df_reb$d_reb>0)) /dim(df_reb)[1]*100,2)))
+
+
+
+```
+
+```{r}
+#STUDIO SULLE VITTORIE
 
 M <- cor(as.matrix(df[, c(11:25, 54)])) # correlation matrix
 corrplot(M, method="color", outline = TRUE,type="lower",order = "hclust",
