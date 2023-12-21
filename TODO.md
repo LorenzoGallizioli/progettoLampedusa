@@ -20,17 +20,17 @@
   - Nel report definitivo **non inserire grafici**.
 
 ## 📊 Analisi Dati e Modellazione
-- [ ] **Preparazione dei Dati**
+- [X] **Preparazione dei Dati**
   - [X] Dividere il dataset in train e test (validation).
-  - Valutare gli outlier (univariato e multivariato).
-- [ ] **Sviluppo del Modello**
+  - [X]Valutare gli outlier (univariato e multivariato).
+- [X] **Sviluppo del Modello**
   - [X] Ultimare il modello di regressione lineare.
-  - Gestione delle variabili (Multicollinearità, Variabili Dummy, Interazione).
-  - Analisi dei residui e diagnostica.
-  - Confrontare altri modelli (Poisson, Gamma, Dicotomica, modello logistico).
-- [ ] **Test Statistici**
-  - Test F per R^2.
-  - Test ANOVA.
+  - [X] Gestione delle variabili (Multicollinearità, Variabili Dummy, Interazione).
+  - [X] Analisi dei residui e diagnostica.
+  - [X] Confrontare altri modelli (Poisson, Gamma, Dicotomica, modello logistico).
+- [X] **Test Statistici**
+  - [X] Test F per R^2.
+  - [X] Test ANOVA.
   - Metodo di confronto dei modelli (LASSO vs modello di regressione).
 
 ## 📝 Analisi e Reportistica
