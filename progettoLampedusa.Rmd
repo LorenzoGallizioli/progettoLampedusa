@@ -11,7 +11,17 @@ editor_options:
     wrap: 72
 ---
 
-```{r setup, include=TRUE}
+##I Rimbalzi Nel Basket
+
+
+| Con questo report ci siamo interessati allo studio di un modello lienare predittivo per le vittorie, basato sul numero di rimbalzi annuali effettuati      dalle squadre nel campionato NBA.
+| vengono prese in considerazione solo le squadre con almeno 82 partite disputate, con riferimento agli anni dal 1976 al 2011.
+
+| La previsione del modello lineare e' basata sull'uso di coefficienti ideati per essere il piu possibile significativi e conforme alla nostra idea di       incidenza sulle vittorie di certe variabili riespetto ad altre.
+
+| I dettagli su come eseguire il programma e utilizzare la funzione predittiva si trovano direttamente di seguito, assieme al processo di realizzazione e    verifica del modello stesso.
+
+```{r setup, include=TRUE, warning=FALSE, message=FALSE, error=FALSE}
 
 library(here)
 library(corrplot)
@@ -37,8 +47,9 @@ knitr::opts_knit$set(root.dir = here("0_Materiale"))
 NBA moderna (1976-2011): VARIABILE DIPENDENTE: numero di vittorie in stagione COVARIATE: tutte le altre (o uno specifico insieme di queste, in base all'obiettivo di analisi) Considerare solo le squadre che hanno giocato 82 partite (dataset\$games==82)
 
 ## INIZIALIZZAZIONE DATI E GRAFICI DATI
-
 ```{r}
+#SCREMATURA DEL SET
+
 dataset <- read.delim("basketball_teams.txt") # andiamo a leggere il database fornito
 FIRST <- 1976 # primo anno del range da considerare per lo studio
 LAST <- 2011 # ultimo anno del range da considerare per lo studio
@@ -48,15 +59,46 @@ df <- dataset [dataset$lgID=="NBA" & dataset$year >= FIRST & dataset$year <= LAS
 dataset$lgID <- as.factor(dataset$lgID) # perchè mi permettono di poter generare variabili dummy
 summary(df)
 
+```
+
+```{r}
+#STUDIO DATI RELATIVI AI RIMBALZI
+
+# o_oreb = Rimbalzi ottenuti in attacco
+# o_dreb = Rimbalzi subiti in attacco
+# o_reb  = totale rimbalzi in attacco
+# d_oreb = Rimbalzi subiti in difesa
+# d_dreb = Rimbalzi ottenuti in difesa
+# d_reb  = totale rimbalzi in difesa
+
+df_reb <- subset(df, select = c("o_oreb", "o_dreb", "o_reb", "d_oreb", "d_dreb", "d_reb"))
+  
+for (variables in 1:(dim(df_reb)[2])){
+  thisvar = df_reb[,variables]
+  d <- density(thisvar)
+  plot(d, main = names(df_reb[variables]),xlab="")
+  polygon(d, col="cyan", border="blue")
+  title("Density plots for all Model Variables", line = -19, outer = TRUE)}
+
+#verifica della presenza zeri nel dataset
+print(paste("Percentage non-zero o_oreb: ",round(length(which(df_reb$o_oreb>0)) /dim(df_reb)[1]*100,2)))
+print(paste("Percentage non-zero o_dreb: ",round(length(which(df_reb$o_dreb>0)) /dim(df_reb)[1]*100,2)))
+print(paste("Percentage non-zero o_reb: ",round(length(which(df_reb$o_reb>0)) /dim(df_reb)[1]*100,2)))
+print(paste("Percentage non-zero d_oreb: ",round(length(which(df_reb$d_oreb>0)) /dim(df_reb)[1]*100,2)))
+print(paste("Percentage non-zero d_dreb: ",round(length(which(df_reb$d_dreb>0)) /dim(df_reb)[1]*100,2)))
+print(paste("Percentage non-zero d_reb: ",round(length(which(df_reb$d_reb>0)) /dim(df_reb)[1]*100,2)))
+
+
+
+```
+
+```{r}
+#STUDIO SULLE VITTORIE
+
 M <- cor(as.matrix(df[, c(11:25, 54)])) # correlation matrix
 corrplot(M, method="color", outline = TRUE,type="lower",order = "hclust",
         tl.col="black", tl.srt=45, diag=FALSE,tl.cex = 1,mar=c(0,0,3,0),
         title="Correlation Matrix between Predictor and Outcome variables")
-
-
-
-
-
 
 #ISTOGRAMMA
 # Crea un istogramma di base
@@ -70,12 +112,6 @@ abline(v = mean(df$won), col = "red", lwd = 2)
 
 # Aggiungi una legenda
 legend("topright", legend = c("Media"), col = c("red"), lwd = 2)
-
-
-
-
-
-
 
 # PLOT DENSITA
 
@@ -95,12 +131,6 @@ abline(v = mean(df$won), col = "red", lwd = 2)
 
 # Aggiungi una legenda
 legend("topright", legend = c("Media"), col = c("red"), lwd = 2)
-
-
-
-
-
-
 
 #CORRPLOT 
 
@@ -287,25 +317,55 @@ cat("Adjusted R-squared:", adjusted_r_squared, "\n")
 #2 test Shapiro per valutare la normalita' dei residui
 shapiro.test(residuals(linModNormalized))
 
-#3 test di omoschedasticita'
+#3 test di omoschedasticita' (Breusch-Pagan test) --> risultato suggerisce omoschedasiticita'
 bptest(linModNormalized)
 
 #4 test di multicollinearita'
 car::vif(linModNormalized)
 
+```
 
+Possiamo ora verificare la presenza di outlayers, ovvero dati anomali o fuori norma che possono influenzare in modo molto significativo il modello rispetto al resto dei dati presi in cosiderazione.
+Provvediamo quindi a rimuoverli e a ricreare il modello.
+```{r, include=TRUE}
+influencePlot(linModNormalized,5)
 
-# Test di homoschedasticita' (Breusch-Pagan test) --> risultato suggerisce omoschedasiticita'
+#rimuovo gli outlayers e ricreo il modello
+df_1 <- df[-which(row.names(df) %in% c(822, 957)),]
 
-lmtest::bptest(linModNormalized)
+df_1$f1 <- (df_1$o_oreb)/(df_1$o_fga-df_1$o_fgm)
+df_1$f2 <- (df_1$d_dreb)/(df_1$d_fga-df_1$d_fgm)
+df_1$f3 <- (df_1$o_oreb + 1.5 * df_1$d_dreb)/(df_1$o_dreb + 2 * df_1$d_oreb)
+df_1$f4 <- (df_1$o_oreb - df_1$o_dreb) + 1.5 * (df_1$d_dreb - df_1$d_oreb)
+df_1$f5 <- (df_1$d_oreb / df_1$d_to) / (df_1$o_dreb / df_1$o_to)
+
+df_1$f1_z <- scale(df_1$f1)
+df_1$f2_z <- scale(df_1$f2)
+df_1$f3_z <- scale(df_1$f3)
+df_1$f4_z <- scale(df_1$f4)
+df_1$f5_z <- scale(df_1$f5)
+
+linModNormalized_1 <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z, data = df_1)
+
+influencePlot(linModNormalized_1,5)
+
+summary(linModNormalized)
+summary(linModNormalized_1)
+
+```
+Nel complesso, entrambi i modelli sembrano essere buoni modelli di regressione, spiegano entrambi circa l'84% della varianza nella variabile dipendente "won", anche se la rimozione degli otlayers ha migliorato leggermente i risultati.
+
+Dato che la differenza tra i due modelli e' molto ridotta (<1%), tale da essere trascurabile, abbiamo deciso di utilizzare il modello comprendente gli outlayers.
+
+```{r}
 # Divisione in Test e Train per evitare che il modello fitti troppo bene sui nostri dati
 sample <- sample(c(TRUE, FALSE), nrow(df), replace=TRUE, prob=c(0.7, 0.3))
 train  <- df[sample, ]
 test   <- df[!sample, ]
 
-# m <- lm(won ~ o_canestriSuTotali_z + d_canestriSuTotali_z + d_stoppateSuTiri_z + o_rimbTiriSbagliati_z + d_rimbDef_z, data = # train)
-# summary(m)
+
 ```
+
 
 Il risultato suggerisce omoschedasiticita'
 
