@@ -1,7 +1,6 @@
 ---
 title: "ProgettoLampedusa"
-<<<<<<< HEAD
-date: "2023-12-07"
+date: "`r Sys.Date()`"
 output:
   html_document: default
   pdf_document: default
@@ -10,34 +9,20 @@ author: "Lampedusa_Group"
 editor_options: 
   markdown: 
     wrap: 72
-=======
-author: "Lampedusa_Group"
-date: "`r Sys.Date()`"
-output: html_document
->>>>>>> 92703c71087b4e379f303d17da01286df9ff7a1a
 ---
 
 ```{r setup, include=TRUE}
 
-knitr::opts_chunk$set(
-	message = FALSE,
-	warning = FALSE,
-	include = FALSE
-)
 library(here)
 library(corrplot)
 library(nortest)
 library(lmtest)
 library(car)
-<<<<<<< HEAD
 library(heatmaply)
 library(ggheatmap)
 library(ggplot2)
 library(viridis)
 
-=======
-library(ggplot2)
->>>>>>> 92703c71087b4e379f303d17da01286df9ff7a1a
 knitr::opts_knit$set(root.dir = here("0_Materiale"))
 ```
 
@@ -551,7 +536,6 @@ heatmaply(
   colors = viridis(n = 256,  option = "magma"),
   k_col = 2,
   k_row = 4,
-  seriate = "OLO"
 )
 # pie()
 barplot(df$reb, col = c("#1b98e0", "#353436"))
