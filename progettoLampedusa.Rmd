@@ -326,9 +326,11 @@ linModNormalized_1 <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z, data = df_1)
 
 influencePlot(linModNormalized_1,5)
 
+summary(linModNormalized)
+summary(linModNormalized_1)
 
 ```
-
+Nel complesso, entrambi i modelli sembrano essere buoni modelli di regressione, Entrambi i modelli spiegano circa l'84% della varianza nella variabile dipendente "won".
 
 
 ```{r}
