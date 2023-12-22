@@ -13,12 +13,12 @@ editor_options:
 
 ##I Rimbalzi Nel Basket
 
-| Con questo report ci siamo interessati allo studio di un modello lienare predittivo per le vittorie, basato sul numero di rimbalzi annuali effettuati      dalle squadre nel campionato NBA.
-| vengono prese in considerazione solo le squadre con almeno 82 partite disputate, con riferimento agli anni dal 1976 al 2011.
+Con questo report ci siamo interessati allo studio di un modello lienare predittivo per le vittorie, basato sul numero di rimbalzi annuali effettuati dalle squadre nel campionato NBA.
+vengono prese in considerazione solo le squadre con almeno 82 partite disputate, con riferimento agli anni dal 1976 al 2011.
 
-| La previsione del modello lineare e' basata sull'uso di coefficienti ideati per essere il piu possibile significativi e conforme alla nostra idea di       incidenza sulle vittorie di certe variabili riespetto ad altre.
+La previsione del modello lineare e' basata sull'uso di coefficienti ideati per essere il piu possibile significativi e conforme alla nostra idea di incidenza sulle vittorie di certe variabili riespetto ad altre.
 
-| I dettagli su come eseguire il programma e utilizzare la funzione predittiva si trovano direttamente di seguito, assieme al processo di realizzazione e    verifica del modello stesso.
+I dettagli su come eseguire il programma e utilizzare la funzione predittiva si trovano direttamente di seguito, assieme al processo di realizzazione e verifica del modello stesso.
 
 
 ```{r setup, include=TRUE, warning=FALSE, message=FALSE, error=FALSE}
@@ -42,6 +42,7 @@ library(dplyr)
 library(gridExtra)
 library(ggfortify)
 
+
 knitr::opts_knit$set(root.dir = here("0_Materiale"))
 
 ```
@@ -60,7 +61,7 @@ LAST <- 2011 # ultimo anno del range da considerare per lo studio
 
 df <- dataset [dataset$lgID=="NBA" & dataset$year >= FIRST & dataset$year <= LAST & dataset$games==82,]
 
-dataset$lgID <- as.factor(dataset$lgID) # perchè mi permettono di poter generare variabili dummy
+# dataset$lgID <- as.factor(dataset$lgID) # perchè mi permettono di poter generare variabili dummy
 
 summary(df)
 
@@ -103,6 +104,44 @@ title(bquote(bold(italic("Density plots with Normal Distribution"))), line = -17
 
 
 
+
+
+
+
+
+#GRAFICO INTUITIVO DA TESTARE
+
+
+# Imposta il layout a 2 righe e 3 colonne
+#par(mfrow = c(2, 3))
+
+# Lista per salvare i plot interattivi
+#plot_list <- list()
+
+#for (variables in 1:(dim(df_reb)[2])) {
+#  thisvar <- df_reb[, variables]
+#  d <- density(thisvar)
+#  xmin <- floor(min(thisvar))
+#  xmax <- ceiling(max(thisvar))
+  
+  # Crea il plot della densità con plot_ly
+#  p <- plot_ly(x = d$x, y = d$y, type = "scatter", mode = "lines", line = list(color = "skyblue", width = 1),
+#               name = names(df_reb)[variables]) %>%
+#    add_trace(x = x, y = dnorm(x, mean = mean(thisvar), sd = sd(thisvar)), type = "scatter", mode = "lines",
+#              line = list(color = "red", width = 1), name = "Normal Distribution") %>%
+#    layout(title = names(df_reb)[variables])
+
+  # Aggiungi il plot alla lista
+#  plot_list[[variables]] <- p
+#}
+
+# Aggiungi titolo
+#title("Density plots with Normal Distribution", line = -17, cex.main = 2, outer = TRUE)
+
+# Visualizza i plot interattivi
+#subplot(plot_list)
+
+
 #verifica della presenza zeri nel dataset
 print(paste("Percentage non-zero o_oreb: ",round(length(which(df_reb$o_oreb>0)) / dim(df_reb)[1]*100,2)))
 print(paste("Percentage non-zero o_dreb: ",round(length(which(df_reb$o_dreb>0)) / dim(df_reb)[1]*100,2)))
@@ -110,7 +149,6 @@ print(paste("Percentage non-zero o_reb: ",round(length(which(df_reb$o_reb>0)) / 
 print(paste("Percentage non-zero d_oreb: ",round(length(which(df_reb$d_oreb>0)) / dim(df_reb)[1]*100,2)))
 print(paste("Percentage non-zero d_dreb: ",round(length(which(df_reb$d_dreb>0)) / dim(df_reb)[1]*100,2)))
 print(paste("Percentage non-zero d_reb: ",round(length(which(df_reb$d_reb>0)) / dim(df_reb)[1]*100,2)))
-
 
 ```
 
@@ -131,10 +169,8 @@ abline(v = mean(df$won), col = "red", lwd = 2)
 legend("topright", legend = c("Media"), col = c("red"), lwd = 2)
 
 
-#ISTOGRAMMA INTERATTIVO
 
-# Calcola la media
-mean_value <- mean(df$won)
+#ISTOGRAMMA INTERATTIVO
 
 # Crea un istogramma con plot_ly
 histogram <- plot_ly(df, x = ~won, type = "histogram", 
@@ -153,6 +189,7 @@ histogram <- plot_ly(df, x = ~won, type = "histogram",
 
 # Visualizza l'istogramma interattivo
 histogram
+
 
 
 # PLOT DENSITA
@@ -175,9 +212,7 @@ abline(v = mean(df$won), col = "red", lwd = 2)
 legend("topright", legend = c("Media"), col = c("red"), lwd = 2)
 
 
-
 # PLOT DENSITA INTERATTIVO
-
 
 # Calcola la densità delle vittorie
 density_plot <- density(df$won)
@@ -200,7 +235,6 @@ density_interactive <- plot_ly(x = density_plot$x, y = density_plot$y, type = "s
 
 # Visualizza il plot di densità interattivo
 density_interactive
-
 
 
 
@@ -337,8 +371,14 @@ df$f5 <- (df$d_oreb / df$d_to) / (df$o_dreb / df$o_to)
 linMod <- lm(won ~ f1 + f2 + f3 + f4 + f5, data = df)
 summary (linMod)
 
+# Imposta il layout della pagina
+par(mfrow = c(2, 2))
 
+# Crea i quattro grafici
 plot(linMod)
+
+# Ripristina il layout predefinito
+par(mfrow = c(1, 1))
 
 
 ```
@@ -360,6 +400,15 @@ linModNormalized <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z, data = df)
 summary(linModNormalized)
 
 plot(linModNormalized)
+
+# Imposta il layout della pagina
+par(mfrow = c(2, 2))
+
+# Crea i quattro grafici
+plot(linMod)
+
+# Ripristina il layout predefinito
+par(mfrow = c(1, 1))
 
 ```
 
@@ -425,9 +474,6 @@ summary(linModNormalized)
 summary(linModNormalized_1)
 
 
-
-
-
 ```
 Nel complesso entrambi i modelli sembrano essere buoni, spiegano entrambi circa l'84% della varianza nella variabile dipendente "won", anche se la rimozione degli otlayers ha migliorato leggermente i risultati.
 
@@ -439,7 +485,6 @@ Dato che la differenza tra i due modelli e' molto ridotta (<0.5%), tale da esser
 sample <- sample(c(TRUE, FALSE), nrow(df), replace=TRUE, prob=c(0.7, 0.3))
 train  <- df_reb[sample, ]
 test   <- df_reb[!sample, ]
-
 
 ```
 
@@ -621,6 +666,7 @@ for (i in 2:ncol(reshaped_data)) {
 
 (fig)
 
+
 ```
 
 
@@ -713,7 +759,7 @@ dummy_vars <- model.matrix(~ df$divID - 1, data=df)  # -1 per evitare la colinea
 
 # Aggiunta delle variabili dummy al dataframe
 df <- cbind(df, dummy_vars)
-df
+
 # Esecuzione di un test ANOVA
 # Supponiamo che 'won' sia la variabile dipendente
 anova(lm(df$won ~ df$divID, data=df))
