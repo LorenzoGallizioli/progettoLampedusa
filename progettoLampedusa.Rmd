@@ -32,6 +32,7 @@ library(heatmaply)
 library(ggheatmap)
 library(ggplot2)
 library(viridis)
+library(glmnet)
 
 knitr::opts_knit$set(root.dir = here("0_Materiale"))
 ```
@@ -65,9 +66,9 @@ summary(df)
 # d_dreb = Rimbalzi ottenuti in difesa
 # d_reb  = totale rimbalzi in difesa
 
-df_reb <- subset(df, select = c("o_oreb", "o_dreb", "o_reb", "d_oreb", "d_dreb", "d_reb"))
+df_reb <- subset(df, select = c("o_oreb", "o_dreb", "o_reb", "d_oreb", "d_dreb", "d_reb", "won"))
   
-for (variables in 1:(dim(df_reb)[2])){
+for (variables in 1:(dim(df_reb)[2]-1)){
   thisvar = df_reb[,variables]
   d <- density(thisvar)
   plot(d, main = names(df_reb[variables]),xlab="")
@@ -330,21 +331,48 @@ summary(linModNormalized)
 summary(linModNormalized_1)
 
 ```
-Nel complesso, entrambi i modelli sembrano essere buoni modelli di regressione, spiegano entrambi circa l'84% della varianza nella variabile dipendente "won", anche se la rimozione degli otlayers ha migliorato leggermente i risultati.
+Nel complesso entrambi i modelli sembrano essere buoni, spiegano entrambi circa l'84% della varianza nella variabile dipendente "won", anche se la rimozione degli otlayers ha migliorato leggermente i risultati.
 
-Dato che la differenza tra i due modelli e' molto ridotta (<1%), tale da essere trascurabile, abbiamo deciso di utilizzare il modello comprendente gli outlayers.
+Dato che la differenza tra i due modelli e' molto ridotta (<0.5%), tale da essere trascurabile, abbiamo deciso di utilizzare il modello comprendente gli outlayers.
+
 
 ```{r}
 # Divisione in Test e Train per evitare che il modello fitti troppo bene sui nostri dati
 sample <- sample(c(TRUE, FALSE), nrow(df), replace=TRUE, prob=c(0.7, 0.3))
-train  <- df[sample, ]
-test   <- df[!sample, ]
+train  <- df_reb[sample, ]
+test   <- df_reb[!sample, ]
 
 
 ```
 
 
-Il risultato suggerisce omoschedasiticita'
+```{r}
+# METODO DI REGRESSIONE LASSO
+
+#define response variable
+y <- train$won
+
+#define matrix of predictor variables (uso solo poche variabili ma potete farlo con tutte da togliere però la risposta area)
+x <- data.matrix(train)
+
+#perform k-fold cross-validation to find optimal lambda value, la cross-validation è un ottimo modo per non overfittare e trovare il miglior modello
+cv_model <- cv.glmnet(x, y, alpha = 1)
+
+#find optimal lambda value that minimizes test MSE
+best_lambda <- cv_model$lambda.min
+best_lambda
+
+#produce plot of test MSE by lambda value
+plot(cv_model) 
+
+# Fittiamo il modello con il best lambda (penalizzazione)
+best_model <- glmnet(x, y, alpha = 1, lambda = best_lambda)
+coef(best_model)
+
+
+```
+
+
 
 ```{r}
 
