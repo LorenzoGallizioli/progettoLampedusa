@@ -13,13 +13,13 @@ editor_options:
 
 ##I Rimbalzi Nel Basket
 
-
 | Con questo report ci siamo interessati allo studio di un modello lienare predittivo per le vittorie, basato sul numero di rimbalzi annuali effettuati      dalle squadre nel campionato NBA.
 | vengono prese in considerazione solo le squadre con almeno 82 partite disputate, con riferimento agli anni dal 1976 al 2011.
 
 | La previsione del modello lineare e' basata sull'uso di coefficienti ideati per essere il piu possibile significativi e conforme alla nostra idea di       incidenza sulle vittorie di certe variabili riespetto ad altre.
 
 | I dettagli su come eseguire il programma e utilizzare la funzione predittiva si trovano direttamente di seguito, assieme al processo di realizzazione e    verifica del modello stesso.
+
 
 ```{r setup, include=TRUE, warning=FALSE, message=FALSE, error=FALSE}
 
@@ -28,11 +28,18 @@ library(corrplot)
 library(nortest)
 library(lmtest)
 library(car)
+library(plotly)
 library(heatmaply)
 library(ggheatmap)
 library(ggplot2)
 library(viridis)
 library(glmnet)
+library(highcharter)
+library(reshape2)
+library(RColorBrewer)
+library(tidyr)
+library(dplyr)
+
 
 knitr::opts_knit$set(root.dir = here("0_Materiale"))
 ```
@@ -43,20 +50,22 @@ NBA moderna (1976-2011): VARIABILE DIPENDENTE: numero di vittorie in stagione CO
 
 ## INIZIALIZZAZIONE DATI E GRAFICI DATI
 ```{r}
-#SCREMATURA DEL SET
 
 dataset <- read.delim("basketball_teams.txt") # andiamo a leggere il database fornito
+
 FIRST <- 1976 # primo anno del range da considerare per lo studio
 LAST <- 2011 # ultimo anno del range da considerare per lo studio
 
 df <- dataset [dataset$lgID=="NBA" & dataset$year >= FIRST & dataset$year <= LAST & dataset$games==82,]
 
 dataset$lgID <- as.factor(dataset$lgID) # perchè mi permettono di poter generare variabili dummy
+
 summary(df)
 
 ```
 
 ```{r}
+
 #STUDIO DATI RELATIVI AI RIMBALZI
 
 # o_oreb = Rimbalzi ottenuti in attacco
@@ -68,12 +77,80 @@ summary(df)
 
 df_reb <- subset(df, select = c("o_oreb", "o_dreb", "o_reb", "d_oreb", "d_dreb", "d_reb", "won"))
   
+par(mfrow = c(2, 3))  # Imposta il layout a 2 righe e 3 colonne
+
 for (variables in 1:(dim(df_reb)[2]-1)){
   thisvar = df_reb[,variables]
   d <- density(thisvar)
-  plot(d, main = names(df_reb[variables]),xlab="")
-  polygon(d, col="cyan", border="blue")
-  title("Density plots for all Model Variables", line = -19, outer = TRUE)}
+  xmin <- floor(min(thisvar))
+  xmax <- ceiling(max(thisvar))
+  
+  # Crea il plot della densità con stile accattivante
+  plot(d, main = names(df_reb)[variables], xlab = "", col = "skyblue", lwd = 1, xlim = c(xmin, xmax), ylim = c(0, max(d$y)*1.1))
+
+  # Aggiungi la distribuzione normale teorica ideale in rosso
+  x <- seq(xmin, xmax, length = 100)
+  lines(x, dnorm(x, mean = mean(thisvar), sd = sd(thisvar)), col = "red", lwd = 1)
+
+  # Aggiungi griglia per migliorare la leggibilità
+  grid()
+}
+
+# Aggiungi titolo
+title("Density plots with Normal Distribution", line = -17, cex.main = 2, outer = TRUE)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#GRAFICO INTUITIVO DA TESTARE
+
+
+# Imposta il layout a 2 righe e 3 colonne
+#par(mfrow = c(2, 3))
+
+# Lista per salvare i plot interattivi
+#plot_list <- list()
+
+#for (variables in 1:(dim(df_reb)[2])) {
+#  thisvar <- df_reb[, variables]
+#  d <- density(thisvar)
+#  xmin <- floor(min(thisvar))
+#  xmax <- ceiling(max(thisvar))
+  
+  # Crea il plot della densità con plot_ly
+#  p <- plot_ly(x = d$x, y = d$y, type = "scatter", mode = "lines", line = list(color = "skyblue", width = 1),
+#               name = names(df_reb)[variables]) %>%
+#    add_trace(x = x, y = dnorm(x, mean = mean(thisvar), sd = sd(thisvar)), type = "scatter", mode = "lines",
+#              line = list(color = "red", width = 1), name = "Normal Distribution") %>%
+#    layout(title = names(df_reb)[variables])
+
+  # Aggiungi il plot alla lista
+#  plot_list[[variables]] <- p
+#}
+
+# Aggiungi titolo
+#title("Density plots with Normal Distribution", line = -17, cex.main = 2, outer = TRUE)
+
+# Visualizza i plot interattivi
+#subplot(plot_list)
+
+
+
+
+
+
+
+
 
 #verifica della presenza zeri nel dataset
 print(paste("Percentage non-zero o_oreb: ",round(length(which(df_reb$o_oreb>0)) /dim(df_reb)[1]*100,2)))
@@ -82,7 +159,6 @@ print(paste("Percentage non-zero o_reb: ",round(length(which(df_reb$o_reb>0)) /d
 print(paste("Percentage non-zero d_oreb: ",round(length(which(df_reb$d_oreb>0)) /dim(df_reb)[1]*100,2)))
 print(paste("Percentage non-zero d_dreb: ",round(length(which(df_reb$d_dreb>0)) /dim(df_reb)[1]*100,2)))
 print(paste("Percentage non-zero d_reb: ",round(length(which(df_reb$d_reb>0)) /dim(df_reb)[1]*100,2)))
-
 
 
 ```
@@ -94,11 +170,6 @@ M <- cor(as.matrix(df[, c(11:25, 54)])) # correlation matrix
 corrplot(M, method="color", outline = TRUE,type="lower",order = "hclust",
         tl.col="black", tl.srt=45, diag=FALSE,tl.cex = 1,mar=c(0,0,3,0),
         title="Correlation Matrix between Predictor and Outcome variables")
-
-
-
-
-
 
 #ISTOGRAMMA
 # Crea un istogramma di base
@@ -112,6 +183,58 @@ abline(v = mean(df$won), col = "red", lwd = 2)
 
 # Aggiungi una legenda
 legend("topright", legend = c("Media"), col = c("red"), lwd = 2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+#ISTOGRAMMA INTERATTIVO DA TESTARE 1° versione
+
+# Crea un istogramma con plot_ly
+histogram <- plot_ly(df, x = ~won, type = "histogram", marker = list(color = "skyblue", line = list(color = "white", width = 0.5))) %>%
+  layout(title = "Distribuzione delle Vittorie",
+         xaxis = list(title = "Numero di Vittorie"),
+         yaxis = list(title = "Frequenza"),
+         barmode = "overlay") %>%
+  add_trace(x = ~mean(won), type = "scatter", mode = "lines", line = list(color = "red", width = 2), name = "Media")
+
+# Visualizza l'istogramma interattivo
+histogram
+
+
+#ISTOGRAMMA INTERATTIVO DA TESTARE 2° versione
+
+# Crea un istogramma con plot_ly
+histogram <- plot_ly(df, x = ~won, type = "histogram", 
+                     marker = list(color = "skyblue", line = list(color = "white", width = 0.5)),
+                     opacity = 0.7) %>%
+  layout(title = list(text = "Distribuzione delle Vittorie", x = 0.5),
+         xaxis = list(title = "Numero di Vittorie", zeroline = FALSE),
+         yaxis = list(title = "Frequenza", zeroline = FALSE),
+         barmode = "overlay") %>%
+  add_trace(x = ~mean(won), type = "scatter", mode = "lines", 
+            line = list(color = "red", width = 2), name = "Media") %>%
+  add_trace(x = ~mean(won), type = "scatter", mode = "markers", 
+            marker = list(color = "red", size = 8), showlegend = FALSE) %>%
+  add_annotations(text = sprintf("Media: %.2f", mean(df$won)), x = mean(df$won), y = 0, 
+                  arrowhead = 2, arrowcolor = "red", arrowsize = 1.5, arrowwidth = 2, 
+                  ax = 0, ay = -40, xshift = 10, yshift = -10)
+
+# Visualizza l'istogramma interattivo
+histogram
+
+
+
+
+
 
 
 
@@ -144,45 +267,118 @@ legend("topright", legend = c("Media"), col = c("red"), lwd = 2)
 
 
 
+
+
+
+
+
+# PLOT DENSITA INTERATTIVO DA TESTARE 
+
+
+# Calcola la densità delle vittorie
+density_plot <- density(df$won)
+
+# Crea il plot di densità con plot_ly
+density_interactive <- plot_ly(x = density_plot$x, y = density_plot$y, type = "scatter", mode = "lines", 
+                               line = list(color = "skyblue", width = 2)) %>%
+  layout(title = list(text = "Distribuzione di Densità delle Vittorie", x = 0.5),
+         xaxis = list(title = "Numero di Vittorie"),
+         yaxis = list(title = "Densità"),
+         showlegend = FALSE) %>%
+  add_trace(x = c(mean(df$won), mean(df$won)), y = c(0, max(density_plot$y)), 
+            type = "scatter", mode = "lines", line = list(color = "red", width = 2),
+            name = "Media") %>%
+  add_trace(x = mean(df$won), y = max(density_plot$y), type = "scatter", mode = "markers", 
+            marker = list(color = "red", size = 8)) %>%
+  add_annotations(text = sprintf("Media: %.2f", mean(df$won)), x = mean(df$won), y = max(density_plot$y) * 1.05, 
+                  arrowhead = 2, arrowcolor = "red", arrowsize = 1.5, arrowwidth = 2, 
+                  ax = 0, ay = -40, xshift = 10, yshift = -10)
+
+# Visualizza il plot di densità interattivo
+density_interactive
+
+
+
+
+
+
+
+
+
+
 #CORRPLOT 
 
-# Calcola la matrice di correlazione
-M <- cor(as.matrix(df[, c(11:25, 54)]))
+# # Calcola la matrice di correlazione
+# M <- cor(as.matrix(df[, c(11:25, 54)]))
+# 
+# # Crea il grafico della matrice di correlazione
+# corrplot(M, method = "color", outline = TRUE, type = "lower", order = "hclust",
+#          tl.col = "black", tl.srt = 45, diag = FALSE, tl.cex = 0.7, mar = c(0, 0, 3, 0),
+#          title = "Correlation Matrix between Predictor and Outcome variables",
+#          addCoef.col = "black", number.cex = 0.5, tl.offset = 0.5)
+# 
+# # Aggiungi una legenda
+# legend("bottomleft", legend = c("Positive Correlation", "Negative Correlation"), fill = c("white", "black"), border = NA, bty = "n", title = "Correlation")
+# 
 
-# Crea il grafico della matrice di correlazione
-corrplot(M, method = "color", outline = TRUE, type = "lower", order = "hclust",
-         tl.col = "black", tl.srt = 45, diag = FALSE, tl.cex = 0.7, mar = c(0, 0, 3, 0),
-         title = "Correlation Matrix between Predictor and Outcome variables",
-         addCoef.col = "black", number.cex = 0.5, tl.offset = 0.5)
+# CORRPLOT
 
-# Aggiungi una legenda
-legend("bottomleft", legend = c("Positive Correlation", "Negative Correlation"), fill = c("white", "black"), border = NA, bty = "n", title = "Correlation")
+data_subset <- df[, c(11:40, 54)]
 
+cor_matrix <- cor(data_subset, use = "complete.obs")  
 
+cor_data <- melt(cor_matrix)
+names(cor_data) <- c("Variable1", "Variable2", "Correlation")
 
+# Create the heatmap
+p <- plot_ly(data = cor_data, x = ~Variable1, y = ~Variable2, z = ~Correlation, 
+             type = "heatmap", 
+             colors = viridis(n = 1024,  option = "magma"),
+             hoverinfo = "x+y+z") %>% 
+  layout(title = 'Correlation Matrix Heatmap',
+         xaxis = list(tickangle = 45),
+         yaxis = list(tickangle = 45),
+         autosize = TRUE)
 
+# cor_values <- round(as.matrix(cor_matrix), 2)  # Round for readability
+# for (i in seq_len(nrow(cor_matrix))) {
+#   for (j in seq_len(ncol(cor_matrix))) {
+#     p <- p %>% add_annotations(
+#       x = rownames(cor_matrix)[i],
+#       y = colnames(cor_matrix)[j],
+#       text = as.character(cor_values[i, j]),
+#       showarrow = FALSE,
+#       font = list(color = ifelse(cor_values[i, j] < 0.5, "white", "black"))
+#     )
+#   }
+# }
 
-
+(p)
 
 #BOXPLOT
 
-# Crea un boxplot con aggiunta di titoli ed etichette degli assi
-boxplot(df$won ~ df$tmID, col = "skyblue", main = "Boxplot delle Vittorie per tmID", col.main = "black", font.main = 4,
-        xlab = "tmID",col.lab = "black", font.lab = 2, ylab = "Numero di Vittorie", col.lab = "black", font.lab = 2)
+aggregated_data <- df %>%
+  select(tmID, year, won) %>%
+  group_by(tmID, year) %>%
+  summarize(
+    won = mean(won, na.rm = TRUE), 
+  )
 
-# Aggiungi una griglia di sfondo
-grid()
+reshaped_data <- aggregated_data %>%
+  pivot_longer(cols = c(won), names_to = "stat_type", values_to = "stat") %>%
+  unite("new_col", tmID, stat_type, sep = "_") %>%
+  pivot_wider(names_from = new_col, values_from = "stat")
 
-# Personalizza i colori delle scatole
-boxplot(df$won ~ df$tmID, col = c("skyblue", "lightgreen"), add = TRUE, border = "black")
-
-# Aggiungi una legenda
-legend("topright", legend = unique(df$tmID), fill = c("skyblue", "lightgreen"), title = "tmID")
-
-# Inclina le etichette sull'asse x
-par(las = 2, cex.axis = 0.8)
+fig <- plot_ly()
 
 
+for (i in 2:ncol(reshaped_data)) {
+    current_column_data <- reshaped_data[[i]]
+    fig <- fig %>% add_trace(y = current_column_data, name = colnames(reshaped_data)[i], type = "box")
+}
+
+
+(fig)
 
 
 df$reb <- df$o_reb + df$d_reb
@@ -247,7 +443,117 @@ df$f5 <- (df$d_oreb / df$d_to) / (df$o_dreb / df$o_to)
 linMod <- lm(won ~ f1 + f2 + f3 + f4 + f5, data = df)
 summary (linMod)
 
-plot(linMod)
+# Installa e carica le librerie necessarie
+if (!requireNamespace("ggplot2", quietly = TRUE)) {
+  install.packages("ggplot2")
+}
+if (!requireNamespace("gridExtra", quietly = TRUE)) {
+  install.packages("gridExtra")
+}
+library(ggplot2)
+library(gridExtra)
+
+# Funzione per creare il plot di Residuals vs Fitted (Residui vs. Valori Previsti)
+res_vs_fitted <- ggplot(linMod, aes(.fitted, .resid)) +
+  geom_point(color = "skyblue", alpha = 0.7, size = 3) +
+  geom_smooth(se = FALSE, color = "red", method = "loess", size = 1) +
+  labs(title = "Residuals vs Fitted", x = "Fitted Values", y = "Residuals") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 14, face = "bold"))
+
+# Funzione per creare il plot QQ dei Residui
+qq_plot <- ggplot(linMod, aes(sample = .stdresid)) +
+  stat_qq(color = "skyblue", size = 2) +
+  stat_qq_line(color = "red", size = 1) +
+  labs(title = "QQ Plot dei Residui", x = "Quantiles teorici", y = "Quantiles osservati") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 14, face = "bold"))
+
+# Funzione per creare il plot Scale-Location
+scale_location_plot <- ggplot(linMod, aes(.fitted, sqrt(abs(.stdresid)))) +
+  geom_point(color = "skyblue", alpha = 0.7, size = 3) +
+  geom_smooth(se = FALSE, color = "red", method = "loess", size = 1) +
+  labs(title = "Scale-Location Plot", x = "Fitted Values", y = "sqrt(|Standardized Residuals|)") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 14, face = "bold"))
+
+# Funzione per creare il plot Residuals vs Leverage (Residui vs. Leverage)
+res_vs_leverage <- ggplot(linMod, aes(.hat, .stdresid)) +
+  geom_point(color = "skyblue", alpha = 0.7, size = 3) +
+  geom_smooth(se = FALSE, color = "red", method = "loess", size = 1) +
+  labs(title = "Residuals vs Leverage", x = "Leverage", y = "Standardized Residuals") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 14, face = "bold"))
+
+# Visualizza i quattro plot
+grid.arrange(res_vs_fitted, qq_plot, scale_location_plot, res_vs_leverage, ncol = 2)
+
+
+
+
+
+
+
+#PLOT INTERATTIVI DA TESTARE
+
+# Installa e carica le librerie necessarie
+if (!requireNamespace("ggplot2", quietly = TRUE)) {
+  install.packages("ggplot2")
+}
+if (!requireNamespace("gridExtra", quietly = TRUE)) {
+  install.packages("gridExtra")
+}
+if (!requireNamespace("plotly", quietly = TRUE)) {
+  install.packages("plotly")
+}
+library(ggplot2)
+library(gridExtra)
+library(plotly)
+
+# Funzione per creare il plot di Residuals vs Fitted (Residui vs. Valori Previsti)
+res_vs_fitted <- ggplot(linMod, aes(.fitted, .resid)) +
+  geom_point(color = "skyblue", alpha = 0.7, size = 3) +
+  geom_smooth(se = FALSE, color = "red", method = "loess", size = 1) +
+  labs(title = "Residuals vs Fitted", x = "Fitted Values", y = "Residuals") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 14, face = "bold"))
+
+# Funzione per creare il plot QQ dei Residui
+qq_plot <- ggplot(linMod, aes(sample = .stdresid)) +
+  stat_qq(color = "skyblue", size = 2) +
+  stat_qq_line(color = "red", size = 1) +
+  labs(title = "QQ Plot dei Residui", x = "Quantiles teorici", y = "Quantiles osservati") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 14, face = "bold"))
+
+# Funzione per creare il plot Scale-Location
+scale_location_plot <- ggplot(linMod, aes(.fitted, sqrt(abs(.stdresid)))) +
+  geom_point(color = "skyblue", alpha = 0.7, size = 3) +
+  geom_smooth(se = FALSE, color = "red", method = "loess", size = 1) +
+  labs(title = "Scale-Location Plot", x = "Fitted Values", y = "sqrt(|Standardized Residuals|)") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 14, face = "bold"))
+
+# Funzione per creare il plot Residuals vs Leverage (Residui vs. Leverage)
+res_vs_leverage <- ggplot(linMod, aes(.hat, .stdresid)) +
+  geom_point(color = "skyblue", alpha = 0.7, size = 3) +
+  geom_smooth(se = FALSE, color = "red", method = "loess", size = 1) +
+  labs(title = "Residuals vs Leverage", x = "Leverage", y = "Standardized Residuals") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 14, face = "bold"))
+
+# Converti i singoli grafici in oggetti plotly
+plotly_res_vs_fitted <- ggplotly(res_vs_fitted)
+plotly_qq_plot <- ggplotly(qq_plot)
+plotly_scale_location_plot <- ggplotly(scale_location_plot)
+plotly_res_vs_leverage <- ggplotly(res_vs_leverage)
+
+# Visualizza i quattro grafici interattivi
+subplot(plotly_res_vs_fitted, plotly_qq_plot, plotly_scale_location_plot, plotly_res_vs_leverage)
+
+
+
+
 
 ```
 
@@ -266,7 +572,111 @@ df$f5_z <- scale(df$f5)
 linModNormalized <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z, data = df)
 
 summary(linModNormalized)
-plot(linModNormalized)
+
+# Installa e carica le librerie necessarie
+if (!requireNamespace("ggplot2", quietly = TRUE)) {
+  install.packages("ggplot2")
+}
+if (!requireNamespace("gridExtra", quietly = TRUE)) {
+  install.packages("gridExtra")
+}
+library(ggplot2)
+library(gridExtra)
+
+# Funzione per creare il plot di Residuals vs Fitted (Residui vs. Valori Previsti)
+res_vs_fitted <- ggplot(linModNormalized, aes(.fitted, .resid)) +
+  geom_point(color = "skyblue", alpha = 0.7, size = 3) +
+  geom_smooth(se = FALSE, color = "red", method = "loess", size = 1) +
+  labs(title = "Residuals vs Fitted", x = "Fitted Values", y = "Residuals") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 14, face = "bold"))
+
+# Funzione per creare il plot QQ dei Residui
+qq_plot <- ggplot(linModNormalized, aes(sample = .stdresid)) +
+  stat_qq(color = "skyblue", size = 2) +
+  stat_qq_line(color = "red", size = 1) +
+  labs(title = "QQ Plot dei Residui", x = "Quantiles teorici", y = "Quantiles osservati") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 14, face = "bold"))
+
+# Funzione per creare il plot Scale-Location
+scale_location_plot <- ggplot(linModNormalized, aes(.fitted, sqrt(abs(.stdresid)))) +
+  geom_point(color = "skyblue", alpha = 0.7, size = 3) +
+  geom_smooth(se = FALSE, color = "red", method = "loess", size = 1) +
+  labs(title = "Scale-Location Plot", x = "Fitted Values", y = "sqrt(|Standardized Residuals|)") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 14, face = "bold"))
+
+# Funzione per creare il plot Residuals vs Leverage (Residui vs. Leverage)
+res_vs_leverage <- ggplot(linModNormalized, aes(.hat, .stdresid)) +
+  geom_point(color = "skyblue", alpha = 0.7, size = 3) +
+  geom_smooth(se = FALSE, color = "red", method = "loess", size = 1) +
+  labs(title = "Residuals vs Leverage", x = "Leverage", y = "Standardized Residuals") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 14, face = "bold"))
+
+# Visualizza i quattro plot
+grid.arrange(res_vs_fitted, qq_plot, scale_location_plot, res_vs_leverage, ncol = 2)
+
+
+
+#PLOT INTERATTIVI DA TESTARE
+
+# Installa e carica le librerie necessarie
+if (!requireNamespace("ggplot2", quietly = TRUE)) {
+  install.packages("ggplot2")
+}
+if (!requireNamespace("gridExtra", quietly = TRUE)) {
+  install.packages("gridExtra")
+}
+if (!requireNamespace("plotly", quietly = TRUE)) {
+  install.packages("plotly")
+}
+library(ggplot2)
+library(gridExtra)
+library(plotly)
+
+# Funzione per creare il plot di Residuals vs Fitted (Residui vs. Valori Previsti)
+res_vs_fitted <- ggplot(linModNormalized, aes(.fitted, .resid)) +
+  geom_point(color = "skyblue", alpha = 0.7, size = 3) +
+  geom_smooth(se = FALSE, color = "red", method = "loess", size = 1) +
+  labs(title = "Residuals vs Fitted", x = "Fitted Values", y = "Residuals") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 14, face = "bold"))
+
+# Funzione per creare il plot QQ dei Residui
+qq_plot <- ggplot(linModNormalized, aes(sample = .stdresid)) +
+  stat_qq(color = "skyblue", size = 2) +
+  stat_qq_line(color = "red", size = 1) +
+  labs(title = "QQ Plot dei Residui", x = "Quantiles teorici", y = "Quantiles osservati") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 14, face = "bold"))
+
+# Funzione per creare il plot Scale-Location
+scale_location_plot <- ggplot(linModNormalized, aes(.fitted, sqrt(abs(.stdresid)))) +
+  geom_point(color = "skyblue", alpha = 0.7, size = 3) +
+  geom_smooth(se = FALSE, color = "red", method = "loess", size = 1) +
+  labs(title = "Scale-Location Plot", x = "Fitted Values", y = "sqrt(|Standardized Residuals|)") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 14, face = "bold"))
+
+# Funzione per creare il plot Residuals vs Leverage (Residui vs. Leverage)
+res_vs_leverage <- ggplot(linModNormalized, aes(.hat, .stdresid)) +
+  geom_point(color = "skyblue", alpha = 0.7, size = 3) +
+  geom_smooth(se = FALSE, color = "red", method = "loess", size = 1) +
+  labs(title = "Residuals vs Leverage", x = "Leverage", y = "Standardized Residuals") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 14, face = "bold"))
+
+# Converti i singoli grafici in oggetti plotly
+plotly_res_vs_fitted <- ggplotly(res_vs_fitted)
+plotly_qq_plot <- ggplotly(qq_plot)
+plotly_scale_location_plot <- ggplotly(scale_location_plot)
+plotly_res_vs_leverage <- ggplotly(res_vs_leverage)
+
+# Visualizza i quattro grafici interattivi
+subplot(plotly_res_vs_fitted, plotly_qq_plot, plotly_scale_location_plot, plotly_res_vs_leverage)
+
 
 ```
 
@@ -325,10 +735,59 @@ df_1$f5_z <- scale(df_1$f5)
 
 linModNormalized_1 <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z, data = df_1)
 
-influencePlot(linModNormalized_1,5)
-
 summary(linModNormalized)
 summary(linModNormalized_1)
+
+
+# Installa e carica le librerie necessarie
+if (!requireNamespace("ggplot2", quietly = TRUE)) {
+  install.packages("ggplot2")
+}
+if (!requireNamespace("ggfortify", quietly = TRUE)) {
+  install.packages("ggfortify")
+}
+library(ggplot2)
+library(ggfortify)
+
+# Crea il grafico di influenza
+influence_plot <- influencePlot(linModNormalized_1, id = 5, main = "Influence Plot")
+
+# Personalizza il grafico
+influence_plot +
+  theme_minimal() +  # Usa uno stile minimale
+  theme(plot.title = element_text(size = 16, face = "bold"),  # Titolo più grande e in grassetto
+        axis.title = element_text(size = 14),  # Etichette degli assi più grandi
+        axis.text = element_text(size = 12),   # Numeri degli assi più grandi
+        legend.position="none")  # Nascondi la legenda
+
+
+
+
+
+#INTERATTIVO DA TESTARE
+# Installa e carica le librerie necessarie
+if (!requireNamespace("car", quietly = TRUE)) {
+  install.packages("car")
+}
+if (!requireNamespace("plotly", quietly = TRUE)) {
+  install.packages("plotly")
+}
+library(car)
+library(plotly)
+
+# Calcola l'influenza
+influence_values <- influence(linModNormalized_1)
+
+# Estrai i valori influenti per l'osservazione desiderata (es. id=5)
+influence_values_single <- as.matrix(influence_values$infmat[5, ])
+
+# Crea un grafico interattivo
+plot_ly(x = colnames(influence_values_single), y = influence_values_single,
+        type = "bar", name = "Influence", marker = list(color = "blue")) %>%
+  layout(title = "Influence Plot",
+         xaxis = list(title = "Variables"),
+         yaxis = list(title = "Influence"))
+
 
 ```
 Nel complesso entrambi i modelli sembrano essere buoni, spiegano entrambi circa l'84% della varianza nella variabile dipendente "won", anche se la rimozione degli otlayers ha migliorato leggermente i risultati.
@@ -379,7 +838,7 @@ coef(best_model)
 # SANDBOX TESTING
 # QUI SI TESTA TUTTO CIÒ CHE POI VERRÀ AGGGIUNTO NEL DOCUMENTO SOPRA
 
-values <- aggregate(cbind(o_oreb, o_dreb, d_oreb, d_dreb, o_reb, d_reb) ~ tmID, data = df, FUN = sum)
+values <- aggregate(cbind(o_oreb, o_dreb, d_oreb, d_dreb, o_reb, d_reb, won) ~ tmID, data = df, FUN = sum)
 
 # temp <- hist (temp, col = 'steelblue', main = 'caccaculo', xlab = 'balls')
 
@@ -399,189 +858,119 @@ for (team in df$tmID)
 
 teams <- sort(teams)
 
-values <- aggregate(cbind(o_oreb, o_dreb, d_oreb, d_dreb, o_reb, d_reb) ~ tmID, data = df, FUN = sum)
+values <- aggregate(cbind(reb, o_oreb, o_dreb, d_oreb, d_dreb, o_reb, d_reb, won) ~ tmID, data = df, FUN = sum)
 
 x <- seq(-4, 4, by = 0.01)
 y <- dnorm(x, mean = 0, sd = 1)
 plot (x,y, type="l")
 normal <- data.frame(x, y)
 
-
 df$reb <- df$o_reb + df$d_reb
 
+# ISTOGRAMMA INTERATTIVO
 
-
-
-#ISTOGRAMMA 
-
-hist(df$reb, 
-     main = "Istogramma dei Rimbalzi",
-     xlab = "Rimbalzi",
-     ylab = "Frequenza",
-     col = "lightblue",      # Colore delle barre
-     border = "black",       # Colore del bordo delle barre
-     breaks = 20,            # Numero di intervalli (personalizzabile)
-     xlim = c(5800, max(df$reb)),  # Imposta i limiti dell'asse x
-     ylim = c(0, 150)         # Limite dell'asse y (personalizzabile)
-)
-
-# Aggiungi una griglia di sfondo
-grid()
-
-# Aggiungi una legenda
-legend("topright", legend = c("Rimbalzi"), fill = "lightblue")
-
-# Aggiungi una linea media se necessario
-abline(v = mean(df$reb), col = "red", lwd = 2, lty = 2)
-
-
-
-
-#PLOT DI DENSITA
-
-plot(density(df$reb), 
-     main = "Densità dei Rimbalzi",
-     xlab = "Rimbalzi",
-     col = "blue",         # Colore della curva di densità
-     lwd = 2               # Spessore della curva di densità
-)
-
-# Aggiungi una griglia di sfondo
-grid()
-
-# Aggiungi etichette per gli assi
-axis(1, col = "darkgray")  # Asse x
-axis(2, col = "darkgray")  # Asse y
-
-# Aggiungi una legenda
-legend("topright", legend = c("Densità dei Rimbalzi"), col = "blue", lwd = 2)
-
-# Aggiungi una linea per la media se necessario
-abline(v = mean(df$reb), col = "red", lwd = 2, lty = 2)
-
-
+plot_ly(data = df, x = ~reb, type = "histogram",
+        marker = list(color = 'lightblue', line = list(color = 'black', width = 1)),
+        nbinsx = 20) %>% 
+  layout(title = 'Istogramma dei Rimbalzi',
+         xaxis = list(title = 'Rimbalzi'),
+         yaxis = list(title = 'Frequenza'),
+         shapes = list(type = "line", 
+                       x0 = mean(df$reb), x1 = mean(df$reb),
+                       y0 = 0, y1 = 215,
+                       line = list(color = "red", width = 2, dash = "dash")),
+         yaxis = list(autorange = TRUE))
 
 
 #PLOT DI DENSITA CON SOVRAPPOSIZIONE DI UNA NORMALE IDEALE
 
-# Crea il grafico di densità
-plot(density(df$reb), 
-     main = "Densità dei Rimbalzi", cex.main = 2, font.main = 2,
-     xlab = "Rimbalzi", cex.lab = 1.2, font.lab = 1.6,
-     col = "blue",         # Colore della curva di densità osservata
-     lwd = 2               # Spessore della curva di densità osservata
-)
-
-# Aggiungi una griglia di sfondo
-grid()
-
-# Aggiungi etichette per gli assi
-axis(1, col = "darkgray")  # Asse x
-axis(2, col = "darkgray")  # Asse y
-
-# Aggiungi una legenda
-legend("topright", legend = c("Densità dei Rimbalzi"), col = "blue", lwd = 2)
-
-# Aggiungi una linea per la media se necessario
-abline(v = mean(df$reb), col = "red", lwd = 2, lty = 2)
-
-# Aggiungi una curva di densità normale teorica
+density_data <- density(df$reb)
 mu <- mean(df$reb)
 sigma <- sd(df$reb)
-x <- seq(min(df$reb), max(df$reb), length = 100)
-lines(x, dnorm(x, mean = mu, sd = sigma), col = "green", lwd = 2)
+normal_data <- dnorm(density_data$x, mean = mu, sd = sigma)
 
-# Aggiungi una legenda per la curva normale
-legend("topright", legend = c("Densità dei Rimbalzi", "Densità Normale"), col = c("blue", "green"), lwd = 2)
+p <- plot_ly(x = density_data$x, y = density_data$y, type = 'scatter', mode = 'lines',
+             line = list(color = 'blue', width = 2),
+             name = "Densità rimbalzi totale") %>%
+  layout(title = "Densità dei Rimbalzi",
+         xaxis = list(title = "Rimbalzi"),
+         yaxis = list(title = "Density", autotick = TRUE, autorange = TRUE))
 
+p <- add_trace(p, x = density_data$x, y = normal_data, mode = 'lines',
+               line = list(color = 'green', width = 2),
+               fill = "tozeroy", fillcolor = "rgba(0, 255, 0, 0.2)",
+               name = "Dist normale ideale")
 
+p <- add_trace(p, x = c(mu, mu), y = c(0, max(density_data$y)),
+               mode = 'lines', line = list(color = 'red', width = 2, dash = 'dash'),
+               name = "Media")
 
-
-
-# INSTOGRAMMA CON SOVRAPPOSIZIONE DI PLOT DI DENSITA DEL DATASET E IL PLOT DI UNA NORMALE IDEALE
-
-hist(df$reb, 
-     col = 'skyblue',      # Colore delle barre
-     prob = TRUE, 
-     main = "Istogramma con Densità", 
-     xlab = "Rimbalzi", 
-     ylab = "Densità",
-     border = "white"      # Colore del bordo delle barre
-)
-
-# Aggiungi una linea di densità per i dati del dataframe
-lines(density(df$reb), col = "red", lwd = 2)
-
-# Aggiungi una curva di densità normale teorica
-mu <- mean(df$reb)
-sigma <- sd(df$reb)
-x <- seq(min(df$reb), max(df$reb), length = 100)
-lines(x, dnorm(x, mean = mu, sd = sigma), col = "darkgreen", lwd = 2)
-
-# Aggiungi una legenda
-legend("topright", legend = c("Densità Osservata", "Densità Normale", "Rimbalzi"), col = c("red", "darkgreen", "lightblue"), lwd = 2)
-
-# Aggiungi una griglia di sfondo
-grid(lty = 3, col = "lightgray")
-
-# Aggiungi una cornice intorno all'istogramma
-box()
-
-# Personalizza l'aspetto del titolo e delle etichette
-title(main = "Istogramma con Densità", cex.main = 1.5)
-title(xlab = "Rimbalzi", cex.lab = 1.2)
-title(ylab = "Densità", cex.lab = 1.2)
-
-
-
-
+(p)
 
 # CORRPLOT
 
-# Seleziona le colonne del DataFrame
 data_subset <- df[, c("reb", "o_reb", "d_reb")]
-
-# Calcola la matrice di correlazione
 cor_matrix <- cor(data_subset)
 
-# Crea un corrplot con colori accattivanti
-corrplot(cor_matrix, 
-         method = "circle", 
-         order = "hclust", 
-         tl.cex = 0.8, 
-         tl.col = "black",
-         addrect = 3,  # Aggiungi un rettangolo intorno al blocco di correlazione
-         rect.col = "lightblue",  # Colore del rettangolo
-         bg = "white",  # Colore di sfondo
-         cl.ratio = 0.2,  # Spazio tra celle
-         col = colorRampPalette(c("#4575b4", "#91bfdb", "#e0f3f8", "#fee08b", "#d73027"))(100),  # Scala di colori personalizzata
-         addCoef.col = "black",  # Colore del testo dei coefficienti
-         number.cex = 0.7,  # Dimensione del testo dei coefficienti
-         mar = c(0,0,2,0)  # Margine per evitare il taglio del titolo
-)
+rownames(cor_matrix) <- colnames(data_subset)
+colnames(cor_matrix) <- colnames(data_subset)
 
+cor_data <- reshape2::melt(cor_matrix)
+names(cor_data) <- c("Var1", "Var2", "Corr")
 
+dimnames(cor_matrix) <- list(rownames(cor_matrix), colnames(cor_matrix))
+data_for_plotly <- as.data.frame(as.table(cor_matrix))
 
+p <- plot_ly(data = cor_data, 
+             x = ~Var1, 
+             y = ~Var2, 
+             z = ~Corr, 
+             type = "heatmap", 
+             colors = colorRampPalette(c("#4575b4", "#91bfdb", "#e0f3f8", "#fee08b", "#d73027"))(100),
+             hoverinfo = "x+y+z") %>% 
+  layout(title = 'Correlation Matrix',
+         xaxis = list(title = "", tickangle = 45, side = "bottom", automargin = TRUE),
+         yaxis = list(title = "", automargin = TRUE),
+         autosize = TRUE)
+
+cor_values <- round(as.matrix(cor_matrix), 2)  # Round for readability
+for (i in seq_len(nrow(cor_matrix))) {
+  for (j in seq_len(ncol(cor_matrix))) {
+    p <- p %>% add_annotations(
+      x = rownames(cor_matrix)[i],
+      y = colnames(cor_matrix)[j],
+      text = as.character(cor_values[i, j]),
+      showarrow = FALSE,
+      font = list(color = ifelse(cor_values[i, j] < 0.5, "white", "black"))
+    )
+  }
+}
+
+(p)
 
 
 #BOXPLOT (1° Versione)
 
-boxplot(df$won ~ df$reb, las = 2, col = "skyblue", main = "Distribuzione delle Vittorie in base ai Rimbalzi", cex.main = 1.5, font.main = 2, xlab = "Rimbalzi", ylab = "Vittorie", border = "black", notch = FALSE)
+aggregated_data <- df %>%
+  select(tmID, year, o_reb, d_reb) %>%
+  group_by(tmID, year) %>%
+  summarize(
+    o_reb = mean(o_reb, na.rm = TRUE), 
+    d_reb = mean(d_reb, na.rm = TRUE)
+  )
 
-# Aggiungi una griglia di sfondo più sottile
-grid(lty = 3, col = "lightgray")
+reshaped_data <- aggregated_data %>%
+  pivot_longer(cols = c(o_reb, d_reb), names_to = "stat_type", values_to = "stat") %>%
+  unite("new_col", tmID, stat_type, sep = "_") %>%
+  pivot_wider(names_from = new_col, values_from = "stat")
 
-# Aggiungi una legenda
-legend("topright", legend = c("Vittorie"), col = "skyblue", lwd = 2, cex = 1.2)
-
-# Aggiungi una linea per la mediana
-abline(h = median(df$won), col = "red", lty = 2, lwd = 2)
-
-# Aggiungi un'etichetta per la mediana
-text(max(df$reb) + 0.2, median(df$won), "Mediana", col = "red", pos = 2, offset = 0.5, cex = 1.2)
+fig <- plot_ly()
 
 
-
+for (i in 2:ncol(reshaped_data)) {
+    current_column_data <- reshaped_data[[i]]
+    fig <- fig %>% add_trace(y = current_column_data, name = colnames(reshaped_data)[i], type = "box")
+}
 
 
 #BOXPLOT (2° Versione)
@@ -601,49 +990,157 @@ ggplot(df, aes(x = reb_categories, y = won, fill = reb_categories)) +
   theme_minimal()
 
 
-
+```
 
 
 
 #TEST ANDERSON-DARLING
+```{r}
 ad.test(df$reb)
-
+```
 #Con un livello di significatività (α) di 0.01 e un p-value molto piccolo (3.1e-09) ottenuto dal test di normalità di Anderson-Darling per i dati della variabile df$reb, puoi concludere che hai sufficiente evidenza statistica per respingere lipotesi nulla che i dati seguono una distribuzione normale.Con il tuo livello di significatività del 0.01 e il p-value molto piccolo (3.1e-09), il p-value è inferiore al livello di significatività, quindi respingeresti lipotesi nulla. Questo suggerisce che i dati nella variabile df$reb non seguono una distribuzione normale al livello di significatività del 0.01. In termini più pratici, hai abbastanza evidenza statistica per concludere che la variabile df$reb non segue una distribuzione normale basandoti sui risultati del test di Anderson-Darling.
 
 
 #TEST KOLMOGOROV SMIRNOV
-
+```{r}
 ks.test(df$reb, "pnorm")
-
+```
 # Il risultato che hai ottenuto riguarda il test di Kolmogorov-Smirnov a campione singolo sui dati contenuti nella variabile df$reb. Il test KS confronta la distribuzione empirica dei tuoi dati con una distribuzione teorica (spesso una distribuzione uniforme). In breve, il risultato suggerisce che i tuoi dati non seguono la distribuzione teorica presunta, e cè un elevata probabilità che la differenza osservata sia statisticamente significativa.
 
 
 #TEST SHAPIRO WILK
-
+```{r}
 sf.test(df$reb)
-
+```
 #In sintesi, il risultato del test di Shapiro-Francia indica che i tuoi dati nella variabile df$reb non seguono una distribuzione normale. Questo è supportato dal valore basso del p-value, il quale suggerisce che la differenza tra la distribuzione dei tuoi dati e una distribuzione normale è statisticamente significativa.
 
-
+```{r}
 barplot(df$reb, col = c("#1b98e0", "#353436"))
 
 ```
 
 ```{r}
 
-heatmap_df <- subset(values, select = -c(o_oreb, o_dreb, d_oreb, d_dreb))
+heatmap_df <- subset(values, select = -c(o_oreb, o_dreb, d_oreb, d_dreb, won, reb))
 rownames(heatmap_df) <- heatmap_df$tmID
 heatmap_df <- heatmap_df[,-1]
 
-# Fare URIEL ---> da SISTEMARE
 heatmaply(
-  percentize(heatmap_df),
-  colors = viridis(n = 256,  option = "magma"),
-  k_col = 2,
-  k_row = 4,
+ heatmap_df,
+ colors = viridis(n = 256,  option = "magma"),
+ k_col = 2,
+ k_row = 4,
 )
-# pie()
-barplot(df$reb, col = c("#1b98e0", "#353436"))
-legend("topright", legend = c("Group 1", "Group 2"), fill = c("#1b98e0", "#353436"))
+
+plot_ly(values, x = ~tmID, y = ~o_reb, type = 'bar', name = 'Rimbalzi offensivi', marker = list(color = '#FFAFA1')) %>%
+  add_trace(y = ~d_reb, name = 'Rimbalzi difensivi', marker = list(color = '#b2fff8')) %>%
+  layout(yaxis = list(title = 'Valori'), barmode = 'stack')
+
+
+```
+
+#VARIABILI DUMMY
+
+```{r}
+
+# VARIABILI DUMMY CON TEST ANOVA su ConferenceID
+
+# Controlla i valori univoci nella colonna 'conference'
+unique_conferences <- unique(df$confID)
+print(unique_conferences)
+
+# Supponiamo che 'conference' sia la variabile categorica di interesse
+df$conference <- as.factor(df$confID)
+
+# Creazione di variabili dummy
+dummy_vars <- model.matrix(~ df$confID - 1, data=df)  # -1 per evitare la colinearità
+
+# Aggiunta delle variabili dummy al dataframe
+df <- cbind(df, dummy_vars)
+df
+# Esecuzione di un test ANOVA
+# Supponiamo che 'won' sia la variabile dipendente
+anova(lm(df$won ~ df$confID, data=df))
+
+# si tiene l'ipotesi nulla perchè la variabile correlazione non ha un effetto sulle vittorie. 
+# Non Posso inserire a modello la variabile
+
+
+
+
+# VARIABILI DUMMY CON TEST ANOVA su DivisionID
+
+# Controlla i valori univoci nella colonna 'conference'
+unique_conferences <- unique(df$divID)
+print(unique_conferences)
+
+# Supponiamo che 'conference' sia la variabile categorica di interesse
+df$conference <- as.factor(df$divID)
+
+# Creazione di variabili dummy
+dummy_vars <- model.matrix(~ df$divID - 1, data=df)  # -1 per evitare la colinearità
+
+# Aggiunta delle variabili dummy al dataframe
+df <- cbind(df, dummy_vars)
+df
+# Esecuzione di un test ANOVA
+# Supponiamo che 'won' sia la variabile dipendente
+anova(lm(df$won ~ df$divID, data=df))
+
+
+# si rifiuta l'ipotesi perchè la variabile divisione ha un effetto sulle vittorie. Posso inserire a modello la variabile
+
+linModNormalized1 <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z + divID, data = df)
+summary(linModNormalized1)
+
+```
+
+#EFFETTI INTERAZIONE
+
+```{r}
+
+linModNormalized1 <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z + divID + f1_z:f2_z + f4_z:divID, data = df)
+summary(linModNormalized1)
+
+
+# f4 è indicatore che cresce all'aumentare dei rimbalzi ottenuti e diminuisce all'aumentare dei rimbalzi subiti.
+# Interazione tra f4 e la divisione non è significativa, contrariamente al fatto che invece interazione tra f1 e f2 è significativo
+
+
+# AGGIORNAMENTO Del modello lineare togliendo la seconda interazione
+
+linModNormalized2 <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z + divID + f1_z:f2_z, data = df)
+
+
+```
+
+
+#test F, significatività singoli coefficienti, R^2
+
+```{r}
+
+summary(linModNormalized2)
+
+#Nel complesso, il modello sembra ben adattato ai dati, spiegando una parte significativa della variazione nelle vittorie delle squadre di pallacanestro. La significatività delle variabili derivate (f1_z, f2_z, f3_z, f4_z, f5_z) e delle variabili dummy divID suggerisce che questi fattori sono importanti nella predizione del numero di vittorie. Il termine di interazione f1_z:f2_z è significativo, indicando che c'è un effetto sinergico tra le variabili f1_z e f2_z nella loro influenza sul numero di vittorie.
+
+```
+
+# Può aiutare l’uso della POISSON?
+
+```{r}
+
+linModNormalized2_pois = glm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z + divID + f1_z:f2_z, family=poisson(link=log), data = df)
+summary(linModNormalized2_pois)
+
+
+normal = coefficients(linModNormalized2)
+poisson = exp(coefficients(linModNormalized2_pois))
+
+cbind(normal, poisson)
+
+#Considerazioni Generali:
+#È importante notare che gli effetti delle variabili possono essere interpretati in modo diverso a seconda della distribuzione scelta per il modello. La scelta tra distribuzione normale e di Poisson dipende dalla natura della tua variabile dipendente e dai tuoi obiettivi di modellazione. Nel contesto di modelli di regressione, è sempre buona pratica verificare l'adeguatezza del modello esaminando i residui, eseguendo test diagnostici e valutando la bontà di adattamento. L'interpretazione dei coefficienti dovrebbe essere fatta considerando la scala appropriata per la distribuzione utilizzata (lineare per la normale, logaritmica per la Poisson). Se stai cercando di prevedere il numero di vittorie, la distribuzione di Poisson potrebbe essere più appropriata per variabili conteggio come questa. Tuttavia, è sempre necessario verificare l'adeguatezza del modello ai dati specifici.
+
+
 
 ```
