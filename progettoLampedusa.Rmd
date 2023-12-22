@@ -13,12 +13,12 @@ editor_options:
 
 ##I Rimbalzi Nel Basket
 
-| Con questo report ci siamo interessati allo studio di un modello lienare predittivo per le vittorie, basato sul numero di rimbalzi annuali effettuati      dalle squadre nel campionato NBA.
-| vengono prese in considerazione solo le squadre con almeno 82 partite disputate, con riferimento agli anni dal 1976 al 2011.
+Con questo report ci siamo interessati allo studio di un modello lienare predittivo per le vittorie, basato sul numero di rimbalzi annuali effettuati dalle squadre nel campionato NBA.
+vengono prese in considerazione solo le squadre con almeno 82 partite disputate, con riferimento agli anni dal 1976 al 2011.
 
-| La previsione del modello lineare e' basata sull'uso di coefficienti ideati per essere il piu possibile significativi e conforme alla nostra idea di       incidenza sulle vittorie di certe variabili riespetto ad altre.
+La previsione del modello lineare e' basata sull'uso di coefficienti ideati per essere il piu possibile significativi e conforme alla nostra idea di incidenza sulle vittorie di certe variabili riespetto ad altre.
 
-| I dettagli su come eseguire il programma e utilizzare la funzione predittiva si trovano direttamente di seguito, assieme al processo di realizzazione e    verifica del modello stesso.
+I dettagli su come eseguire il programma e utilizzare la funzione predittiva si trovano direttamente di seguito, assieme al processo di realizzazione e verifica del modello stesso.
 
 
 ```{r setup, include=TRUE, warning=FALSE, message=FALSE, error=FALSE}
@@ -40,7 +40,6 @@ library(RColorBrewer)
 library(tidyr)
 library(dplyr)
 
-
 knitr::opts_knit$set(root.dir = here("0_Materiale"))
 ```
 
@@ -58,7 +57,7 @@ LAST <- 2011 # ultimo anno del range da considerare per lo studio
 
 df <- dataset [dataset$lgID=="NBA" & dataset$year >= FIRST & dataset$year <= LAST & dataset$games==82,]
 
-dataset$lgID <- as.factor(dataset$lgID) # perchè mi permettono di poter generare variabili dummy
+# dataset$lgID <- as.factor(dataset$lgID) # perchè mi permettono di poter generare variabili dummy
 
 summary(df)
 
@@ -144,14 +143,6 @@ title("Density plots with Normal Distribution", line = -17, cex.main = 2, outer 
 # Visualizza i plot interattivi
 #subplot(plot_list)
 
-
-
-
-
-
-
-
-
 #verifica della presenza zeri nel dataset
 print(paste("Percentage non-zero o_oreb: ",round(length(which(df_reb$o_oreb>0)) /dim(df_reb)[1]*100,2)))
 print(paste("Percentage non-zero o_dreb: ",round(length(which(df_reb$o_dreb>0)) /dim(df_reb)[1]*100,2)))
@@ -159,7 +150,6 @@ print(paste("Percentage non-zero o_reb: ",round(length(which(df_reb$o_reb>0)) /d
 print(paste("Percentage non-zero d_oreb: ",round(length(which(df_reb$d_oreb>0)) /dim(df_reb)[1]*100,2)))
 print(paste("Percentage non-zero d_dreb: ",round(length(which(df_reb$d_dreb>0)) /dim(df_reb)[1]*100,2)))
 print(paste("Percentage non-zero d_reb: ",round(length(which(df_reb$d_reb>0)) /dim(df_reb)[1]*100,2)))
-
 
 ```
 
@@ -184,18 +174,6 @@ abline(v = mean(df$won), col = "red", lwd = 2)
 # Aggiungi una legenda
 legend("topright", legend = c("Media"), col = c("red"), lwd = 2)
 
-
-
-
-
-
-
-
-
-
-
-
-
 #ISTOGRAMMA INTERATTIVO DA TESTARE 1° versione
 
 # Crea un istogramma con plot_ly
@@ -208,7 +186,6 @@ histogram <- plot_ly(df, x = ~won, type = "histogram", marker = list(color = "sk
 
 # Visualizza l'istogramma interattivo
 histogram
-
 
 #ISTOGRAMMA INTERATTIVO DA TESTARE 2° versione
 
@@ -231,17 +208,6 @@ histogram <- plot_ly(df, x = ~won, type = "histogram",
 # Visualizza l'istogramma interattivo
 histogram
 
-
-
-
-
-
-
-
-
-
-
-
 # PLOT DENSITA
 
 density_plot <- density(df$won)
@@ -261,19 +227,7 @@ abline(v = mean(df$won), col = "red", lwd = 2)
 # Aggiungi una legenda
 legend("topright", legend = c("Media"), col = c("red"), lwd = 2)
 
-
-
-
-
-
-
-
-
-
-
-
 # PLOT DENSITA INTERATTIVO DA TESTARE 
-
 
 # Calcola la densità delle vittorie
 density_plot <- density(df$won)
@@ -296,15 +250,6 @@ density_interactive <- plot_ly(x = density_plot$x, y = density_plot$y, type = "s
 
 # Visualizza il plot di densità interattivo
 density_interactive
-
-
-
-
-
-
-
-
-
 
 #CORRPLOT 
 
@@ -753,41 +698,32 @@ library(ggfortify)
 influence_plot <- influencePlot(linModNormalized_1, id = 5, main = "Influence Plot")
 
 # Personalizza il grafico
-influence_plot +
-  theme_minimal() +  # Usa uno stile minimale
-  theme(plot.title = element_text(size = 16, face = "bold"),  # Titolo più grande e in grassetto
-        axis.title = element_text(size = 14),  # Etichette degli assi più grandi
-        axis.text = element_text(size = 12),   # Numeri degli assi più grandi
-        legend.position="none")  # Nascondi la legenda
-
-
+# influence_plot +
+#   theme_minimal() +  # Usa uno stile minimale
+#   theme(plot.title = element_text(size = 16, face = "bold"),  # Titolo più grande e in grassetto
+#         axis.title = element_text(size = 14),  # Etichette degli assi più grandi
+#         axis.text = element_text(size = 12),   # Numeri degli assi più grandi
+#         legend.position="none")  # Nascondi la legenda
+# 
+# 
 
 
 
 #INTERATTIVO DA TESTARE
-# Installa e carica le librerie necessarie
-if (!requireNamespace("car", quietly = TRUE)) {
-  install.packages("car")
-}
-if (!requireNamespace("plotly", quietly = TRUE)) {
-  install.packages("plotly")
-}
-library(car)
-library(plotly)
 
-# Calcola l'influenza
-influence_values <- influence(linModNormalized_1)
-
-# Estrai i valori influenti per l'osservazione desiderata (es. id=5)
-influence_values_single <- as.matrix(influence_values$infmat[5, ])
-
-# Crea un grafico interattivo
-plot_ly(x = colnames(influence_values_single), y = influence_values_single,
-        type = "bar", name = "Influence", marker = list(color = "blue")) %>%
-  layout(title = "Influence Plot",
-         xaxis = list(title = "Variables"),
-         yaxis = list(title = "Influence"))
-
+# # Calcola l'influenza
+# influence_values <- influence(linModNormalized_1)
+# 
+# # Estrai i valori influenti per l'osservazione desiderata (es. id=5)
+# influence_values_single <- as.matrix(influence_values$infmat[5, ])
+# 
+# # Crea un grafico interattivo
+# plot_ly(x = colnames(influence_values_single), y = influence_values_single,
+#         type = "bar", name = "Influence", marker = list(color = "blue")) %>%
+#   layout(title = "Influence Plot",
+#          xaxis = list(title = "Variables"),
+#          yaxis = list(title = "Influence"))
+# 
 
 ```
 Nel complesso entrambi i modelli sembrano essere buoni, spiegano entrambi circa l'84% della varianza nella variabile dipendente "won", anche se la rimozione degli otlayers ha migliorato leggermente i risultati.
@@ -843,7 +779,6 @@ values <- aggregate(cbind(o_oreb, o_dreb, d_oreb, d_dreb, o_reb, d_reb, won) ~ t
 # temp <- hist (temp, col = 'steelblue', main = 'caccaculo', xlab = 'balls')
 
 ### SANDBOX
-
 
 teams <- c()
 
@@ -972,6 +907,7 @@ for (i in 2:ncol(reshaped_data)) {
     fig <- fig %>% add_trace(y = current_column_data, name = colnames(reshaped_data)[i], type = "box")
 }
 
+(fig)
 
 #BOXPLOT (2° Versione)
 
