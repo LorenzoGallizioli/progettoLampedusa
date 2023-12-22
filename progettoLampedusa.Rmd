@@ -39,8 +39,12 @@ library(reshape2)
 library(RColorBrewer)
 library(tidyr)
 library(dplyr)
+library(gridExtra)
+library(ggfortify)
+
 
 knitr::opts_knit$set(root.dir = here("0_Materiale"))
+
 ```
 
 # Progetto numero 5
@@ -75,95 +79,43 @@ summary(df)
 # d_reb  = totale rimbalzi in difesa
 
 df_reb <- subset(df, select = c("o_oreb", "o_dreb", "o_reb", "d_oreb", "d_dreb", "d_reb", "won"))
-  
+
 par(mfrow = c(2, 3))  # Imposta il layout a 2 righe e 3 colonne
 
-for (variables in 1:(dim(df_reb)[2]-1)){
+for (variables in 1:(dim(df_reb)[2]-1)) {
   thisvar = df_reb[,variables]
   d <- density(thisvar)
   xmin <- floor(min(thisvar))
   xmax <- ceiling(max(thisvar))
   
   # Crea il plot della densità con stile accattivante
-  plot(d, main = names(df_reb)[variables], xlab = "", col = "skyblue", lwd = 1, xlim = c(xmin, xmax), ylim = c(0, max(d$y)*1.1))
+  plot(d, main = names(df_reb)[variables], xlab = "", col = "blue", lwd = 1.5, xlim = c(xmin, xmax), ylim = c(0, max(d$y)*1.1))
 
   # Aggiungi la distribuzione normale teorica ideale in rosso
   x <- seq(xmin, xmax, length = 100)
-  lines(x, dnorm(x, mean = mean(thisvar), sd = sd(thisvar)), col = "red", lwd = 1)
+  lines(x, dnorm(x, mean = mean(thisvar), sd = sd(thisvar)), col = "red", lwd = 1.5)  # Modifica lo spessore delle linee
 
   # Aggiungi griglia per migliorare la leggibilità
   grid()
 }
 
-# Aggiungi titolo
-title("Density plots with Normal Distribution", line = -17, cex.main = 2, outer = TRUE)
+# Aggiungi titolo in grassetto e corsivo, con spessore del testo modificato
+title(bquote(bold(italic("Density plots with Normal Distribution"))), line = -17, cex.main = 2, outer = TRUE)
 
 
 
-
-
-
-
-
-#GRAFICO INTUITIVO DA TESTARE
-
-
-# Imposta il layout a 2 righe e 3 colonne
-#par(mfrow = c(2, 3))
-
-# Lista per salvare i plot interattivi
-#plot_list <- list()
-
-#for (variables in 1:(dim(df_reb)[2])) {
-#  thisvar <- df_reb[, variables]
-#  d <- density(thisvar)
-#  xmin <- floor(min(thisvar))
-#  xmax <- ceiling(max(thisvar))
-  
-  # Crea il plot della densità con plot_ly
-#  p <- plot_ly(x = d$x, y = d$y, type = "scatter", mode = "lines", line = list(color = "skyblue", width = 1),
-#               name = names(df_reb)[variables]) %>%
-#    add_trace(x = x, y = dnorm(x, mean = mean(thisvar), sd = sd(thisvar)), type = "scatter", mode = "lines",
-#              line = list(color = "red", width = 1), name = "Normal Distribution") %>%
-#    layout(title = names(df_reb)[variables])
-
-  # Aggiungi il plot alla lista
-#  plot_list[[variables]] <- p
-#}
-
-# Aggiungi titolo
-#title("Density plots with Normal Distribution", line = -17, cex.main = 2, outer = TRUE)
-
-# Visualizza i plot interattivi
-#subplot(plot_list)
-
-<<<<<<< HEAD
-=======
-
-
-
-
-
-
-
->>>>>>> 04656a9c7b2908a8accb897f0fcd10c3de814acd
 #verifica della presenza zeri nel dataset
-print(paste("Percentage non-zero o_oreb: ",round(length(which(df_reb$o_oreb>0)) /dim(df_reb)[1]*100,2)))
-print(paste("Percentage non-zero o_dreb: ",round(length(which(df_reb$o_dreb>0)) /dim(df_reb)[1]*100,2)))
-print(paste("Percentage non-zero o_reb: ",round(length(which(df_reb$o_reb>0)) /dim(df_reb)[1]*100,2)))
-print(paste("Percentage non-zero d_oreb: ",round(length(which(df_reb$d_oreb>0)) /dim(df_reb)[1]*100,2)))
-print(paste("Percentage non-zero d_dreb: ",round(length(which(df_reb$d_dreb>0)) /dim(df_reb)[1]*100,2)))
-print(paste("Percentage non-zero d_reb: ",round(length(which(df_reb$d_reb>0)) /dim(df_reb)[1]*100,2)))
+print(paste("Percentage non-zero o_oreb: ",round(length(which(df_reb$o_oreb>0)) / dim(df_reb)[1]*100,2)))
+print(paste("Percentage non-zero o_dreb: ",round(length(which(df_reb$o_dreb>0)) / dim(df_reb)[1]*100,2)))
+print(paste("Percentage non-zero o_reb: ",round(length(which(df_reb$o_reb>0)) / dim(df_reb)[1]*100,2)))
+print(paste("Percentage non-zero d_oreb: ",round(length(which(df_reb$d_oreb>0)) / dim(df_reb)[1]*100,2)))
+print(paste("Percentage non-zero d_dreb: ",round(length(which(df_reb$d_dreb>0)) / dim(df_reb)[1]*100,2)))
+print(paste("Percentage non-zero d_reb: ",round(length(which(df_reb$d_reb>0)) / dim(df_reb)[1]*100,2)))
 
 ```
 
 ```{r}
 #STUDIO SULLE VITTORIE
-
-M <- cor(as.matrix(df[, c(11:25, 54)])) # correlation matrix
-corrplot(M, method="color", outline = TRUE,type="lower",order = "hclust",
-        tl.col="black", tl.srt=45, diag=FALSE,tl.cex = 1,mar=c(0,0,3,0),
-        title="Correlation Matrix between Predictor and Outcome variables")
 
 #ISTOGRAMMA
 # Crea un istogramma di base
@@ -178,39 +130,29 @@ abline(v = mean(df$won), col = "red", lwd = 2)
 # Aggiungi una legenda
 legend("topright", legend = c("Media"), col = c("red"), lwd = 2)
 
-#ISTOGRAMMA INTERATTIVO DA TESTARE 1° versione
 
-# Crea un istogramma con plot_ly
-histogram <- plot_ly(df, x = ~won, type = "histogram", marker = list(color = "skyblue", line = list(color = "white", width = 0.5))) %>%
-  layout(title = "Distribuzione delle Vittorie",
-         xaxis = list(title = "Numero di Vittorie"),
-         yaxis = list(title = "Frequenza"),
-         barmode = "overlay") %>%
-  add_trace(x = ~mean(won), type = "scatter", mode = "lines", line = list(color = "red", width = 2), name = "Media")
 
-# Visualizza l'istogramma interattivo
-histogram
-
-#ISTOGRAMMA INTERATTIVO DA TESTARE 2° versione
+#ISTOGRAMMA INTERATTIVO
 
 # Crea un istogramma con plot_ly
 histogram <- plot_ly(df, x = ~won, type = "histogram", 
                      marker = list(color = "skyblue", line = list(color = "white", width = 0.5)),
-                     opacity = 0.7) %>%
-  layout(title = list(text = "Distribuzione delle Vittorie", x = 0.5),
-         xaxis = list(title = "Numero di Vittorie", zeroline = FALSE),
-         yaxis = list(title = "Frequenza", zeroline = FALSE),
+                     opacity = 0.7, name = "Campione") %>%
+  layout(title = list(text = "<b><i>Distribuzione delle Vittorie</i></b>",y = 0.97),
+         xaxis = list(title = "<b><i>Numero di Vittorie</i></b>", zeroline = FALSE),
+         yaxis = list(title = "<b><i>Frequenza</i></b>", zeroline = FALSE),
          barmode = "overlay") %>%
   add_trace(x = ~mean(won), type = "scatter", mode = "lines", 
-            line = list(color = "red", width = 2), name = "Media") %>%
+            line = list(color = "red", width = 2), name = "<i><b>Media</i></b>") %>%
   add_trace(x = ~mean(won), type = "scatter", mode = "markers", 
             marker = list(color = "red", size = 8), showlegend = FALSE) %>%
-  add_annotations(text = sprintf("Media: %.2f", mean(df$won)), x = mean(df$won), y = 0, 
-                  arrowhead = 2, arrowcolor = "red", arrowsize = 1.5, arrowwidth = 2, 
-                  ax = 0, ay = -40, xshift = 10, yshift = -10)
+  add_annotations(text = sprintf("<i><b>Media: %.2f</b></i>", mean(df$won)), x = mean_value, y = 0, 
+                  arrowhead = 2, arrowcolor = "red", arrowsize = 1.5, arrowwidth = 2)
 
 # Visualizza l'istogramma interattivo
 histogram
+
+
 
 # PLOT DENSITA
 
@@ -231,44 +173,32 @@ abline(v = mean(df$won), col = "red", lwd = 2)
 # Aggiungi una legenda
 legend("topright", legend = c("Media"), col = c("red"), lwd = 2)
 
-# PLOT DENSITA INTERATTIVO DA TESTARE 
+
+# PLOT DENSITA INTERATTIVO
 
 # Calcola la densità delle vittorie
 density_plot <- density(df$won)
 
 # Crea il plot di densità con plot_ly
 density_interactive <- plot_ly(x = density_plot$x, y = density_plot$y, type = "scatter", mode = "lines", 
-                               line = list(color = "skyblue", width = 2)) %>%
-  layout(title = list(text = "Distribuzione di Densità delle Vittorie", x = 0.5),
-         xaxis = list(title = "Numero di Vittorie"),
-         yaxis = list(title = "Densità"),
-         showlegend = FALSE) %>%
+                               line = list(color = "skyblue", width = 2), name = "Densità") %>%
+  layout(title = list(text = "<b><i>Distribuzione di Densità delle Vittorie</i></b>", x = 0.5),
+         xaxis = list(title = "<i>Numero di Vittorie</i>"),
+         yaxis = list(title = "<i>Densità</i>"),
+         showlegend = TRUE) %>%
   add_trace(x = c(mean(df$won), mean(df$won)), y = c(0, max(density_plot$y)), 
             type = "scatter", mode = "lines", line = list(color = "red", width = 2),
-            name = "Media") %>%
+            name = "<i><b>Media</b></i>") %>%
   add_trace(x = mean(df$won), y = max(density_plot$y), type = "scatter", mode = "markers", 
-            marker = list(color = "red", size = 8)) %>%
-  add_annotations(text = sprintf("Media: %.2f", mean(df$won)), x = mean(df$won), y = max(density_plot$y) * 1.05, 
+            marker = list(color = "red", size = 8), showlegend = FALSE) %>%
+  add_annotations(text = sprintf("<i><b>Media: %.2f</b></i>", mean(df$won)), x = mean(df$won), y = max(density_plot$y) * 1.05, 
                   arrowhead = 2, arrowcolor = "red", arrowsize = 1.5, arrowwidth = 2, 
-                  ax = 0, ay = -40, xshift = 10, yshift = -10)
+                  ax = 0, ay = -40)
 
 # Visualizza il plot di densità interattivo
 density_interactive
 
-#CORRPLOT 
 
-# # Calcola la matrice di correlazione
-# M <- cor(as.matrix(df[, c(11:25, 54)]))
-# 
-# # Crea il grafico della matrice di correlazione
-# corrplot(M, method = "color", outline = TRUE, type = "lower", order = "hclust",
-#          tl.col = "black", tl.srt = 45, diag = FALSE, tl.cex = 0.7, mar = c(0, 0, 3, 0),
-#          title = "Correlation Matrix between Predictor and Outcome variables",
-#          addCoef.col = "black", number.cex = 0.5, tl.offset = 0.5)
-# 
-# # Aggiungi una legenda
-# legend("bottomleft", legend = c("Positive Correlation", "Negative Correlation"), fill = c("white", "black"), border = NA, bty = "n", title = "Correlation")
-# 
 
 # CORRPLOT
 
@@ -282,13 +212,24 @@ names(cor_data) <- c("Variable1", "Variable2", "Correlation")
 # Create the heatmap
 p <- plot_ly(data = cor_data, x = ~Variable1, y = ~Variable2, z = ~Correlation, 
              type = "heatmap", 
-             colors = viridis(n = 1024,  option = "magma"),
+             colors = viridis(n = 1024, option = "magma"),
              hoverinfo = "x+y+z") %>% 
-  layout(title = 'Correlation Matrix Heatmap',
-         xaxis = list(tickangle = 45),
-         yaxis = list(tickangle = 45),
-         autosize = TRUE)
+  layout(
+    title = '<b><i>Correlation Matrix Heatmap</i></b>',
+    xaxis = list(
+      title = list(text = "<b><i>Variabile 1</i></b>", standoff = 0),
+      tickangle = 45,
+      zeroline = FALSE
+    ),
+    yaxis = list(
+      title = list(text = "<b><i>Variabile 2</i></b>", standoff = 0),
+      tickangle = 45,
+      zeroline = FALSE
+    ),
+    autosize = TRUE
+  )
 
+# AGGIUNTA VALORI NELLE CELLE
 # cor_values <- round(as.matrix(cor_matrix), 2)  # Round for readability
 # for (i in seq_len(nrow(cor_matrix))) {
 #   for (j in seq_len(ncol(cor_matrix))) {
@@ -303,6 +244,8 @@ p <- plot_ly(data = cor_data, x = ~Variable1, y = ~Variable2, z = ~Correlation,
 # }
 
 (p)
+
+
 
 #BOXPLOT
 
@@ -326,9 +269,7 @@ for (i in 2:ncol(reshaped_data)) {
     fig <- fig %>% add_trace(y = current_column_data, name = colnames(reshaped_data)[i], type = "box")
 }
 
-
 (fig)
-
 
 df$reb <- df$o_reb + df$d_reb
 
@@ -392,116 +333,14 @@ df$f5 <- (df$d_oreb / df$d_to) / (df$o_dreb / df$o_to)
 linMod <- lm(won ~ f1 + f2 + f3 + f4 + f5, data = df)
 summary (linMod)
 
-# Installa e carica le librerie necessarie
-if (!requireNamespace("ggplot2", quietly = TRUE)) {
-  install.packages("ggplot2")
-}
-if (!requireNamespace("gridExtra", quietly = TRUE)) {
-  install.packages("gridExtra")
-}
-library(ggplot2)
-library(gridExtra)
+# Imposta il layout della pagina
+par(mfrow = c(2, 2))
 
-# Funzione per creare il plot di Residuals vs Fitted (Residui vs. Valori Previsti)
-res_vs_fitted <- ggplot(linMod, aes(.fitted, .resid)) +
-  geom_point(color = "skyblue", alpha = 0.7, size = 3) +
-  geom_smooth(se = FALSE, color = "red", method = "loess", size = 1) +
-  labs(title = "Residuals vs Fitted", x = "Fitted Values", y = "Residuals") +
-  theme_minimal() +
-  theme(plot.title = element_text(size = 14, face = "bold"))
+# Crea i quattro grafici
+plot(linMod)
 
-# Funzione per creare il plot QQ dei Residui
-qq_plot <- ggplot(linMod, aes(sample = .stdresid)) +
-  stat_qq(color = "skyblue", size = 2) +
-  stat_qq_line(color = "red", size = 1) +
-  labs(title = "QQ Plot dei Residui", x = "Quantiles teorici", y = "Quantiles osservati") +
-  theme_minimal() +
-  theme(plot.title = element_text(size = 14, face = "bold"))
-
-# Funzione per creare il plot Scale-Location
-scale_location_plot <- ggplot(linMod, aes(.fitted, sqrt(abs(.stdresid)))) +
-  geom_point(color = "skyblue", alpha = 0.7, size = 3) +
-  geom_smooth(se = FALSE, color = "red", method = "loess", size = 1) +
-  labs(title = "Scale-Location Plot", x = "Fitted Values", y = "sqrt(|Standardized Residuals|)") +
-  theme_minimal() +
-  theme(plot.title = element_text(size = 14, face = "bold"))
-
-# Funzione per creare il plot Residuals vs Leverage (Residui vs. Leverage)
-res_vs_leverage <- ggplot(linMod, aes(.hat, .stdresid)) +
-  geom_point(color = "skyblue", alpha = 0.7, size = 3) +
-  geom_smooth(se = FALSE, color = "red", method = "loess", size = 1) +
-  labs(title = "Residuals vs Leverage", x = "Leverage", y = "Standardized Residuals") +
-  theme_minimal() +
-  theme(plot.title = element_text(size = 14, face = "bold"))
-
-# Visualizza i quattro plot
-grid.arrange(res_vs_fitted, qq_plot, scale_location_plot, res_vs_leverage, ncol = 2)
-
-
-
-
-
-
-
-#PLOT INTERATTIVI DA TESTARE
-
-# Installa e carica le librerie necessarie
-if (!requireNamespace("ggplot2", quietly = TRUE)) {
-  install.packages("ggplot2")
-}
-if (!requireNamespace("gridExtra", quietly = TRUE)) {
-  install.packages("gridExtra")
-}
-if (!requireNamespace("plotly", quietly = TRUE)) {
-  install.packages("plotly")
-}
-library(ggplot2)
-library(gridExtra)
-library(plotly)
-
-# Funzione per creare il plot di Residuals vs Fitted (Residui vs. Valori Previsti)
-res_vs_fitted <- ggplot(linMod, aes(.fitted, .resid)) +
-  geom_point(color = "skyblue", alpha = 0.7, size = 3) +
-  geom_smooth(se = FALSE, color = "red", method = "loess", size = 1) +
-  labs(title = "Residuals vs Fitted", x = "Fitted Values", y = "Residuals") +
-  theme_minimal() +
-  theme(plot.title = element_text(size = 14, face = "bold"))
-
-# Funzione per creare il plot QQ dei Residui
-qq_plot <- ggplot(linMod, aes(sample = .stdresid)) +
-  stat_qq(color = "skyblue", size = 2) +
-  stat_qq_line(color = "red", size = 1) +
-  labs(title = "QQ Plot dei Residui", x = "Quantiles teorici", y = "Quantiles osservati") +
-  theme_minimal() +
-  theme(plot.title = element_text(size = 14, face = "bold"))
-
-# Funzione per creare il plot Scale-Location
-scale_location_plot <- ggplot(linMod, aes(.fitted, sqrt(abs(.stdresid)))) +
-  geom_point(color = "skyblue", alpha = 0.7, size = 3) +
-  geom_smooth(se = FALSE, color = "red", method = "loess", size = 1) +
-  labs(title = "Scale-Location Plot", x = "Fitted Values", y = "sqrt(|Standardized Residuals|)") +
-  theme_minimal() +
-  theme(plot.title = element_text(size = 14, face = "bold"))
-
-# Funzione per creare il plot Residuals vs Leverage (Residui vs. Leverage)
-res_vs_leverage <- ggplot(linMod, aes(.hat, .stdresid)) +
-  geom_point(color = "skyblue", alpha = 0.7, size = 3) +
-  geom_smooth(se = FALSE, color = "red", method = "loess", size = 1) +
-  labs(title = "Residuals vs Leverage", x = "Leverage", y = "Standardized Residuals") +
-  theme_minimal() +
-  theme(plot.title = element_text(size = 14, face = "bold"))
-
-# Converti i singoli grafici in oggetti plotly
-plotly_res_vs_fitted <- ggplotly(res_vs_fitted)
-plotly_qq_plot <- ggplotly(qq_plot)
-plotly_scale_location_plot <- ggplotly(scale_location_plot)
-plotly_res_vs_leverage <- ggplotly(res_vs_leverage)
-
-# Visualizza i quattro grafici interattivi
-subplot(plotly_res_vs_fitted, plotly_qq_plot, plotly_scale_location_plot, plotly_res_vs_leverage)
-
-
-
+# Ripristina il layout predefinito
+par(mfrow = c(1, 1))
 
 
 ```
@@ -522,110 +361,16 @@ linModNormalized <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z, data = df)
 
 summary(linModNormalized)
 
-# Installa e carica le librerie necessarie
-if (!requireNamespace("ggplot2", quietly = TRUE)) {
-  install.packages("ggplot2")
-}
-if (!requireNamespace("gridExtra", quietly = TRUE)) {
-  install.packages("gridExtra")
-}
-library(ggplot2)
-library(gridExtra)
+plot(linModNormalized)
 
-# Funzione per creare il plot di Residuals vs Fitted (Residui vs. Valori Previsti)
-res_vs_fitted <- ggplot(linModNormalized, aes(.fitted, .resid)) +
-  geom_point(color = "skyblue", alpha = 0.7, size = 3) +
-  geom_smooth(se = FALSE, color = "red", method = "loess", size = 1) +
-  labs(title = "Residuals vs Fitted", x = "Fitted Values", y = "Residuals") +
-  theme_minimal() +
-  theme(plot.title = element_text(size = 14, face = "bold"))
+# Imposta il layout della pagina
+par(mfrow = c(2, 2))
 
-# Funzione per creare il plot QQ dei Residui
-qq_plot <- ggplot(linModNormalized, aes(sample = .stdresid)) +
-  stat_qq(color = "skyblue", size = 2) +
-  stat_qq_line(color = "red", size = 1) +
-  labs(title = "QQ Plot dei Residui", x = "Quantiles teorici", y = "Quantiles osservati") +
-  theme_minimal() +
-  theme(plot.title = element_text(size = 14, face = "bold"))
+# Crea i quattro grafici
+plot(linMod)
 
-# Funzione per creare il plot Scale-Location
-scale_location_plot <- ggplot(linModNormalized, aes(.fitted, sqrt(abs(.stdresid)))) +
-  geom_point(color = "skyblue", alpha = 0.7, size = 3) +
-  geom_smooth(se = FALSE, color = "red", method = "loess", size = 1) +
-  labs(title = "Scale-Location Plot", x = "Fitted Values", y = "sqrt(|Standardized Residuals|)") +
-  theme_minimal() +
-  theme(plot.title = element_text(size = 14, face = "bold"))
-
-# Funzione per creare il plot Residuals vs Leverage (Residui vs. Leverage)
-res_vs_leverage <- ggplot(linModNormalized, aes(.hat, .stdresid)) +
-  geom_point(color = "skyblue", alpha = 0.7, size = 3) +
-  geom_smooth(se = FALSE, color = "red", method = "loess", size = 1) +
-  labs(title = "Residuals vs Leverage", x = "Leverage", y = "Standardized Residuals") +
-  theme_minimal() +
-  theme(plot.title = element_text(size = 14, face = "bold"))
-
-# Visualizza i quattro plot
-grid.arrange(res_vs_fitted, qq_plot, scale_location_plot, res_vs_leverage, ncol = 2)
-
-
-
-#PLOT INTERATTIVI DA TESTARE
-
-# Installa e carica le librerie necessarie
-if (!requireNamespace("ggplot2", quietly = TRUE)) {
-  install.packages("ggplot2")
-}
-if (!requireNamespace("gridExtra", quietly = TRUE)) {
-  install.packages("gridExtra")
-}
-if (!requireNamespace("plotly", quietly = TRUE)) {
-  install.packages("plotly")
-}
-library(ggplot2)
-library(gridExtra)
-library(plotly)
-
-# Funzione per creare il plot di Residuals vs Fitted (Residui vs. Valori Previsti)
-res_vs_fitted <- ggplot(linModNormalized, aes(.fitted, .resid)) +
-  geom_point(color = "skyblue", alpha = 0.7, size = 3) +
-  geom_smooth(se = FALSE, color = "red", method = "loess", size = 1) +
-  labs(title = "Residuals vs Fitted", x = "Fitted Values", y = "Residuals") +
-  theme_minimal() +
-  theme(plot.title = element_text(size = 14, face = "bold"))
-
-# Funzione per creare il plot QQ dei Residui
-qq_plot <- ggplot(linModNormalized, aes(sample = .stdresid)) +
-  stat_qq(color = "skyblue", size = 2) +
-  stat_qq_line(color = "red", size = 1) +
-  labs(title = "QQ Plot dei Residui", x = "Quantiles teorici", y = "Quantiles osservati") +
-  theme_minimal() +
-  theme(plot.title = element_text(size = 14, face = "bold"))
-
-# Funzione per creare il plot Scale-Location
-scale_location_plot <- ggplot(linModNormalized, aes(.fitted, sqrt(abs(.stdresid)))) +
-  geom_point(color = "skyblue", alpha = 0.7, size = 3) +
-  geom_smooth(se = FALSE, color = "red", method = "loess", size = 1) +
-  labs(title = "Scale-Location Plot", x = "Fitted Values", y = "sqrt(|Standardized Residuals|)") +
-  theme_minimal() +
-  theme(plot.title = element_text(size = 14, face = "bold"))
-
-# Funzione per creare il plot Residuals vs Leverage (Residui vs. Leverage)
-res_vs_leverage <- ggplot(linModNormalized, aes(.hat, .stdresid)) +
-  geom_point(color = "skyblue", alpha = 0.7, size = 3) +
-  geom_smooth(se = FALSE, color = "red", method = "loess", size = 1) +
-  labs(title = "Residuals vs Leverage", x = "Leverage", y = "Standardized Residuals") +
-  theme_minimal() +
-  theme(plot.title = element_text(size = 14, face = "bold"))
-
-# Converti i singoli grafici in oggetti plotly
-plotly_res_vs_fitted <- ggplotly(res_vs_fitted)
-plotly_qq_plot <- ggplotly(qq_plot)
-plotly_scale_location_plot <- ggplotly(scale_location_plot)
-plotly_res_vs_leverage <- ggplotly(res_vs_leverage)
-
-# Visualizza i quattro grafici interattivi
-subplot(plotly_res_vs_fitted, plotly_qq_plot, plotly_scale_location_plot, plotly_res_vs_leverage)
-
+# Ripristina il layout predefinito
+par(mfrow = c(1, 1))
 
 ```
 
@@ -665,6 +410,7 @@ car::vif(linModNormalized)
 Possiamo ora verificare la presenza di outlayers, ovvero dati anomali o fuori norma che possono influenzare in modo molto significativo il modello rispetto al resto dei dati presi in cosiderazione.
 Provvediamo quindi a rimuoverli e a ricreare il modello.
 ```{r, include=TRUE}
+
 influencePlot(linModNormalized,5)
 
 #rimuovo gli outlayers e ricreo il modello
@@ -684,87 +430,11 @@ df_1$f5_z <- scale(df_1$f5)
 
 linModNormalized_1 <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z, data = df_1)
 
+influencePlot(linModNormalized_1,5)
+
 summary(linModNormalized)
 summary(linModNormalized_1)
 
-
-# Installa e carica le librerie necessarie
-if (!requireNamespace("ggplot2", quietly = TRUE)) {
-  install.packages("ggplot2")
-}
-if (!requireNamespace("ggfortify", quietly = TRUE)) {
-  install.packages("ggfortify")
-}
-library(ggplot2)
-library(ggfortify)
-
-# Crea il grafico di influenza
-influence_plot <- influencePlot(linModNormalized_1, id = 5, main = "Influence Plot")
-
-# Personalizza il grafico
-<<<<<<< HEAD
-# influence_plot +
-#   theme_minimal() +  # Usa uno stile minimale
-#   theme(plot.title = element_text(size = 16, face = "bold"),  # Titolo più grande e in grassetto
-#         axis.title = element_text(size = 14),  # Etichette degli assi più grandi
-#         axis.text = element_text(size = 12),   # Numeri degli assi più grandi
-#         legend.position="none")  # Nascondi la legenda
-# 
-# 
-
-
-
-#INTERATTIVO DA TESTARE
-=======
-#influence_plot +
-#  theme_minimal() +  # Usa uno stile minimale
-#  theme(plot.title = element_text(size = 16, face = "bold"),  # Titolo più grande e in grassetto
-#        axis.title = element_text(size = 14),  # Etichette degli assi più grandi
-#        axis.text = element_text(size = 12),   # Numeri degli assi più grandi
-#        legend.position="none")  # Nascondi la legenda
-
-
-
-
-
-# #INTERATTIVO DA TESTARE
-# # Installa e carica le librerie necessarie
-# if (!requireNamespace("car", quietly = TRUE)) {
-#   install.packages("car")
-# }
-# if (!requireNamespace("plotly", quietly = TRUE)) {
-#   install.packages("plotly")
-# }
-# library(car)
-# library(plotly)
-# 
-# # Calcola l'influenza
-# influence_values <- influence(linModNormalized_1)
-# 
-# # Estrai i valori influenti per l'osservazione desiderata (es. id=5)
-# influence_values_single <- as.matrix(influence_values$infmat[5, ])
-# 
-# # Crea un grafico interattivo
-# plot_ly(x = colnames(influence_values_single), y = influence_values_single,
-#         type = "bar", name = "Influence", marker = list(color = "blue")) %>%
-#   layout(title = "Influence Plot",
-#          xaxis = list(title = "Variables"),
-#          yaxis = list(title = "Influence"))
->>>>>>> 04656a9c7b2908a8accb897f0fcd10c3de814acd
-
-# # Calcola l'influenza
-# influence_values <- influence(linModNormalized_1)
-# 
-# # Estrai i valori influenti per l'osservazione desiderata (es. id=5)
-# influence_values_single <- as.matrix(influence_values$infmat[5, ])
-# 
-# # Crea un grafico interattivo
-# plot_ly(x = colnames(influence_values_single), y = influence_values_single,
-#         type = "bar", name = "Influence", marker = list(color = "blue")) %>%
-#   layout(title = "Influence Plot",
-#          xaxis = list(title = "Variables"),
-#          yaxis = list(title = "Influence"))
-# 
 
 ```
 Nel complesso entrambi i modelli sembrano essere buoni, spiegano entrambi circa l'84% della varianza nella variabile dipendente "won", anche se la rimozione degli otlayers ha migliorato leggermente i risultati.
@@ -777,7 +447,6 @@ Dato che la differenza tra i due modelli e' molto ridotta (<0.5%), tale da esser
 sample <- sample(c(TRUE, FALSE), nrow(df), replace=TRUE, prob=c(0.7, 0.3))
 train  <- df_reb[sample, ]
 test   <- df_reb[!sample, ]
-
 
 ```
 
@@ -798,8 +467,15 @@ cv_model <- cv.glmnet(x, y, alpha = 1)
 best_lambda <- cv_model$lambda.min
 best_lambda
 
-#produce plot of test MSE by lambda value
-plot(cv_model) 
+# Addestramento del modello con cross-validation
+cv_model <- cv.glmnet(x, y)
+
+# Grafico personalizzato
+plot(cv_model, xvar="lambda", main="", xlab="log(Lambda)", ylab="Mean Squared Error", col="blue", lwd=2)
+
+# Aggiungi un titolo personalizzato con formattazione LaTeX per grassetto e corsivo
+title(main=expression(bold(italic("Validazione Incrociata"))), line = 3)
+
 
 # Fittiamo il modello con il best lambda (penalizzazione)
 best_model <- glmnet(x, y, alpha = 1, lambda = best_lambda)
@@ -841,21 +517,23 @@ y <- dnorm(x, mean = 0, sd = 1)
 plot (x,y, type="l")
 normal <- data.frame(x, y)
 
-df$reb <- df$o_reb + df$d_reb
 
 # ISTOGRAMMA INTERATTIVO
 
+
 plot_ly(data = df, x = ~reb, type = "histogram",
-        marker = list(color = 'lightblue', line = list(color = 'black', width = 1)),
-        nbinsx = 20) %>% 
-  layout(title = 'Istogramma dei Rimbalzi',
-         xaxis = list(title = 'Rimbalzi'),
-         yaxis = list(title = 'Frequenza'),
-         shapes = list(type = "line", 
-                       x0 = mean(df$reb), x1 = mean(df$reb),
-                       y0 = 0, y1 = 215,
-                       line = list(color = "red", width = 2, dash = "dash")),
-         yaxis = list(autorange = TRUE))
+        marker = list(color = 'skyblue', line = list(color = 'black', width = 1)),
+        nbinsx = 20, legendgroup = "Rimbalzi", name = "Campione") %>% 
+  add_trace(type = "scatter", mode = "lines",
+            x = c(mean(df$reb), mean(df$reb)),
+            y = c(0, 215),
+            line = list(color = "red", width = 2, dash = "dash"),
+            name = "Media") %>%
+  layout(title = list(text = "<b><i>Istogramma dei Rimbalzi</i></b>", pad = 10),
+         xaxis = list(title = '<b><i>Rimbalzi</i></b>'),
+         yaxis = list(title = '<b><i>Frequenza</i></b>'),
+         legend = list(title = "<b><i>Legenda</i></b>", tracegrouporder = "reversed"))
+
 
 
 #PLOT DI DENSITA CON SOVRAPPOSIZIONE DI UNA NORMALE IDEALE
@@ -932,7 +610,8 @@ aggregated_data <- df %>%
   group_by(tmID, year) %>%
   summarize(
     o_reb = mean(o_reb, na.rm = TRUE), 
-    d_reb = mean(d_reb, na.rm = TRUE)
+    d_reb = mean(d_reb, na.rm = TRUE),
+    .groups = "drop"  # Aggiunto per evitare il raggruppamento
   )
 
 reshaped_data <- aggregated_data %>%
@@ -942,29 +621,12 @@ reshaped_data <- aggregated_data %>%
 
 fig <- plot_ly()
 
-
 for (i in 2:ncol(reshaped_data)) {
     current_column_data <- reshaped_data[[i]]
     fig <- fig %>% add_trace(y = current_column_data, name = colnames(reshaped_data)[i], type = "box")
 }
 
 (fig)
-
-#BOXPLOT (2° Versione)
-
-# Creare categorie per i rimbalzi
-df$reb_categories <- cut(df$reb, breaks = c(-Inf, 5, 10, 15, Inf), labels = c("0-5", "6-10", "11-15", "16+"))
-
-# Convertire df$won in numeri
-df$won <- as.numeric(as.character(df$won))
-
-# Creare un boxplot con ggplot2
-ggplot(df, aes(x = reb_categories, y = won, fill = reb_categories)) +
-  geom_boxplot(color = "black", notch = FALSE) +
-  labs(title = "Distribuzione delle Vittorie in base ai Rimbalzi",
-       x = "Rimbalzi",
-       y = "Vittorie") +
-  theme_minimal()
 
 
 ```
