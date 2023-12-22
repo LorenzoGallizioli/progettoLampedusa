@@ -106,12 +106,6 @@ title("Density plots with Normal Distribution", line = -17, cex.main = 2, outer 
 
 
 
-
-
-
-
-
-
 #GRAFICO INTUITIVO DA TESTARE
 
 
@@ -143,7 +137,6 @@ title("Density plots with Normal Distribution", line = -17, cex.main = 2, outer 
 
 # Visualizza i plot interattivi
 #subplot(plot_list)
-
 
 
 
@@ -753,40 +746,40 @@ library(ggfortify)
 influence_plot <- influencePlot(linModNormalized_1, id = 5, main = "Influence Plot")
 
 # Personalizza il grafico
-influence_plot +
-  theme_minimal() +  # Usa uno stile minimale
-  theme(plot.title = element_text(size = 16, face = "bold"),  # Titolo più grande e in grassetto
-        axis.title = element_text(size = 14),  # Etichette degli assi più grandi
-        axis.text = element_text(size = 12),   # Numeri degli assi più grandi
-        legend.position="none")  # Nascondi la legenda
+#influence_plot +
+#  theme_minimal() +  # Usa uno stile minimale
+#  theme(plot.title = element_text(size = 16, face = "bold"),  # Titolo più grande e in grassetto
+#        axis.title = element_text(size = 14),  # Etichette degli assi più grandi
+#        axis.text = element_text(size = 12),   # Numeri degli assi più grandi
+#        legend.position="none")  # Nascondi la legenda
 
 
 
 
 
-#INTERATTIVO DA TESTARE
-# Installa e carica le librerie necessarie
-if (!requireNamespace("car", quietly = TRUE)) {
-  install.packages("car")
-}
-if (!requireNamespace("plotly", quietly = TRUE)) {
-  install.packages("plotly")
-}
-library(car)
-library(plotly)
-
-# Calcola l'influenza
-influence_values <- influence(linModNormalized_1)
-
-# Estrai i valori influenti per l'osservazione desiderata (es. id=5)
-influence_values_single <- as.matrix(influence_values$infmat[5, ])
-
-# Crea un grafico interattivo
-plot_ly(x = colnames(influence_values_single), y = influence_values_single,
-        type = "bar", name = "Influence", marker = list(color = "blue")) %>%
-  layout(title = "Influence Plot",
-         xaxis = list(title = "Variables"),
-         yaxis = list(title = "Influence"))
+# #INTERATTIVO DA TESTARE
+# # Installa e carica le librerie necessarie
+# if (!requireNamespace("car", quietly = TRUE)) {
+#   install.packages("car")
+# }
+# if (!requireNamespace("plotly", quietly = TRUE)) {
+#   install.packages("plotly")
+# }
+# library(car)
+# library(plotly)
+# 
+# # Calcola l'influenza
+# influence_values <- influence(linModNormalized_1)
+# 
+# # Estrai i valori influenti per l'osservazione desiderata (es. id=5)
+# influence_values_single <- as.matrix(influence_values$infmat[5, ])
+# 
+# # Crea un grafico interattivo
+# plot_ly(x = colnames(influence_values_single), y = influence_values_single,
+#         type = "bar", name = "Influence", marker = list(color = "blue")) %>%
+#   layout(title = "Influence Plot",
+#          xaxis = list(title = "Variables"),
+#          yaxis = list(title = "Influence"))
 
 
 ```
@@ -1057,7 +1050,7 @@ dummy_vars <- model.matrix(~ df$confID - 1, data=df)  # -1 per evitare la coline
 
 # Aggiunta delle variabili dummy al dataframe
 df <- cbind(df, dummy_vars)
-df
+
 # Esecuzione di un test ANOVA
 # Supponiamo che 'won' sia la variabile dipendente
 anova(lm(df$won ~ df$confID, data=df))
@@ -1082,7 +1075,7 @@ dummy_vars <- model.matrix(~ df$divID - 1, data=df)  # -1 per evitare la colinea
 
 # Aggiunta delle variabili dummy al dataframe
 df <- cbind(df, dummy_vars)
-df
+
 # Esecuzione di un test ANOVA
 # Supponiamo che 'won' sia la variabile dipendente
 anova(lm(df$won ~ df$divID, data=df))
