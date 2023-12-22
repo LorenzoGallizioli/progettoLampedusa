@@ -13,20 +13,36 @@ editor_options:
 
 ### Indice
 
-1.  Presentazione problema
-2.  Analisi dati iniziale e grafici
-    a.  Test
-3.  Divisione sample/train
-4.  Presentazione modello lineare
-    a.  Formule
-    b.  Modello lineare
-    c.  Grafici
-    d.  Modello lineare normalizzato
-        i.  Grafici
-5.  Test modello lineare
-    a.  Grafici
-    b.  Rimozione outliers
-        i.  Grafici
+## Indice
+- [Progetto numero 5](#progetto-numero-5)
+- [Presentazione problema](#presentazione-problema)
+- [Analisi dati iniziale e grafici](#analisi-dati-iniziale-e-grafici)
+  - [Correlazione dati](#correlazione-dati)
+  - [Analisi vittorie](#analisi-vittorie)
+  - [Analisi rimbalzi](#analisi-rimbalzi)
+  - [Test](#test)
+    - [Test Anderson-Darling sui rimbalzi](#test-anderson-darling-sui-rimbalzi)
+    - [Test Kolmogorov-Smirnov](#test-kolmogorov-smirnov)
+    - [Test Shapiro-Wilk](#test-shapiro-wilk)
+- [Divisione train/test](#divisione-train/test)
+- [Presentazione modello lineare](#presentazione-modello-lineare)
+  - [Modello: L'importanza dei rimbalzi](#modello:-l'importanza-dei-rimbalzi)
+  - [Formule](#formule)
+  - [Modello lineare sul dataframe train](#modello-lineare-sul-dataframe-train)
+  - [Grafici](#grafici)
+- [Modello lineare normalizzato sul dataframe train](#modello-lineare-normalizzato-sul-dataframe-train)
+  - [Grafici](#grafici)
+- [Test modello lineare](#test-modello-lineare)
+    - [Summary](#summary)
+    - [R-quadrato](#r-quadrato)
+    - [R-quadrato Adattato](#r-quadrato-adattato)
+    - [Test Shapiro](#test-shapiro)
+    - [Test di omoschedasticità](#test-di-omoschedasticità)
+    - [Test di multicollinearità](#test-di-multicollinearità)
+- [Modello lineare sul dataframe test](#modello-lineare-sul-dataframe-test)
+  - [Grafici](#grafici)
+- [LASSO](#lasso)
+  - [Rifare test](#rifare-test)
 
 ---
 
@@ -41,19 +57,11 @@ giocato 82 partite (dataset\$games==82)
 
 # Presentazione problema
 
-Con questo report ci siamo interessati allo studio di un modello lienare
-predittivo per le vittorie, basato sul numero di rimbalzi annuali
-effettuati dalle squadre nel campionato NBA. Vengono prese in
-considerazione solo le squadre con almeno 82 partite disputate, con
-riferimento agli anni dal 1976 al 2011.
+In questo report, ci siamo concentrati sull'elaborazione di un modello lineare predittivo per determinare il numero di vittorie in funzione dei rimbalzi annuali effettuati dalle squadre nella NBA. Il modello si applica esclusivamente a squadre che hanno disputato almeno 82 partite per stagione, considerando un arco temporale che va dal 1976 al 2011.
 
-La previsione del modello lineare e' basata sull'uso di coefficienti
-ideati per essere il piu possibile significativi e conforme alla nostra
-idea di incidenza sulle vittorie di certe variabili riespetto ad altre.
+L'approccio del modello lineare si basa sull'adozione di coefficienti accuratamente selezionati, mirati a massimizzare la significatività e l'aderenza alla nostra interpretazione dell'impatto di specifiche variabili sulle vittorie. Questi coefficienti sono stati scelti in modo da riflettere al meglio la nostra concezione di quali fattori influenzino maggiormente il successo delle squadre.
 
-I dettagli su come eseguire il programma e utilizzare la funzione
-predittiva si trovano direttamente di seguito, assieme al processo di
-realizzazione e verifica del modello stesso.
+Ulteriori informazioni riguardanti l'esecuzione del programma e l'utilizzo della funzione predittiva sono fornite nei paragrafi successivi, dove viene anche descritto il processo di sviluppo e validazione del modello.
 
 ```{r Inizializzazione, message=FALSE, warning=FALSE, include=FALSE}
 
@@ -199,7 +207,20 @@ density_interactive
 
 ## Analisi rimbalzi
 
-TODO: aggiungere descrizione per ogni grafico
+Nel nostro dataframe sono incluse variabili specifiche per analizzare in dettaglio il ruolo dei rimbalzi nel basket. Ecco una descrizione degli acronimi utilizzati:
+
+- o_oreb: **Rimbalzi ottenuti in attacco**
+  - Questo valore rappresenta il numero di volte in cui una squadra recupera la palla dopo un tiro mancato mentre è in fase offensiva. È un indicatore diretto dell'aggressività e dell'efficacia offensiva di una squadra.
+- o_dreb: **Rimbalzi subiti in attacco**
+  - Indica il numero di rimbalzi che una squadra concede all'avversario mentre è in attacco. Un valore più basso suggerisce una maggiore capacità di mantenere il controllo della palla dopo un tiro mancato.
+- o_reb: **Totale rimbalzi in attacco** 
+  - Questa è la somma dei rimbalzi ottenuti e subiti in attacco. Fornisce una misura complessiva dell'attività di rimbalzo di una squadra quando è in fase offensiva.
+- d_oreb: **Rimbalzi subiti in difesa**
+  - Rappresenta il numero di rimbalzi che una squadra permette all'avversario di ottenere mentre è in difesa. Minimizzare questo numero è cruciale per prevenire seconde opportunità di punteggio per l'avversario.
+- d_dreb: **Rimbalzi ottenuti in difesa**
+  - Indica il numero di volte in cui una squadra recupera la palla dopo un tiro mancato dall'avversario mentre è in difesa. È un indicatore chiave dell'efficacia difensiva e della capacità di interrompere l'attacco avversario.
+- d_reb: **Totale rimbalzi in difesa**
+  - Questo è il totale dei rimbalzi che una squadra ottiene o concede mentre è in difesa. Offre una visione olistica dell'impegno e dell'efficacia di una squadra nel controllare la zona difensiva durante il gioco.
 
 ```{r Plot densita per ogni variabile, echo = FALSE}
 df_reb <- subset(df, select = c("o_oreb", "o_dreb", "o_reb", "d_oreb", "d_dreb", "d_reb", "won"))
@@ -360,8 +381,9 @@ for (i in seq_len(nrow(cor_matrix))) {
 
 ### Test Anderson-Darling sui rimbalzi
 
-TODO: aggiungere descrizione test
-
+Il test Anderson-Darling è un test statistico non parametrico, utilizzato per verificare l'ipotesi che un campione di dati provenga da una particolare distribuzione, in questo caso, la distribuzione normale. È particolarmente sensibile alle deviazioni nella coda della distribuzione.  
+- **Range**: 0 a $+\infty$  
+- **Interpretazione**: Valori più bassi indicano una maggiore aderenza alla distribuzione normale. Si confronta il valore di test con valori critici specifici per determinare se rifiutare l'ipotesi di normalità.
 ```{r, warning=FALSE}
 ad.test(df$reb)
 ```
@@ -381,8 +403,9 @@ Anderson-Darling.
 
 ### Test Kolmogorov-Smirnov
 
-TODO: Aggiungere descrizione test
-
+Il test Kolmogorov-Smirnov (K-S) è un metodo non parametrico utilizzato per determinare se un campione di dati segue una specifica distribuzione, in questo caso, la distribuzione normale. È ampiamente impiegato per la sua generalità e la facilità di implementazione.  
+- **Range**: 0 a 1  
+- **Interpretazione**: Valori più bassi indicano una maggiore somiglianza alla distribuzione normale. Un valore di test significativamente grande porta al rifiuto dell'ipotesi di normalità.
 ```{r, warning=FALSE}
 ks.test(df$reb, "pnorm")
 ```
@@ -397,8 +420,9 @@ statisticamente significativa.
 
 ### Test Shapiro-Wilk
 
-TODO: Aggiungere descrizione test
-
+Il test Shapiro-Wilk è un metodo statistico non parametrico utilizzato specificatamente per testare la normalità di un campione di dati. È noto per la sua affidabilità e precisione, soprattutto in campioni di dimensioni ridotte.  
+- **Range**: 0 a 1  
+- **Interpretazione**: Valori più vicini a 1 suggeriscono una maggiore aderenza alla distribuzione normale. Valori significativamente bassi indicano la deviazione dalla normalità.
 ```{r, warning=FALSE}
 ks.test(df$reb, "pnorm")
 ```
@@ -426,37 +450,37 @@ test_df <- df[!sample, ]
 
 ## Modello: L'importanza dei rimbalzi
 
-TODO: Aggiungere descrizione modello lineare
+Abbiamo creato un modello lineare per esplorare come i rimbalzi influenzano le vittorie in NBA. L'idea è semplice: capire se squadre che rimbalzano meglio vincono di più. Il modello analizza diversi tipi di rimbalzi (offensivi, difensivi) e come questi si traducono in successo sul campo.
 
 ## Formule
 
-TODO: Aggiungere breve testo introduttivo
+Le formule che usiamo si concentrano su diversi aspetti dei rimbalzi, come recuperare la palla dopo un tiro sbagliato o proteggere il canestro. Ogni formula ci dà un'idea di come le squadre gestiscono e sfruttano i rimbalzi durante le partite. L'obiettivo è vedere quale impatto hanno questi fattori sulle vittorie.
 
-$\text{Formula1} = \frac{\text{Rimbalzi offensivi in attacco}}{\text{Tiri sbagliati su azione}}$
+$\text{Formula1} = \frac{\text{Rimbalzi offensivi in attacco}}{\text{Tiri sbagliati su azione}}$  
 Rappresenta la capacità della squadra di ripossesso della palla dopo un tiro che non va a canestro e colpisce il tabellone.
 
-$\text{Formula2} = \frac{\text{Rimbalzi difensivi in difesa presi}}{\text{Tiri sbagliati su azione degli avversari}}$
+$\text{Formula2} = \frac{\text{Rimbalzi difensivi in difesa presi}}{\text{Tiri sbagliati su azione degli avversari}}$  
 Rappresenta la capacità della squadra di impossessarsi della palla dopo un tiro sbagliato della squadra avversaria che colpisce il tabellone, che troviamo un buon stimatore della capacità di contropiede della squadra.
 
-$\text{Formula3} = \frac{\text{Palle riprese in attacco} + 1.5 \times \text{Palle riprese in difesa}}{\text{Palle perse in attacco} + 2 \times \text{Rimbalzi subiti in difesa}}$
+$\text{Formula3} = \frac{\text{Palle riprese in attacco} + 1.5 \times \text{Palle riprese in difesa}}{\text{Palle perse in attacco} + 2 \times \text{Rimbalzi subiti in difesa}}$  
 Rappresenta il rapporto tra le palle riprese nei rimbalzi (sia offensivi che difensivi) rispetto alle palle perse nei rimbalzi (sia offensivi che difensivi). I coefficienti sono stati scelti in base a ciò che riteniamo più importante in una partita, ossia la difesa del proprio canestro.
 
-$\text{Formula4} = (\text{Palle riprese in attacco - Palle perse in attacco}) + 1.5*(\text{Palle riprese in difesa - Palle perse in difesa})$
+$\text{Formula4} = (\text{Palle riprese in attacco - Palle perse in attacco}) + 1.5*(\text{Palle riprese in difesa - Palle perse in difesa})$  
 Cresce all'aumentare dei rimbalzi ottenuti e diminuisce all'aumentare dei rimbalzi subiti, considerando anche un coefficiente che da particolare importanza alla difesa.
 
-$\text{Formula5} = \frac{(\frac{\text{Rimbalzi subiti in difesa}}{\text{Palle perse in difesa}})}{(\frac{\text{Rimbalzi subiti in attacco}}{\text{Palle perse in attacco}})}$
+$\text{Formula5} = \frac{(\frac{\text{Rimbalzi subiti in difesa}}{\text{Palle perse in difesa}})}{(\frac{\text{Rimbalzi subiti in attacco}}{\text{Palle perse in attacco}})}$  
 Mostra quanto siano influenti i rimbalzi nel rapporto tra le palle perse dalla squadra e le palle perse dagli avversari.
 
 ## Modello lineare sul dataframe train
 
-TODO: Aggiungere descrizione
+Legenda significato acronimi:
 
-- o_oreb = Rimbalzi ottenuti in attacco 
-- o_dreb = Rimbalzi subiti in attacco 
-- o_reb  = Totale rimbalzi in attacco 
-- d_oreb = Rimbalzi subiti in difesa 
-- d_dreb = Rimbalzi ottenuti in difesa 
-- d_reb  = Totale rimbalzi in difesa 
+- o_oreb: Rimbalzi ottenuti in attacco 
+- o_dreb: Rimbalzi subiti in attacco 
+- o_reb: Totale rimbalzi in attacco 
+- d_oreb: Rimbalzi subiti in difesa 
+- d_dreb: Rimbalzi ottenuti in difesa 
+- d_reb: Totale rimbalzi in difesa 
 
 ```{r Modello lineare su train, warning = FALSE}
 
@@ -520,7 +544,9 @@ subplot(plotly_res_vs_fitted, plotly_qq_plot, plotly_scale_location_plot, plotly
 
 # Modello lineare normalizzato sul dataframe train
 
-TODO: Introduzione a perché normalizzare i dati
+La normalizzazione dei dati è una pratica fondamentale nell'elaborazione di modelli statistici, specialmente nei modelli lineari. Questo processo è volto a standardizzare la scala delle variabili, rendendo più agevole il confronto tra di esse e migliorando l'efficienza dell'algoritmo di regressione. In particolare, la normalizzazione è cruciale quando le variabili hanno scale molto diverse, poiché ciò potrebbe influenzare negativamente la precisione del modello.
+
+Nel codice R seguente, abbiamo normalizzato le variabili del nostro dataframe 'train_df', utilizzando la funzione `scale`. Questo assicura che ciascuna variabile contribuisca in modo equo al modello, permettendo una più accurata interpretazione dei coefficienti della regressione lineare.
 
 ```{r, warning = FALSE}
 
@@ -582,14 +608,18 @@ subplot(plotly_res_vs_fitted, plotly_qq_plot, plotly_scale_location_plot, plotly
 
 # Test modello lineare
 
-TODO Aggiungere introduzione
+Il processo di test di un modello lineare è cruciale per assicurare la sua affidabilità e accuratezza. Questa fase prevede la valutazione di vari aspetti del modello, come l'adattamento dei dati, la normalità dei residui, l'omoschedasticità e la multicollinearità. Ognuno di questi test fornisce un'indicazione su come il modello si adatta ai dati e su eventuali problemi che potrebbero influenzarne le prestazioni.
 
 ### Summary
+Per una comprensione immediata del modello, è utile visualizzare il riepilogo tramite `summary(train_lm_z)`. Questo fornisce dettagli sui coefficienti, la significatività statistica e altre metriche chiave.
 ```{r}
 summary (train_lm_z)
 ```
 
 ### R-quadrato
+Il test R-quadrato misura la proporzione della varianza totale della variabile dipendente che viene spiegata dal modello di regressione. Un R-quadrato elevato indica che una grande parte della varianza nella variabile dipendente può essere spiegata dalle variabili indipendenti nel modello.  
+- **Range:** 0 a 1  
+- **Interpretazione:** 0 indica nessuna spiegazione della varianza da parte del modello. 1 indica una spiegazione completa della varianza da parte del modello.
 ```{r}
 summary_linModNormalized <- summary(train_lm_z)
 r_squared <- summary_linModNormalized$r.squared
@@ -597,24 +627,36 @@ cat("R-squared:", r_squared, "\n")
 ```
 
 ### R-quadrato Adattato
+Il R-quadrato adattato modifica il R-quadrato per tenere conto del numero di predittori nel modello. È più affidabile per i modelli con molteplici variabili indipendenti, poiché penalizza la complessità aggiuntiva, fornendo una misura più realistica della bontà di adattamento.  
+- **Range:** Può essere negativo, ma generalmente 0 a 1  
+- **Interpretazione:** Valori più vicini a 1 indicano una migliore spiegazione della varianza, considerando il numero di predittori.
 ```{r}
 n <- length(df$o_oreb)
 k <- length(train_lm_z$coefficients) - 1
 adjusted_r_squared <- 1 - ((1 - r_squared) * (n - 1) / (n - k - 1))
-cat("Adjusted R-squared:", adjusted_r_squared, "\n")
+cat("R-quadro adattato:", adjusted_r_squared, "\n")
 ```
 
 ### Test Shapiro
+Il test di Shapiro-Wilk sui residui è utilizzato per valutare la normalità dei residui in un modello di regressione lineare. La normalità dei residui è un'assunzione critica in molti test statistici. Se i residui non seguono una distribuzione normale, le inferenze sulle stime dei parametri potrebbero essere invalide.  
+- **Range:** 0 a 1  
+- **Interpretazione:** Valori più vicini a 1 suggeriscono una maggiore probabilità che i residui seguano una distribuzione normale.
 ```{r}
 shapiro.test(residuals(train_lm_z))
 ```
 
 ### Test di omoschedasticità
+Il Breusch-Pagan test verifica l'assunzione di omoschedasticità (varianza costante) dei residui in un modello di regressione. La presenza di eteroschedasticità (varianza non costante) nei residui può portare a stime inefficaci e test statistici non affidabili.  
+- **Range:** 0 a $+\infty$  
+- **Interpretazione:** Valori più alti indicano una maggiore probabilità di eteroschedasticità. Si confronta il valore del test con un valore critico (ad es., da una distribuzione chi-quadrato) per determinare la significatività.
 ```{r}
 bptest(train_lm_z)
 ```
 
 ### Test di multicollinearità
+Il test di multicollinearità verifica se esiste una correlazione elevata tra le variabili indipendenti in un modello di regressione lineare. La multicollinearità può causare problemi nella stima dei coefficienti del modello, rendendo difficili l'interpretazione e la significatività statistica delle variabili indipendenti. Strumenti comuni per rilevarla includono il fattore di inflazione della varianza (VIF) e l'indice di tolleranza.  
+- **Range del VIF:** 1 a $+\infty$  
+- **Interpretazione:** 1 indica assenza di multicollinearità. Valori superiori a 5 o 10 sono spesso considerati indicatori di multicollinearità significativa.
 ```{r}
 car::vif(train_lm_z)
 ```
