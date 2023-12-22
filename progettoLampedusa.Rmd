@@ -104,44 +104,6 @@ title(bquote(bold(italic("Density plots with Normal Distribution"))), line = -17
 
 
 
-
-
-
-
-
-#GRAFICO INTUITIVO DA TESTARE
-
-
-# Imposta il layout a 2 righe e 3 colonne
-#par(mfrow = c(2, 3))
-
-# Lista per salvare i plot interattivi
-#plot_list <- list()
-
-#for (variables in 1:(dim(df_reb)[2])) {
-#  thisvar <- df_reb[, variables]
-#  d <- density(thisvar)
-#  xmin <- floor(min(thisvar))
-#  xmax <- ceiling(max(thisvar))
-  
-  # Crea il plot della densità con plot_ly
-#  p <- plot_ly(x = d$x, y = d$y, type = "scatter", mode = "lines", line = list(color = "skyblue", width = 1),
-#               name = names(df_reb)[variables]) %>%
-#    add_trace(x = x, y = dnorm(x, mean = mean(thisvar), sd = sd(thisvar)), type = "scatter", mode = "lines",
-#              line = list(color = "red", width = 1), name = "Normal Distribution") %>%
-#    layout(title = names(df_reb)[variables])
-
-  # Aggiungi il plot alla lista
-#  plot_list[[variables]] <- p
-#}
-
-# Aggiungi titolo
-#title("Density plots with Normal Distribution", line = -17, cex.main = 2, outer = TRUE)
-
-# Visualizza i plot interattivi
-#subplot(plot_list)
-
-
 #verifica della presenza zeri nel dataset
 print(paste("Percentage non-zero o_oreb: ",round(length(which(df_reb$o_oreb>0)) / dim(df_reb)[1]*100,2)))
 print(paste("Percentage non-zero o_dreb: ",round(length(which(df_reb$o_dreb>0)) / dim(df_reb)[1]*100,2)))
