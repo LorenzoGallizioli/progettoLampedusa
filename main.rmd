@@ -1,0 +1,691 @@
+---
+title: "Analisi Statistica del dataframe Basketball Teams, Gruppo Lampedusa"
+date: "`r Sys.Date()`"
+output:
+  html_document: 
+    df_print: paged
+  pdf_document:
+    latex_engine: xelatex
+  word_document: default
+author: "Bonsembiante Davide, Fumagalli Uriel, Gallizioli Lorenzo, Paganelli Thomas"
+abstract: "Questo documento rappresenta un'approfondita analisi statistica nel campo del basket professionistico, con un focus specifico sulle prestazioni delle squadre NBA. Utilizzando metodi statistici avanzati, si esplorano diverse metriche chiave per comprendere meglio le dinamiche del gioco e i fattori che influenzano il successo delle squadre."
+editor_options: 
+  markdown: 
+    wrap: 80
+    reference_location: document
+---
+
+
+## Indice
+- [Progetto numero 5](#progetto-numero-5)
+- [Presentazione problema](#presentazione-problema)
+- [Analisi dati iniziale e grafici](#analisi-dati-iniziale-e-grafici)
+  - [Correlazione dati](#correlazione-dati)
+  - [Analisi vittorie](#analisi-vittorie)
+  - [Analisi rimbalzi](#analisi-rimbalzi)
+  - [Test](#test)
+    - [Test Anderson-Darling sui rimbalzi](#test-anderson-darling-sui-rimbalzi)
+    - [Test Kolmogorov-Smirnov](#test-kolmogorov-smirnov)
+    - [Test Shapiro-Wilk](#test-shapiro-wilk)
+- [Divisione train/test](#divisione-train/test)
+- [Presentazione modello lineare](#presentazione-modello-lineare)
+  - [Modello: L'importanza dei rimbalzi](#modello:-l'importanza-dei-rimbalzi)
+  - [Formule](#formule)
+  - [Modello lineare sul dataframe train](#modello-lineare-sul-dataframe-train)
+  - [Grafici](#grafici)
+- [Modello lineare normalizzato sul dataframe train](#modello-lineare-normalizzato-sul-dataframe-train)
+  - [Grafici](#grafici)
+- [Test modello lineare](#test-modello-lineare)
+    - [Summary](#summary)
+    - [R-quadrato](#r-quadrato)
+    - [R-quadrato Adattato](#r-quadrato-adattato)
+    - [Test Shapiro](#test-shapiro)
+    - [Test di omoschedasticità](#test-di-omoschedasticità)
+    - [Test di multicollinearità](#test-di-multicollinearità)
+- [Modello lineare sul dataframe test](#modello-lineare-sul-dataframe-test)
+  - [Grafici](#grafici)
+- [LASSO](#lasso)
+  - [Rifare test](#rifare-test)
+
+---
+
+# Progetto scelto: 5
+
+- **Variabile Dipendente**
+  - Numero di Vittorie per Stagione: Questa variabile rappresenta l'obiettivo primario dell'analisi, indicando il successo complessivo di una squadra nel corso di una singola stagione NBA.
+- **Covariate**
+  - Variabili Selezionate: A seconda degli obiettivi specifici dell'analisi, verranno incluse diverse covariate. Queste possono comprendere una vasta gamma di metriche di gioco.
+- **Criterio di Selezione della Squadra**
+  - Partite Giocate: Nel dataset, si considereranno esclusivamente le squadre che hanno disputato un totale di 82 partite nella stagione (identificate come `df$games == 82`). Questo criterio assicura l'uniformità e la comparabilità dei dati analizzati.
+
+---
+
+# Presentazione problema
+
+In questo report, ci siamo concentrati sull'elaborazione di un modello lineare predittivo per determinare il numero di vittorie in funzione dei rimbalzi annuali effettuati dalle squadre nella NBA. Il modello si applica esclusivamente a squadre che hanno disputato almeno 82 partite per stagione, considerando un arco temporale che va dal 1976 al 2011.
+
+L'approccio del modello lineare si basa sull'adozione di coefficienti accuratamente selezionati, mirati a massimizzare la significatività e l'aderenza alla nostra interpretazione dell'impatto di specifiche variabili sulle vittorie. Questi coefficienti sono stati scelti in modo da riflettere al meglio la nostra concezione di quali fattori influenzino maggiormente il successo delle squadre.
+
+Ulteriori informazioni riguardanti l'esecuzione del programma e l'utilizzo della funzione predittiva sono fornite nei paragrafi successivi, dove viene anche descritto il processo di sviluppo e validazione del modello.
+
+```{r Inizializzazione, message=FALSE, warning=FALSE, include=FALSE}
+
+library(here)
+library(corrplot)
+library(nortest)
+library(lmtest)
+library(car)
+library(plotly)
+library(heatmaply)
+library(ggheatmap)
+library(ggplot2)
+library(viridis)
+library(glmnet)
+library(highcharter)
+library(reshape2)
+library(RColorBrewer)
+library(tidyr)
+library(gridExtra)
+library(dplyr)
+
+knitr::opts_knit$set(root.dir = here("0_Materiale"))
+
+```
+
+---
+
+# Analisi dati iniziale e grafici
+
+TODO: aggiungere descrizione per ogni grafico
+
+```{r Lettura dati dal dataset}
+filepath <- here("0_Materiale", "basketball_teams.txt")
+dataset <- read.delim(filepath)
+# str(dataset)
+
+FIRST <- 1976 # primo anno del range da considerare per lo studio
+LAST <- 2011 # ultimo anno del range da considerare per lo studio 
+
+df <- dataset [dataset$lgID=="NBA" & dataset$year >= FIRST & dataset$year <= LAST & dataset$games==82,]
+df$reb <- df$o_reb + df$d_reb
+
+# summary(df)
+```
+
+## Correlazione dati
+
+```{r Analisi correlazione dati - corrplot, echo=FALSE, warning = FALSE, message = FALSE}
+
+# CORRPLOT
+
+data_subset <- df[, c(11:40, 54)]
+cor_matrix <- cor(data_subset, use = "complete.obs")  
+
+cor_data <- melt(cor_matrix)
+names(cor_data) <- c("Variable1", "Variable2", "Correlation")
+
+# Create the heatmap
+p <- plot_ly(data = cor_data, x = ~Variable1, y = ~Variable2, z = ~Correlation, 
+             type = "heatmap", 
+             colors = viridis(n = 1024,  option = "magma"),
+             hoverinfo = "x+y+z") %>% 
+  layout(title = 'Correlation Matrix Heatmap',
+         xaxis = list(tickangle = 45),
+         yaxis = list(tickangle = 45),
+         autosize = TRUE)
+p
+
+```
+
+## Analisi vittorie
+
+```{r Analisi distribuzione vittorie - boxplot, warning=FALSE, echo = FALSE, message = FALSE, message = FALSE}
+
+# BOXPLOT
+
+aggregated_data <- df %>%
+  select(tmID, year, won) %>%
+  group_by(tmID, year) %>%
+  summarize(
+    won = mean(won, na.rm = TRUE), 
+  )
+
+reshaped_data <- aggregated_data %>%
+  pivot_longer(cols = c(won), names_to = "stat_type", values_to = "stat") %>%
+  unite("new_col", tmID, stat_type, sep = "_") %>%
+  pivot_wider(names_from = new_col, values_from = "stat")
+
+fig <- plot_ly()
+
+
+for (i in 2:ncol(reshaped_data)) {
+    current_column_data <- reshaped_data[[i]]
+    fig <- fig %>% add_trace(y = current_column_data, name = colnames(reshaped_data)[i], type = "box")
+}
+
+(fig)
+
+```
+
+```{r, Analisi distribuzione vittorie - istogramma, warning = FALSE, echo = FALSE, message = FALSE}
+
+# ISTOGRAMMA
+
+histogram <- plot_ly(df, x = ~won, type = "histogram", marker = list(color = "skyblue", line = list(color = "white", width = 0.5))) %>%
+  layout(title = "Distribuzione delle Vittorie",
+         xaxis = list(title = "Numero di Vittorie"),
+         yaxis = list(title = "Frequenza"),
+         barmode = "overlay") %>%
+  add_trace(x = ~mean(won), type = "scatter", mode = "lines", line = list(color = "red", width = 2), name = "Media")
+
+# Visualizza l'istogramma interattivo
+histogram
+
+```
+
+```{r, Analisi distribuzione vittorie - densita, warning = FALSE, echo = FALSE, message = FALSE}
+
+# DENSITA
+
+density_plot <- density(df$won)
+
+# Crea il plot di densità con plot_ly
+density_interactive <- plot_ly(x = density_plot$x, y = density_plot$y, type = "scatter", mode = "lines", 
+                               line = list(color = "skyblue", width = 2)) %>%
+  layout(title = list(text = "Distribuzione di Densità delle Vittorie", x = 0.5),
+         xaxis = list(title = "Numero di Vittorie"),
+         yaxis = list(title = "Densità"),
+         showlegend = FALSE) %>%
+  add_trace(x = c(mean(df$won), mean(df$won)), y = c(0, max(density_plot$y)), 
+            type = "scatter", mode = "lines", line = list(color = "red", width = 2),
+            name = "Media") %>%
+  add_trace(x = mean(df$won), y = max(density_plot$y), type = "scatter", mode = "markers", 
+            marker = list(color = "red", size = 8)) %>%
+  add_annotations(text = sprintf("Media: %.2f", mean(df$won)), x = mean(df$won), y = max(density_plot$y) * 1.05, 
+                  arrowhead = 2, arrowcolor = "red", arrowsize = 1.5, arrowwidth = 2, 
+                  ax = 0, ay = -40, xshift = 10, yshift = -10)
+
+# Visualizza il plot di densità interattivo
+density_interactive
+
+```
+
+## Analisi rimbalzi
+
+Nel nostro dataframe sono incluse variabili specifiche per analizzare in dettaglio il ruolo dei rimbalzi nel basket. Ecco una descrizione degli acronimi utilizzati:
+
+- o_oreb: **Rimbalzi ottenuti in attacco**
+  - Questo valore rappresenta il numero di volte in cui una squadra recupera la palla dopo un tiro mancato mentre è in fase offensiva. È un indicatore diretto dell'aggressività e dell'efficacia offensiva di una squadra.
+- o_dreb: **Rimbalzi subiti in attacco**
+  - Indica il numero di rimbalzi che una squadra concede all'avversario mentre è in attacco. Un valore più basso suggerisce una maggiore capacità di mantenere il controllo della palla dopo un tiro mancato.
+- o_reb: **Totale rimbalzi in attacco** 
+  - Questa è la somma dei rimbalzi ottenuti e subiti in attacco. Fornisce una misura complessiva dell'attività di rimbalzo di una squadra quando è in fase offensiva.
+- d_oreb: **Rimbalzi subiti in difesa**
+  - Rappresenta il numero di rimbalzi che una squadra permette all'avversario di ottenere mentre è in difesa. Minimizzare questo numero è cruciale per prevenire seconde opportunità di punteggio per l'avversario.
+- d_dreb: **Rimbalzi ottenuti in difesa**
+  - Indica il numero di volte in cui una squadra recupera la palla dopo un tiro mancato dall'avversario mentre è in difesa. È un indicatore chiave dell'efficacia difensiva e della capacità di interrompere l'attacco avversario.
+- d_reb: **Totale rimbalzi in difesa**
+  - Questo è il totale dei rimbalzi che una squadra ottiene o concede mentre è in difesa. Offre una visione olistica dell'impegno e dell'efficacia di una squadra nel controllare la zona difensiva durante il gioco.
+
+```{r Plot densita per ogni variabile, echo = FALSE}
+df_reb <- subset(df, select = c("o_oreb", "o_dreb", "o_reb", "d_oreb", "d_dreb", "d_reb", "won"))
+  
+par(mfrow = c(2, 3))  # Imposta il layout a 2 righe e 3 colonne
+
+for (variables in 1:(dim(df_reb)[2]-1)){
+  thisvar = df_reb[,variables]
+  d <- density(thisvar)
+  xmin <- floor(min(thisvar))
+  xmax <- ceiling(max(thisvar))
+  
+  # Crea il plot della densità con stile accattivante
+  plot(d, main = names(df_reb)[variables], xlab = "", col = "skyblue", lwd = 1, xlim = c(xmin, xmax), ylim = c(0, max(d$y)*1.1))
+
+  # Aggiungi la distribuzione normale teorica ideale in rosso
+  x <- seq(xmin, xmax, length = 100)
+  lines(x, dnorm(x, mean = mean(thisvar), sd = sd(thisvar)), col = "red", lwd = 1)
+
+  # Aggiungi griglia per migliorare la leggibilità
+  grid()
+}
+
+# Aggiungi titolo
+title("Density plots with Normal Distribution", line = -17, cex.main = 2, outer = FALSE)
+
+
+```
+
+```{r Heatmap rimbalzi, warning = FALSE, message = FALSE, echo = FALSE}
+
+values <- aggregate(cbind(reb, o_oreb, o_dreb, d_oreb, d_dreb, o_reb, d_reb, won) ~ tmID, data = df, FUN = sum)
+
+heatmap_df <- subset(values, select = -c(o_oreb, o_dreb, d_oreb, d_dreb, won, reb))
+rownames(heatmap_df) <- heatmap_df$tmID
+heatmap_df <- heatmap_df[,-1]
+
+heatmaply(
+ heatmap_df,
+ colors = viridis(n = 256,  option = "magma"),
+ k_col = 2,
+ k_row = 4,
+)
+```
+
+```{r Istogramma stacked rimbalzi, warning = FALSE, message = FALSE, echo = FALSE}
+plot_ly(values, x = ~tmID, y = ~o_reb, type = 'bar', name = 'Rimbalzi offensivi', marker = list(color = '#FFAFA1')) %>%
+  add_trace(y = ~d_reb, name = 'Rimbalzi difensivi', marker = list(color = '#b2fff8')) %>%
+  layout(yaxis = list(title = 'Valori'), barmode = 'stack')
+```
+
+```{r Istogramma rimbalzi, warning = FALSE, message = FALSE, echo = FALSE}
+plot_ly(data = df, x = ~reb, type = "histogram",
+        marker = list(color = 'lightblue', line = list(color = 'black', width = 1)),
+        nbinsx = 20) %>% 
+  layout(title = 'Istogramma dei Rimbalzi',
+         xaxis = list(title = 'Rimbalzi'),
+         yaxis = list(title = 'Frequenza'),
+         shapes = list(type = "line", 
+                       x0 = mean(df$reb), x1 = mean(df$reb),
+                       y0 = 0, y1 = 215,
+                       line = list(color = "red", width = 2, dash = "dash")),
+         yaxis = list(autorange = TRUE))
+```
+
+```{r Densita rimbalzi, warning = FALSE, message = FALSE, echo = FALSE}
+density_data <- density(df$reb)
+mu <- mean(df$reb)
+sigma <- sd(df$reb)
+normal_data <- dnorm(density_data$x, mean = mu, sd = sigma)
+
+p <- plot_ly(x = density_data$x, y = density_data$y, type = 'scatter', mode = 'lines',
+             line = list(color = 'blue', width = 2),
+             name = "Densità rimbalzi totale") %>%
+  layout(title = "Densità dei Rimbalzi",
+         xaxis = list(title = "Rimbalzi"),
+         yaxis = list(title = "Density", autotick = TRUE, autorange = TRUE))
+
+p <- add_trace(p, x = density_data$x, y = normal_data, mode = 'lines',
+               line = list(color = 'green', width = 2),
+               fill = "tozeroy", fillcolor = "rgba(0, 255, 0, 0.2)",
+               name = "Dist normale ideale")
+
+p <- add_trace(p, x = c(mu, mu), y = c(0, max(density_data$y)),
+               mode = 'lines', line = list(color = 'red', width = 2, dash = 'dash'),
+               name = "Media")
+
+(p)
+```
+
+```{r Boxplot rimbalzi, warning = FALSE, message = FALSE, echo = FALSE}
+aggregated_data <- df %>%
+  select(tmID, year, o_reb, d_reb) %>%
+  group_by(tmID, year) %>%
+  summarize(
+    o_reb = mean(o_reb, na.rm = TRUE), 
+    d_reb = mean(d_reb, na.rm = TRUE)
+  )
+
+reshaped_data <- aggregated_data %>%
+  pivot_longer(cols = c(o_reb, d_reb), names_to = "stat_type", values_to = "stat") %>%
+  unite("new_col", tmID, stat_type, sep = "_") %>%
+  pivot_wider(names_from = new_col, values_from = "stat")
+
+fig <- plot_ly()
+
+
+for (i in 2:ncol(reshaped_data)) {
+    current_column_data <- reshaped_data[[i]]
+    fig <- fig %>% add_trace(y = current_column_data, name = colnames(reshaped_data)[i], type = "box")
+}
+
+(fig)
+```
+
+```{r Corrplot rimbalzi, warning = FALSE, message = FALSE, echo = FALSE}
+data_subset <- df[, c("reb", "o_reb", "d_reb")]
+cor_matrix <- cor(data_subset)
+
+rownames(cor_matrix) <- colnames(data_subset)
+colnames(cor_matrix) <- colnames(data_subset)
+
+cor_data <- reshape2::melt(cor_matrix)
+names(cor_data) <- c("Var1", "Var2", "Corr")
+
+dimnames(cor_matrix) <- list(rownames(cor_matrix), colnames(cor_matrix))
+data_for_plotly <- as.data.frame(as.table(cor_matrix))
+
+p <- plot_ly(data = cor_data, 
+             x = ~Var1, 
+             y = ~Var2, 
+             z = ~Corr, 
+             type = "heatmap", 
+             colors = colorRampPalette(c("#4575b4", "#91bfdb", "#e0f3f8", "#fee08b", "#d73027"))(100),
+             hoverinfo = "x+y+z") %>% 
+  layout(title = 'Correlation Matrix',
+         xaxis = list(title = "", tickangle = 45, side = "bottom", automargin = TRUE),
+         yaxis = list(title = "", automargin = TRUE),
+         autosize = TRUE)
+
+cor_values <- round(as.matrix(cor_matrix), 2)  # Round for readability
+for (i in seq_len(nrow(cor_matrix))) {
+  for (j in seq_len(ncol(cor_matrix))) {
+    p <- p %>% add_annotations(
+      x = rownames(cor_matrix)[i],
+      y = colnames(cor_matrix)[j],
+      text = as.character(cor_values[i, j]),
+      showarrow = FALSE,
+      font = list(color = ifelse(cor_values[i, j] < 0.5, "white", "black"))
+    )
+  }
+}
+
+(p)
+```
+
+## Test
+
+### Test Anderson-Darling sui rimbalzi
+
+Il test Anderson-Darling è un test statistico non parametrico, utilizzato per verificare l'ipotesi che un campione di dati provenga da una particolare distribuzione, in questo caso, la distribuzione normale. È particolarmente sensibile alle deviazioni nella coda della distribuzione.  
+- **Range**: 0 a $+\infty$  
+- **Interpretazione**: Valori più bassi indicano una maggiore aderenza alla distribuzione normale. Si confronta il valore di test con valori critici specifici per determinare se rifiutare l'ipotesi di normalità.
+```{r, warning=FALSE}
+ad.test(df$reb)
+```
+
+Con un livello di significatività ($\alpha$) di 0.01 e un p-value molto
+piccolo (3.1e-09) ottenuto dal test di normalità di Anderson-Darling per
+i dati della variabile df\$reb, puoi concludere che hai sufficiente
+evidenza statistica per respingere lipotesi nulla che i dati seguono una
+distribuzione normale.Con il tuo livello di significatività del 0.01 e
+il p-value molto piccolo (3.1e-09), il p-value è inferiore al livello di
+significatività, quindi respingeresti lipotesi nulla. Questo suggerisce
+che i dati nella variabile df\$reb non seguono una distribuzione normale
+al livello di significatività del 0.01. In termini più pratici, hai
+abbastanza evidenza statistica per concludere che la variabile df\$reb
+non segue una distribuzione normale basandoti sui risultati del test di
+Anderson-Darling.
+
+### Test Kolmogorov-Smirnov
+
+Il test Kolmogorov-Smirnov (K-S) è un metodo non parametrico utilizzato per determinare se un campione di dati segue una specifica distribuzione, in questo caso, la distribuzione normale. È ampiamente impiegato per la sua generalità e la facilità di implementazione.  
+- **Range**: 0 a 1  
+- **Interpretazione**: Valori più bassi indicano una maggiore somiglianza alla distribuzione normale. Un valore di test significativamente grande porta al rifiuto dell'ipotesi di normalità.
+```{r, warning=FALSE}
+ks.test(df$reb, "pnorm")
+```
+
+Il risultato che hai ottenuto riguarda il test di Kolmogorov-Smirnov a
+campione singolo sui dati contenuti nella variabile df\$reb. Il test KS
+confronta la distribuzione empirica dei tuoi dati con una distribuzione
+teorica (spesso una distribuzione uniforme). In breve, il risultato
+suggerisce che i tuoi dati non seguono la distribuzione teorica
+presunta, e cè un elevata probabilità che la differenza osservata sia
+statisticamente significativa.
+
+### Test Shapiro-Wilk
+
+Il test Shapiro-Wilk è un metodo statistico non parametrico utilizzato specificatamente per testare la normalità di un campione di dati. È noto per la sua affidabilità e precisione, soprattutto in campioni di dimensioni ridotte.  
+- **Range**: 0 a 1  
+- **Interpretazione**: Valori più vicini a 1 suggeriscono una maggiore aderenza alla distribuzione normale. Valori significativamente bassi indicano la deviazione dalla normalità.
+```{r, warning=FALSE}
+ks.test(df$reb, "pnorm")
+```
+
+In sintesi, il risultato del test di Shapiro-Francia indica che i tuoi
+dati nella variabile df\$reb non seguono una distribuzione normale.
+Questo è supportato dal valore basso del p-value, il quale suggerisce
+che la differenza tra la distribuzione dei tuoi dati e una distribuzione
+normale è statisticamente significativa.
+
+---
+
+# Divisione train/test
+
+Dividiamo ora il nostro dataset in 2 parti, la parte train, ossia la parte che utilizzeremo per "addestrare" il nostro modello lineare, e la parte test, ossia una parte del dataset su cui testeremo il nostro modello lineare
+```{r}
+sample <- sample(c(TRUE, FALSE), size = nrow(df), replace=TRUE, prob=c(0.7, 0.3))
+train_df <- df[sample, ]
+test_df <- df[!sample, ]
+```
+
+---
+ 
+# Presentazione modello lineare
+
+## Modello: L'importanza dei rimbalzi
+
+Abbiamo creato un modello lineare per esplorare come i rimbalzi influenzano le vittorie in NBA. L'idea è semplice: capire se squadre che rimbalzano meglio vincono di più. Il modello analizza diversi tipi di rimbalzi (offensivi, difensivi) e come questi si traducono in successo sul campo.
+
+## Formule
+
+Le formule che usiamo si concentrano su diversi aspetti dei rimbalzi, come recuperare la palla dopo un tiro sbagliato o proteggere il canestro. Ogni formula ci dà un'idea di come le squadre gestiscono e sfruttano i rimbalzi durante le partite. L'obiettivo è vedere quale impatto hanno questi fattori sulle vittorie.
+
+> $\text{Formula1} = \frac{\text{Rimbalzi offensivi in attacco}}{\text{Tiri sbagliati su azione}}$  
+  
+- **Formula 1: Efficienza nel Rimbalzo Offensivo**  
+Questa formula calcola la percentuale di rimbalzi offensivi catturati dalla squadra in seguito ai tiri mancati. Il numeratore, "Rimbalzi offensivi in attacco", rappresenta il totale dei rimbalzi catturati dopo un tiro mancato dall'attacco. Il denominatore, "Tiri sbagliati su azione", è il numero totale di tiri non riusciti dalla squadra. Il quoziente fornisce un indice diretto della competenza di una squadra nel mantenere il possesso della palla dopo un tentativo di tiro fallito, un aspetto cruciale per generare opportunità di punteggio aggiuntive.
+
+> $\text{Formula2} = \frac{\text{Rimbalzi difensivi in difesa presi}}{\text{Tiri sbagliati su azione degli avversari}}$  
+  
+- **Formula 2: Competenza nel Rimbalzo Difensivo**
+Questa formula misura l'efficacia della squadra nel recuperare i rimbalzi difensivi. Il numeratore, "Rimbalzi difensivi in difesa presi", indica il totale dei rimbalzi catturati dalla squadra in difesa. Il denominatore, "Tiri sbagliati su azione degli avversari", è il numero di tiri falliti dalla squadra avversaria. Il risultato fornisce un'indicazione quantitativa della capacità di una squadra di terminare l'attacco avversario e iniziare una transizione offensiva, elemento fondamentale per il controllo del flusso di gioco.
+
+
+> $\text{Formula3} = \frac{\text{Palle riprese in attacco} + 1.5 \times \text{Palle riprese in difesa}}{\text{Palle perse in attacco} + 2 \times \text{Rimbalzi subiti in difesa}}$  
+  
+- **Formula 3: Bilancio Rimbalzi/Palle Perse**
+Questa formula presenta un rapporto complesso, dove il numeratore somma "Palle riprese in attacco" (rimbalzi offensivi) e "Palle riprese in difesa" (rimbalzi difensivi) moltiplicate per 1.5, un fattore che sottolinea l'importanza dei rimbalzi difensivi. Il denominatore combina "Palle perse in attacco" e "Rimbalzi subiti in difesa" moltiplicati per 2, indicando le occasioni perse di recupero di rimbalzi. Questa formula è progettata per valutare la gestione globale dei rimbalzi da parte di una squadra, enfatizzando il valore della difesa rispetto all'attacco.
+
+> $\text{Formula4} = (\text{Palle riprese in attacco - Palle perse in attacco}) + 1.5*(\text{Palle riprese in difesa - Palle perse in difesa})$  
+  
+- **Formula 4: Efficienza Rimbalzi Netta**
+Questa formula calcola la differenza netta tra i rimbalzi catturati e quelli persi, sia in attacco che in difesa, applicando un coefficiente di 1.5 ai rimbalzi difensivi. Il calcolo evidenzia il saldo netto di rimbalzi catturati contro quelli persi, con un'enfasi aggiuntiva sulla componente difensiva. Questo indice fornisce una misura diretta dell'efficacia complessiva di una squadra nel dominare il gioco sui rimbalzi.
+
+> $\text{Formula5} = \frac{(\frac{\text{Rimbalzi subiti in difesa}}{\text{Palle perse in difesa}})}{(\frac{\text{Rimbalzi subiti in attacco}}{\text{Palle perse in attacco}})}$  
+  
+- **Formula 5: Rapporto Rimbalzi/Palle Perse**
+Questa formula offre un confronto tra l'effetto dei rimbalzi sulla perdita di palla in attacco e in difesa. Il numeratore rappresenta il rapporto tra "Rimbalzi subiti in difesa" e "Palle perse in difesa", mentre il denominatore fa lo stesso per l'attacco. Questo rapporto mette in luce l'impatto dei rimbalzi sulle opportunità perse, sia in termini di difesa che di attacco.
+
+## Modello lineare sul dataframe train
+
+Legenda significato acronimi:
+
+- o_oreb: Rimbalzi ottenuti in attacco 
+- o_dreb: Rimbalzi subiti in attacco 
+- o_reb: Totale rimbalzi in attacco 
+- d_oreb: Rimbalzi subiti in difesa 
+- d_dreb: Rimbalzi ottenuti in difesa 
+- d_reb: Totale rimbalzi in difesa 
+
+```{r Modello lineare su train, warning = FALSE}
+
+train_df$f1 <- (train_df$o_oreb)/(train_df$o_fga-train_df$o_fgm)
+train_df$f2 <- (train_df$d_dreb)/(train_df$d_fga-train_df$d_fgm)
+train_df$f3 <- (train_df$o_oreb + 1.5 * train_df$d_dreb)/(train_df$o_dreb + 2 * train_df$d_oreb)
+train_df$f4 <- (train_df$o_oreb - train_df$o_dreb) + 1.5 * (train_df$d_dreb - train_df$d_oreb)
+train_df$f5 <- (train_df$d_oreb / train_df$d_to) / (train_df$o_dreb / train_df$o_to)
+
+train_lm <- lm(won ~ f1 + f2 + f3 + f4 + f5, data = train_df)
+summary (train_lm)
+
+```
+
+## Grafici
+
+TODO: Aggiungere presentazione grafici
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# Funzione per creare il plot di Residuals vs Fitted (Residui vs. Valori Previsti)
+res_vs_fitted <- ggplot(train_lm, aes(.fitted, .resid)) +
+  geom_point(color = "skyblue", alpha = 0.7, size = 3) +
+  geom_smooth(se = FALSE, color = "red", method = "loess", size = 1) +
+  labs(title = "Residuals vs Fitted", x = "Fitted Values", y = "Residuals") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 14, face = "bold"))
+
+# Funzione per creare il plot QQ dei Residui
+qq_plot <- ggplot(train_lm, aes(sample = .stdresid)) +
+  stat_qq(color = "skyblue", size = 2) +
+  stat_qq_line(color = "red", size = 1) +
+  labs(title = "QQ Plot dei Residui", x = "Quantiles teorici", y = "Quantiles osservati") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 14, face = "bold"))
+
+# Funzione per creare il plot Scale-Location
+scale_location_plot <- ggplot(train_lm, aes(.fitted, sqrt(abs(.stdresid)))) +
+  geom_point(color = "skyblue", alpha = 0.7, size = 3) +
+  geom_smooth(se = FALSE, color = "red", method = "loess", size = 1) +
+  labs(title = "Scale-Location Plot", x = "Fitted Values", y = "sqrt(|Standardized Residuals|)") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 14, face = "bold"))
+
+# Funzione per creare il plot Residuals vs Leverage (Residui vs. Leverage)
+res_vs_leverage <- ggplot(train_lm, aes(.hat, .stdresid)) +
+  geom_point(color = "skyblue", alpha = 0.7, size = 3) +
+  geom_smooth(se = FALSE, color = "red", method = "loess", size = 1) +
+  labs(title = "Residuals vs Leverage", x = "Leverage", y = "Standardized Residuals") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 14, face = "bold"))
+
+plotly_res_vs_fitted <- ggplotly(res_vs_fitted)
+plotly_qq_plot <- ggplotly(qq_plot)
+plotly_scale_location_plot <- ggplotly(scale_location_plot)
+plotly_res_vs_leverage <- ggplotly(res_vs_leverage)
+
+subplot(plotly_res_vs_fitted, plotly_qq_plot, plotly_scale_location_plot, plotly_res_vs_leverage)
+```
+
+---
+
+# Modello lineare normalizzato sul dataframe train
+
+La normalizzazione dei dati è una pratica fondamentale nell'elaborazione di modelli statistici, specialmente nei modelli lineari. Questo processo è volto a standardizzare la scala delle variabili, rendendo più agevole il confronto tra di esse e migliorando l'efficienza dell'algoritmo di regressione. In particolare, la normalizzazione è cruciale quando le variabili hanno scale molto diverse, poiché ciò potrebbe influenzare negativamente la precisione del modello.
+
+Nel codice R seguente, abbiamo normalizzato le variabili del nostro dataframe 'train_df', utilizzando la funzione `scale`. Questo assicura che ciascuna variabile contribuisca in modo equo al modello, permettendo una più accurata interpretazione dei coefficienti della regressione lineare.
+
+```{r, warning = FALSE}
+
+train_df$f1_z <- scale(train_df$f1)
+train_df$f2_z <- scale(train_df$f2)
+train_df$f3_z <- scale(train_df$f3)
+train_df$f4_z <- scale(train_df$f4)
+train_df$f5_z <- scale(train_df$f5)
+
+train_lm_z <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z, data = train_df)
+summary(train_lm_z)
+
+```
+
+## Grafici
+
+```{r echo = FALSE, message = FALSE, message=FALSE, warning=FALSE}
+# Funzione per creare il plot di Residuals vs Fitted (Residui vs. Valori Previsti)
+res_vs_fitted <- ggplot(train_lm_z, aes(.fitted, .resid)) +
+  geom_point(color = "skyblue", alpha = 0.7, size = 3) +
+  geom_smooth(se = FALSE, color = "red", method = "loess", size = 1) +
+  labs(title = "Residuals vs Fitted", x = "Fitted Values", y = "Residuals") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 14, face = "bold"))
+
+# Funzione per creare il plot QQ dei Residui
+qq_plot <- ggplot(train_lm_z, aes(sample = .stdresid)) +
+  stat_qq(color = "skyblue", size = 2) +
+  stat_qq_line(color = "red", size = 1) +
+  labs(title = "QQ Plot dei Residui", x = "Quantiles teorici", y = "Quantiles osservati") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 14, face = "bold"))
+
+# Funzione per creare il plot Scale-Location
+scale_location_plot <- ggplot(train_lm_z, aes(.fitted, sqrt(abs(.stdresid)))) +
+  geom_point(color = "skyblue", alpha = 0.7, size = 3) +
+  geom_smooth(se = FALSE, color = "red", method = "loess", size = 1) +
+  labs(title = "Scale-Location Plot", x = "Fitted Values", y = "sqrt(|Standardized Residuals|)") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 14, face = "bold"))
+
+# Funzione per creare il plot Residuals vs Leverage (Residui vs. Leverage)
+res_vs_leverage <- ggplot(train_lm_z, aes(.hat, .stdresid)) +
+  geom_point(color = "skyblue", alpha = 0.7, size = 3) +
+  geom_smooth(se = FALSE, color = "red", method = "loess", size = 1) +
+  labs(title = "Residuals vs Leverage", x = "Leverage", y = "Standardized Residuals") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 14, face = "bold"))
+
+plotly_res_vs_fitted <- ggplotly(res_vs_fitted)
+plotly_qq_plot <- ggplotly(qq_plot)
+plotly_scale_location_plot <- ggplotly(scale_location_plot)
+plotly_res_vs_leverage <- ggplotly(res_vs_leverage)
+
+subplot(plotly_res_vs_fitted, plotly_qq_plot, plotly_scale_location_plot, plotly_res_vs_leverage)
+```
+
+---
+
+# Test modello lineare
+
+Il processo di test di un modello lineare è cruciale per assicurare la sua affidabilità e accuratezza. Questa fase prevede la valutazione di vari aspetti del modello, come l'adattamento dei dati, la normalità dei residui, l'omoschedasticità e la multicollinearità. Ognuno di questi test fornisce un'indicazione su come il modello si adatta ai dati e su eventuali problemi che potrebbero influenzarne le prestazioni.
+
+### Summary
+Per una comprensione immediata del modello, è utile visualizzare il riepilogo tramite `summary(train_lm_z)`. Questo fornisce dettagli sui coefficienti, la significatività statistica e altre metriche chiave.
+```{r}
+summary (train_lm_z)
+```
+
+### R-quadrato
+Il test R-quadrato misura la proporzione della varianza totale della variabile dipendente che viene spiegata dal modello di regressione. Un R-quadrato elevato indica che una grande parte della varianza nella variabile dipendente può essere spiegata dalle variabili indipendenti nel modello.  
+- **Range:** 0 a 1  
+- **Interpretazione:** 0 indica nessuna spiegazione della varianza da parte del modello. 1 indica una spiegazione completa della varianza da parte del modello.
+```{r}
+summary_linModNormalized <- summary(train_lm_z)
+r_squared <- summary_linModNormalized$r.squared
+cat("R-squared:", r_squared, "\n")
+```
+
+### R-quadrato Adattato
+Il R-quadrato adattato modifica il R-quadrato per tenere conto del numero di predittori nel modello. È più affidabile per i modelli con molteplici variabili indipendenti, poiché penalizza la complessità aggiuntiva, fornendo una misura più realistica della bontà di adattamento.  
+- **Range:** Può essere negativo, ma generalmente 0 a 1  
+- **Interpretazione:** Valori più vicini a 1 indicano una migliore spiegazione della varianza, considerando il numero di predittori.
+```{r}
+n <- length(df$o_oreb)
+k <- length(train_lm_z$coefficients) - 1
+adjusted_r_squared <- 1 - ((1 - r_squared) * (n - 1) / (n - k - 1))
+cat("R-quadro adattato:", adjusted_r_squared, "\n")
+```
+
+### Test Shapiro
+Il test di Shapiro-Wilk sui residui è utilizzato per valutare la normalità dei residui in un modello di regressione lineare. La normalità dei residui è un'assunzione critica in molti test statistici. Se i residui non seguono una distribuzione normale, le inferenze sulle stime dei parametri potrebbero essere invalide.  
+- **Range:** 0 a 1  
+- **Interpretazione:** Valori più vicini a 1 suggeriscono una maggiore probabilità che i residui seguano una distribuzione normale.
+```{r}
+shapiro.test(residuals(train_lm_z))
+```
+
+### Test di omoschedasticità
+Il Breusch-Pagan test verifica l'assunzione di omoschedasticità (varianza costante) dei residui in un modello di regressione. La presenza di eteroschedasticità (varianza non costante) nei residui può portare a stime inefficaci e test statistici non affidabili.  
+- **Range:** 0 a $+\infty$  
+- **Interpretazione:** Valori più alti indicano una maggiore probabilità di eteroschedasticità. Si confronta il valore del test con un valore critico (ad es., da una distribuzione chi-quadrato) per determinare la significatività.
+```{r}
+bptest(train_lm_z)
+```
+
+### Test di multicollinearità
+Il test di multicollinearità verifica se esiste una correlazione elevata tra le variabili indipendenti in un modello di regressione lineare. La multicollinearità può causare problemi nella stima dei coefficienti del modello, rendendo difficili l'interpretazione e la significatività statistica delle variabili indipendenti. Strumenti comuni per rilevarla includono il fattore di inflazione della varianza (VIF) e l'indice di tolleranza.  
+- **Range del VIF:** 1 a $+\infty$  
+- **Interpretazione:** 1 indica assenza di multicollinearità. Valori superiori a 5 o 10 sono spesso considerati indicatori di multicollinearità significativa.
+```{r}
+car::vif(train_lm_z)
+```
+
+---
+
+# Modello lineare sul dataframe test
+
+## Grafici
+
+---
+
+# LASSO
+
+## Rifare test
+
