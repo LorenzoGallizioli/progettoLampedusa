@@ -305,20 +305,29 @@ In sintesi, il risultato del test di Shapiro-Francia indica che i tuoi dati nell
 
 ### L'IMPORTANZA DEI RIMBALZI
 
-$\text{Formula1} = \frac{\text{Rimbalzi offensivi in attacco}}{\text{Tiri sbagliati su azione}}$ Rappresenta la capacità della squadra di ripossesso della palla dopo un tiro che non va a canestro e colpisce il tabellone.
+$\text{Formula1} = \frac{\text{Rimbalzi offensivi in attacco}}{\text{Tiri sbagliati su azione}}$ Rappresenta la capacità della squadra di ottenere un rimbalzo in attacco.
 
-$\text{Formula2} = \frac{\text{Rimbalzi difensivi in difesa presi}}{\text{Tiri sbagliati su azione degli avversari}}$ Rappresenta la capacità della squadra di impossessarsi della palla dopo un tiro sbagliato della squadra avversaria che colpisce il tabellone, che troviamo un buon stimatore della capacità di contropiede della squadra.
+$\text{Formula2} = \frac{\text{Rimbalzi difensivi in difesa presi}}{\text{Tiri sbagliati su azione degli avversari}}$ Rappresenta la capacità della squadra di ottenere un rimbalzo in difesa, che troviamo un buon stimatore della capacità di contropiede della squadra.
 
-$\text{Formula3} = \frac{\text{Palle riprese in attacco} + 1.5 \times \text{Palle riprese in difesa}}{\text{Palle perse in attacco} + 2 \times \text{Rimbalzi subiti in difesa}}$ Rappresenta il rapporto tra le palle riprese nei rimbalzi (sia offensivi che difensivi) rispetto alle palle perse nei rimbalzi (sia offensivi che difensivi). I coefficienti sono stati scelti in base a ciò che riteniamo più importante in una partita, ossia la difesa del proprio canestro.
+$\text{Formula3} = \frac{\text{Rimbalzi ottenuti in attacco} + 1.5 \times \text{Rimbalzi ottenuti in difesa}}{\text{Rimbalzi subiti in attacco} + 2 \times \text{Rimbalzi subiti in difesa}}$ Rappresenta il rapporto tra i rimbalzi ottenuti (sia offensivi che difensivi) rispetto ai rimbalzi subiti (sia offensivi che difensivi). I coefficienti sono stati scelti in base a ciò che riteniamo più importante in una partita, ossia la difesa del proprio canestro.
 
-$\text{Formula4} = (\text{Palle riprese in attacco - Palle perse in attacco}) + 1.5*(\text{Palle riprese in difesa - Palle perse in difesa})$ Cresce all'aumentare dei rimbalzi ottenuti e diminuisce all'aumentare dei rimbalzi subiti, considerando anche un coefficiente che da particolare importanza alla difesa.
+$\text{Formula4} = (\text{Rimbalzi ottenuti in attacco - Rimbalzi subiti in attacco}) + 1.5*(\text{Rimbalzi ottenuti in difesa - Rimbalzi subiti in difesa})$ Cresce all'aumentare dei rimbalzi ottenuti e diminuisce all'aumentare dei rimbalzi subiti, considerando anche un coefficiente che da particolare importanza alla difesa.
 
 $\text{Formula5} = \frac{(\frac{\text{Rimbalzi subiti in difesa}}{\text{Palle perse in difesa}})}{(\frac{\text{Rimbalzi subiti in attacco}}{\text{Palle perse in attacco}})}$ Mostra quanto siano influenti i rimbalzi nel rapporto tra le palle perse dalla squadra e le palle perse dagli avversari.
+
+$\text{Formula6} = (\text{Rimbalzi ottenuti in attacco} + \text{Rimbalzi ottenuti in difesa}) - (\text{Rimbalzi subiti in difesa} + \text{Rimbalzi subiti in attacco})^2$
+Coefficiente che diminuisce esponenzialmente all'aumentare dei rimbalzi subiti
+
+$\text{Formula7} = \text{Formula1} + \text{Formula2}$
+Somma delle delle due formule capacità di ottenere un rimbalzo di attacco e in difesa.
+
+$\text{Formula8} = \frac{\text{Rimbalzi ottenuti in attacco}}{\text{Totale rimbalzi ottenuti}}\times100$
+Percentuale di rimbalzi ottenuti in attacco sui rimbalzi ottenuti.
 
 ```{r}
 # o_oreb = Rimbalzi ottenuti in attacco
 # o_dreb = Rimbalzi subiti in attacco
-# o_reb  = totale rimbalzi in attacco
+# o_reb  = totale rimbalzi in attacco = o_oreb + o_dreb
 # d_oreb = Rimbalzi subiti in difesa
 # d_dreb = Rimbalzi ottenuti in difesa
 # d_reb  = totale rimbalzi in difesa
@@ -328,9 +337,11 @@ df$f2 <- (df$d_dreb)/(df$d_fga-df$d_fgm)
 df$f3 <- (df$o_oreb + 1.5 * df$d_dreb)/(df$o_dreb + 2 * df$d_oreb)
 df$f4 <- (df$o_oreb - df$o_dreb) + 1.5 * (df$d_dreb - df$d_oreb)
 df$f5 <- (df$d_oreb / df$d_to) / (df$o_dreb / df$o_to)
+df$f6 <- (df$o_oreb + df$d_dreb) - (df$d_oreb - df$o_dreb)^2
+df$f7 <- (df$f1 + df$f2)^2
+df$f8 <- (df$o_oreb)/(df$o_reb)*100
 
-
-linMod <- lm(won ~ f1 + f2 + f3 + f4 + f5, data = df)
+linMod <- lm(won ~ f1 + f2 + f3 + f4 + f5 + f6 + f7 + f8, data = df)
 summary (linMod)
 
 # Imposta il layout della pagina
