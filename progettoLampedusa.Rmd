@@ -60,10 +60,9 @@ dataset$lgID <- as.factor(dataset$lgID)
 summary(df)
 
 ```
+# STUDIO DATI RELATIVI AI RIMBALZI
 
 ```{r}
-
-# STUDIO DATI RELATIVI AI RIMBALZI
 
 # o_oreb = Rimbalzi ottenuti in attacco
 # o_dreb = Rimbalzi subiti in attacco
@@ -109,9 +108,7 @@ print(paste("Percentage non-zero d_reb: ", round(length(which(df_reb$d_reb > 0))
 
 
 ```
-# STUDIO SULLE VITTORIE
-
-# SANDBOX TESTING
+#GRAFICI DEI DATI RELATIVI AI RIMBALZI
 ```{r}
 ### SANDBOX
 
@@ -261,7 +258,6 @@ bar_plot <- plot_ly(values, x = ~tmID, y = ~o_reb, type = 'bar', name = 'Rimbalz
 
 (bar_plot)
 
-
 ```
 
 #TEST ANDERSON-DARLING
@@ -276,6 +272,7 @@ ad.test(df$reb)
 #TEST KOLMOGOROV SMIRNOV
 ```{r}
 # Test di Kolmogorov-Smirnov per confrontare la distribuzione di 'reb' con una distribuzione normale
+
 ks.test(df$reb, "pnorm")
 ```
 # Il risultato che hai ottenuto riguarda il test di Kolmogorov-Smirnov a campione singolo sui dati contenuti nella variabile df$reb. Il test KS confronta la distribuzione empirica dei tuoi dati con una distribuzione teorica (spesso una distribuzione uniforme). In breve, il risultato suggerisce che i tuoi dati non seguono la distribuzione teorica presunta, e cè un elevata probabilità che la differenza osservata sia statisticamente significativa.
@@ -283,21 +280,21 @@ ks.test(df$reb, "pnorm")
 #TEST SHAPIRO WILK
 ```{r}
 # Test di Shapiro-Wilk per la normalità dei dati nella variabile 'reb' (rimbalzi)
+
 sf.test(df$reb)
 ```
 #In sintesi, il risultato del test di Shapiro-Francia indica che i tuoi dati nella variabile df$reb non seguono una distribuzione normale. Questo è supportato dal valore basso del p-value, il quale suggerisce che la differenza tra la distribuzione dei tuoi dati e una distribuzione normale è statisticamente significativa.
 
 
-```{r}
 #STUDIO SULLE VITTORIE
-
+```{r}
 
 # ISTOGRAMMA INTERATTIVO
 # Calcola la media della variabile "won" nel data frame "df"
 mean_value <- mean(df$won)
 # Crea un istogramma con plot_ly
 histogram <- plot_ly(df, x = ~won, type = "histogram",
-                     marker = list(color = "skyblue", line = list(color = "white", width = 0.5)), 
+                     marker = list(color = "skyblue", line = list(color = "white", width = 0.5)),
                      opacity = 0.7, name = "Campione") %>%
   layout(title = list(text = "<b><i>Distribuzione delle Vittorie</i></b>", y = 0.97),
          xaxis = list(title = "<b><i>Numero di Vittorie</i></b>", zeroline = FALSE),
@@ -398,9 +395,6 @@ for (i in 2:ncol(reshaped_data)) {
 
 # Visualizza il boxplot interattivo
 (fig)
-
-
-df$reb <- df$o_reb + df$d_reb
 
 ```
 
@@ -568,24 +562,26 @@ linModNormalized_1 <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z + f6_z + f7_z + 
 summary(linModNormalized)
 summary(linModNormalized_1)
 
-# Grafici
+# Visualizza il grafico dei residui rispetto ai livelli per il modello lineare normalizzato linModNormalized
 ols_plot_resid_lev(linModNormalized)
+
+# Visualizza il grafico dei residui rispetto ai livelli per il modello lineare normalizzato linModNormalized_1
 ols_plot_resid_lev(linModNormalized_1)
 
-# Influence plot per il primo modello
+# Influence plot il modello lineare normalizzato linModNormalized
 influencePlot(linModNormalized, id = 5)
 
-# Personalizzazione del primo grafico
+# Personalizzazione del grafico
 par(mar=c(5, 5, 2, 2))
 title(main = "Influence Plot - Modello 1", col.main = "blue", font.main = 4)
 
 # Apri una nuova finestra grafica
 dev.new()
 
-# Influence plot per il secondo modello
+# Influence plot per il modello lineare normalizzato linModNormalized_1
 influencePlot(linModNormalized_1, id = 5)
 
-# Personalizzazione del secondo grafico
+# Personalizzazione del grafico
 par(mar=c(5, 5, 2, 2))
 # Aggiungi un titolo sopra al grafico
 title(main = "Influence Plot - Modello 2", col.main = "blue", font.main = 4)
