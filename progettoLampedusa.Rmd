@@ -32,10 +32,6 @@ library(reshape2)
 library(RColorBrewer)
 library(tidyr)
 library(dplyr)
-<<<<<<< HEAD
-=======
-
->>>>>>> be4baaa337ba55205cf8dbbece8d36ef9682dd61
 
 knitr::opts_knit$set(root.dir = here("0_Materiale"))
 ```
@@ -67,13 +63,8 @@ summary(df)
 # d_dreb = Rimbalzi ottenuti in difesa
 # d_reb  = totale rimbalzi in difesa
 
-<<<<<<< HEAD
 df_reb <- subset(df, select = c("o_oreb", "o_dreb", "o_reb", "d_oreb", "d_dreb", "d_reb", "won"))
   
-=======
-df_reb = subset(df, select = c("o_oreb", "o_dreb", "o_reb", "d_oreb", "d_dreb", "d_reb", "won"))
-
->>>>>>> be4baaa337ba55205cf8dbbece8d36ef9682dd61
 par(mfrow = c(2, 3))  # Imposta il layout a 2 righe e 3 colonne
 
 for (variables in 1:(dim(df_reb)[2]-1)){
@@ -95,11 +86,6 @@ for (variables in 1:(dim(df_reb)[2]-1)){
 
 # Aggiungi titolo
 title("Density plots with Normal Distribution", line = -17, cex.main = 2, outer = TRUE)
-<<<<<<< HEAD
-=======
-
->>>>>>> be4baaa337ba55205cf8dbbece8d36ef9682dd61
-
 
 
 
@@ -139,8 +125,6 @@ title("Density plots with Normal Distribution", line = -17, cex.main = 2, outer 
 # Visualizza i plot interattivi
 #subplot(plot_list)
 
-<<<<<<< HEAD
-=======
 
 
 
@@ -148,7 +132,6 @@ title("Density plots with Normal Distribution", line = -17, cex.main = 2, outer 
 
 
 
->>>>>>> 04656a9c7b2908a8accb897f0fcd10c3de814acd
 #verifica della presenza zeri nel dataset
 print(paste("Percentage non-zero o_oreb: ",round(length(which(df_reb$o_oreb>0)) /dim(df_reb)[1]*100,2)))
 print(paste("Percentage non-zero o_dreb: ",round(length(which(df_reb$o_dreb>0)) /dim(df_reb)[1]*100,2)))
@@ -156,15 +139,10 @@ print(paste("Percentage non-zero o_reb: ",round(length(which(df_reb$o_reb>0)) /d
 print(paste("Percentage non-zero d_oreb: ",round(length(which(df_reb$d_oreb>0)) /dim(df_reb)[1]*100,2)))
 print(paste("Percentage non-zero d_dreb: ",round(length(which(df_reb$d_dreb>0)) /dim(df_reb)[1]*100,2)))
 print(paste("Percentage non-zero d_reb: ",round(length(which(df_reb$d_reb>0)) /dim(df_reb)[1]*100,2)))
-<<<<<<< HEAD
-=======
-
->>>>>>> be4baaa337ba55205cf8dbbece8d36ef9682dd61
 
 ```
 
 ```{r}
-<<<<<<< HEAD
 #STUDIO SULLE VITTORIE
 
 M <- cor(as.matrix(df[, c(11:25, 54)])) # correlation matrix
@@ -338,7 +316,6 @@ for (i in 2:ncol(reshaped_data)) {
 
 
 df$reb <- df$o_reb + df$d_reb
-=======
 # # STUDIO SULLE VITTORIE
 # 
 # M <- cor(as.matrix(df[, c(11:25, 54)])) # correlation matrix
@@ -500,7 +477,6 @@ df$reb <- df$o_reb + df$d_reb
 # 
 # 
 # df$reb <- df$o_reb + df$d_reb
->>>>>>> be4baaa337ba55205cf8dbbece8d36ef9682dd61
 
 ```
 
@@ -566,7 +542,6 @@ test   <- df[!sample, ]
 linMod <- lm(won ~ f1 + f2 + f3 + f4 + f5 + f6 + f7 + f8 + f9 + f10, data = train)
 summary (linMod)
 
-<<<<<<< HEAD
 # Installa e carica le librerie necessarie
 if (!requireNamespace("ggplot2", quietly = TRUE)) {
   install.packages("ggplot2")
@@ -676,9 +651,6 @@ plotly_res_vs_leverage <- ggplotly(res_vs_leverage)
 subplot(plotly_res_vs_fitted, plotly_qq_plot, plotly_scale_location_plot, plotly_res_vs_leverage)
 
 
-
-=======
->>>>>>> be4baaa337ba55205cf8dbbece8d36ef9682dd61
 
 
 # # Funzione per creare il plot di Residuals vs Fitted (Residui vs. Valori Previsti)
@@ -791,7 +763,6 @@ test$f9_z <- scale(test$f9)
 test$f10_z <- scale(test$f10)
 
 
-<<<<<<< HEAD
 # Installa e carica le librerie necessarie
 if (!requireNamespace("ggplot2", quietly = TRUE)) {
   install.packages("ggplot2")
@@ -895,7 +866,7 @@ plotly_res_vs_leverage <- ggplotly(res_vs_leverage)
 
 # Visualizza i quattro grafici interattivi
 subplot(plotly_res_vs_fitted, plotly_qq_plot, plotly_scale_location_plot, plotly_res_vs_leverage)
-=======
+
 linModNormalized <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z + f6_z + f7_z + f8_z + f9_z + f10_z, data = train)
 
 
@@ -978,7 +949,6 @@ linModNormalized <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z + f6_z + f7_z + f8
 # 
 # # Visualizza i quattro grafici interattivi
 # subplot(plotly_res_vs_fitted, plotly_qq_plot, plotly_scale_location_plot, plotly_res_vs_leverage)
->>>>>>> be4baaa337ba55205cf8dbbece8d36ef9682dd61
 
 
 ```
@@ -1082,15 +1052,10 @@ if(length(outliers) != 0)
 
 linModNormalized_1 <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z + f6_z + f7_z + f8_z + f9_z + f10_z, data = train_1)
 
-<<<<<<< HEAD
-=======
-
->>>>>>> be4baaa337ba55205cf8dbbece8d36ef9682dd61
 summary(linModNormalized)
 summary(linModNormalized_1)
 
 
-<<<<<<< HEAD
 # Installa e carica le librerie necessarie
 if (!requireNamespace("ggplot2", quietly = TRUE)) {
   install.packages("ggplot2")
@@ -1105,7 +1070,6 @@ library(ggfortify)
 influence_plot <- influencePlot(linModNormalized_1, id = 5, main = "Influence Plot")
 
 # Personalizza il grafico
-<<<<<<< HEAD
 # influence_plot +
 #   theme_minimal() +  # Usa uno stile minimale
 #   theme(plot.title = element_text(size = 16, face = "bold"),  # Titolo più grande e in grassetto
@@ -1118,7 +1082,6 @@ influence_plot <- influencePlot(linModNormalized_1, id = 5, main = "Influence Pl
 
 
 #INTERATTIVO DA TESTARE
-=======
 #influence_plot +
 #  theme_minimal() +  # Usa uno stile minimale
 #  theme(plot.title = element_text(size = 16, face = "bold"),  # Titolo più grande e in grassetto
@@ -1153,7 +1116,6 @@ influence_plot <- influencePlot(linModNormalized_1, id = 5, main = "Influence Pl
 #   layout(title = "Influence Plot",
 #          xaxis = list(title = "Variables"),
 #          yaxis = list(title = "Influence"))
->>>>>>> 04656a9c7b2908a8accb897f0fcd10c3de814acd
 
 # # Calcola l'influenza
 # influence_values <- influence(linModNormalized_1)
@@ -1269,8 +1231,6 @@ sqrt(mean((test$won - prevLasso)^2))
 
 #RMS LM
 sqrt(mean((test$won - prevLM)^2))
-
-
 
 
 prev <- ifelse(prevLasso > 0.5,"1","0")

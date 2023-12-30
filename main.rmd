@@ -78,6 +78,8 @@ library(car)
 library(plotly)
 library(heatmaply)
 library(ggheatmap)
+library(gridExtra)
+library(olsrr)
 library(ggplot2)
 library(viridis)
 library(glmnet)
@@ -85,7 +87,6 @@ library(highcharter)
 library(reshape2)
 library(RColorBrewer)
 library(tidyr)
-library(gridExtra)
 library(dplyr)
 
 knitr::opts_knit$set(root.dir = here("0_Materiale"))
@@ -439,17 +440,6 @@ che la differenza tra la distribuzione dei tuoi dati e una distribuzione
 normale è statisticamente significativa.
 
 ---
-
-# Divisione train/test
-
-Dividiamo ora il nostro dataset in 2 parti, la parte train, ossia la parte che utilizzeremo per "addestrare" il nostro modello lineare, e la parte test, ossia una parte del dataset su cui testeremo il nostro modello lineare
-```{r}
-sample <- sample(c(TRUE, FALSE), size = nrow(df), replace=TRUE, prob=c(0.7, 0.3))
-train_df <- df[sample, ]
-test_df <- df[!sample, ]
-```
-
----
  
 # Presentazione modello lineare
 
@@ -498,16 +488,33 @@ Legenda significato acronimi:
 - d_dreb: Rimbalzi ottenuti in difesa 
 - d_reb: Totale rimbalzi in difesa 
 
-```{r Modello lineare su train, warning = FALSE}
+```{r Formule, warning = FALSE}
 
-train_df$f1 <- (train_df$o_oreb)/(train_df$o_fga-train_df$o_fgm)
-train_df$f2 <- (train_df$d_dreb)/(train_df$d_fga-train_df$d_fgm)
-train_df$f3 <- (train_df$o_oreb + 1.5 * train_df$d_dreb)/(train_df$o_dreb + 2 * train_df$d_oreb)
-train_df$f4 <- (train_df$o_oreb - train_df$o_dreb) + 1.5 * (train_df$d_dreb - train_df$d_oreb)
-train_df$f5 <- (train_df$d_oreb / train_df$d_to) / (train_df$o_dreb / train_df$o_to)
+df$f1 <- (df$o_oreb)/(df$o_fga-df$o_fgm)
+df$f2 <- (df$d_dreb)/(df$d_fga-df$d_fgm)
+df$f3 <- (df$o_oreb + 1.5 * df$d_dreb)/(df$o_dreb + 2 * df$d_oreb)
+df$f4 <- (df$o_oreb - df$o_dreb) + 1.5 * (df$d_dreb - df$d_oreb)
+df$f5 <- (df$d_oreb / df$d_to) / (df$o_dreb / df$o_to)
+df$f6 <- (df$o_oreb + df$d_dreb) - (df$d_oreb - df$o_dreb)^2
+df$f7 <- (df$f1 + df$f2)^2
+df$f8 <- (df$o_oreb)/(df$o_reb)
+df$f9 <- ((df$o_oreb)/(df$o_dreb))^2
+df$f10 <- ((df$d_dreb)/(df$d_oreb))^2
 
-train_lm <- lm(won ~ f1 + f2 + f3 + f4 + f5, data = train_df)
-summary (train_lm)
+```
+
+```{r Divisione tra train e test}
+
+num_rows_to_sample <- round(0.7 * nrow(df))
+sample_indices <- sample(seq_len(nrow(df)), size = num_rows_to_sample, replace = FALSE)
+
+df = subset(df, select = c("f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9", "f10", "won"))
+
+train <- df[sample_indices, ]
+test <- df[-sample_indices, ]
+
+linMod <- lm(won ~ f1 + f2 + f3 + f4 + f5 + f6 + f7 + f8 + f9 + f10, data = train)
+summary (linMod)
 
 ```
 
@@ -517,7 +524,7 @@ TODO: Aggiungere presentazione grafici
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 # Funzione per creare il plot di Residuals vs Fitted (Residui vs. Valori Previsti)
-res_vs_fitted <- ggplot(train_lm, aes(.fitted, .resid)) +
+res_vs_fitted <- ggplot(linMod, aes(.fitted, .resid)) +
   geom_point(color = "skyblue", alpha = 0.7, size = 3) +
   geom_smooth(se = FALSE, color = "red", method = "loess", size = 1) +
   labs(title = "Residuals vs Fitted", x = "Fitted Values", y = "Residuals") +
@@ -525,7 +532,7 @@ res_vs_fitted <- ggplot(train_lm, aes(.fitted, .resid)) +
   theme(plot.title = element_text(size = 14, face = "bold"))
 
 # Funzione per creare il plot QQ dei Residui
-qq_plot <- ggplot(train_lm, aes(sample = .stdresid)) +
+qq_plot <- ggplot(linMod, aes(sample = .stdresid)) +
   stat_qq(color = "skyblue", size = 2) +
   stat_qq_line(color = "red", size = 1) +
   labs(title = "QQ Plot dei Residui", x = "Quantiles teorici", y = "Quantiles osservati") +
@@ -533,7 +540,7 @@ qq_plot <- ggplot(train_lm, aes(sample = .stdresid)) +
   theme(plot.title = element_text(size = 14, face = "bold"))
 
 # Funzione per creare il plot Scale-Location
-scale_location_plot <- ggplot(train_lm, aes(.fitted, sqrt(abs(.stdresid)))) +
+scale_location_plot <- ggplot(linMod, aes(.fitted, sqrt(abs(.stdresid)))) +
   geom_point(color = "skyblue", alpha = 0.7, size = 3) +
   geom_smooth(se = FALSE, color = "red", method = "loess", size = 1) +
   labs(title = "Scale-Location Plot", x = "Fitted Values", y = "sqrt(|Standardized Residuals|)") +
@@ -541,7 +548,7 @@ scale_location_plot <- ggplot(train_lm, aes(.fitted, sqrt(abs(.stdresid)))) +
   theme(plot.title = element_text(size = 14, face = "bold"))
 
 # Funzione per creare il plot Residuals vs Leverage (Residui vs. Leverage)
-res_vs_leverage <- ggplot(train_lm, aes(.hat, .stdresid)) +
+res_vs_leverage <- ggplot(linMod, aes(.hat, .stdresid)) +
   geom_point(color = "skyblue", alpha = 0.7, size = 3) +
   geom_smooth(se = FALSE, color = "red", method = "loess", size = 1) +
   labs(title = "Residuals vs Leverage", x = "Leverage", y = "Standardized Residuals") +
@@ -562,18 +569,36 @@ subplot(plotly_res_vs_fitted, plotly_qq_plot, plotly_scale_location_plot, plotly
 
 La normalizzazione dei dati è una pratica fondamentale nell'elaborazione di modelli statistici, specialmente nei modelli lineari. Questo processo è volto a standardizzare la scala delle variabili, rendendo più agevole il confronto tra di esse e migliorando l'efficienza dell'algoritmo di regressione. In particolare, la normalizzazione è cruciale quando le variabili hanno scale molto diverse, poiché ciò potrebbe influenzare negativamente la precisione del modello.
 
-Nel codice R seguente, abbiamo normalizzato le variabili del nostro dataframe 'train_df', utilizzando la funzione `scale`. Questo assicura che ciascuna variabile contribuisca in modo equo al modello, permettendo una più accurata interpretazione dei coefficienti della regressione lineare.
+Nel codice R seguente, abbiamo normalizzato le variabili del nostro dataframe 'df', utilizzando la funzione `scale`. Questo assicura che ciascuna variabile contribuisca in modo equo al modello, permettendo una più accurata interpretazione dei coefficienti della regressione lineare.
 
 ```{r, warning = FALSE}
 
-train_df$f1_z <- scale(train_df$f1)
-train_df$f2_z <- scale(train_df$f2)
-train_df$f3_z <- scale(train_df$f3)
-train_df$f4_z <- scale(train_df$f4)
-train_df$f5_z <- scale(train_df$f5)
+# Normalizziamo le covariate
+train$f1_z <- scale(train$f1)
+train$f2_z <- scale(train$f2)
+train$f3_z <- scale(train$f3)
+train$f4_z <- scale(train$f4)
+train$f5_z <- scale(train$f5)
+train$f6_z <- scale(train$f6)
+train$f7_z <- scale(train$f7)
+train$f8_z <- scale(train$f8)
+train$f9_z <- scale(train$f9)
+train$f10_z <- scale(train$f10)
 
-train_lm_z <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z, data = train_df)
-summary(train_lm_z)
+# Normalizzo i dati di test
+test$f1_z <- scale(test$f1)
+test$f2_z <- scale(test$f2)
+test$f3_z <- scale(test$f3)
+test$f4_z <- scale(test$f4)
+test$f5_z <- scale(test$f5)
+test$f6_z <- scale(test$f6)
+test$f7_z <- scale(test$f7)
+test$f8_z <- scale(test$f8)
+test$f9_z <- scale(test$f9)
+test$f10_z <- scale(test$f10)
+
+linModNormalized <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z + f6_z + f7_z + f8_z + f9_z + f10_z, data = train)
+summary(linModNormalized)
 
 ```
 
@@ -581,7 +606,7 @@ summary(train_lm_z)
 
 ```{r echo = FALSE, message = FALSE, message=FALSE, warning=FALSE}
 # Funzione per creare il plot di Residuals vs Fitted (Residui vs. Valori Previsti)
-res_vs_fitted <- ggplot(train_lm_z, aes(.fitted, .resid)) +
+res_vs_fitted <- ggplot(linModNormalized, aes(.fitted, .resid)) +
   geom_point(color = "skyblue", alpha = 0.7, size = 3) +
   geom_smooth(se = FALSE, color = "red", method = "loess", size = 1) +
   labs(title = "Residuals vs Fitted", x = "Fitted Values", y = "Residuals") +
@@ -589,7 +614,7 @@ res_vs_fitted <- ggplot(train_lm_z, aes(.fitted, .resid)) +
   theme(plot.title = element_text(size = 14, face = "bold"))
 
 # Funzione per creare il plot QQ dei Residui
-qq_plot <- ggplot(train_lm_z, aes(sample = .stdresid)) +
+qq_plot <- ggplot(linModNormalized, aes(sample = .stdresid)) +
   stat_qq(color = "skyblue", size = 2) +
   stat_qq_line(color = "red", size = 1) +
   labs(title = "QQ Plot dei Residui", x = "Quantiles teorici", y = "Quantiles osservati") +
@@ -597,7 +622,7 @@ qq_plot <- ggplot(train_lm_z, aes(sample = .stdresid)) +
   theme(plot.title = element_text(size = 14, face = "bold"))
 
 # Funzione per creare il plot Scale-Location
-scale_location_plot <- ggplot(train_lm_z, aes(.fitted, sqrt(abs(.stdresid)))) +
+scale_location_plot <- ggplot(linModNormalized, aes(.fitted, sqrt(abs(.stdresid)))) +
   geom_point(color = "skyblue", alpha = 0.7, size = 3) +
   geom_smooth(se = FALSE, color = "red", method = "loess", size = 1) +
   labs(title = "Scale-Location Plot", x = "Fitted Values", y = "sqrt(|Standardized Residuals|)") +
@@ -605,7 +630,7 @@ scale_location_plot <- ggplot(train_lm_z, aes(.fitted, sqrt(abs(.stdresid)))) +
   theme(plot.title = element_text(size = 14, face = "bold"))
 
 # Funzione per creare il plot Residuals vs Leverage (Residui vs. Leverage)
-res_vs_leverage <- ggplot(train_lm_z, aes(.hat, .stdresid)) +
+res_vs_leverage <- ggplot(linModNormalized, aes(.hat, .stdresid)) +
   geom_point(color = "skyblue", alpha = 0.7, size = 3) +
   geom_smooth(se = FALSE, color = "red", method = "loess", size = 1) +
   labs(title = "Residuals vs Leverage", x = "Leverage", y = "Standardized Residuals") +
@@ -627,9 +652,9 @@ subplot(plotly_res_vs_fitted, plotly_qq_plot, plotly_scale_location_plot, plotly
 Il processo di test di un modello lineare è cruciale per assicurare la sua affidabilità e accuratezza. Questa fase prevede la valutazione di vari aspetti del modello, come l'adattamento dei dati, la normalità dei residui, l'omoschedasticità e la multicollinearità. Ognuno di questi test fornisce un'indicazione su come il modello si adatta ai dati e su eventuali problemi che potrebbero influenzarne le prestazioni.
 
 ### Summary
-Per una comprensione immediata del modello, è utile visualizzare il riepilogo tramite `summary(train_lm_z)`. Questo fornisce dettagli sui coefficienti, la significatività statistica e altre metriche chiave.
+Per una comprensione immediata del modello, è utile visualizzare il riepilogo tramite `summary(linModNormalized)`. Questo fornisce dettagli sui coefficienti, la significatività statistica e altre metriche chiave.
 ```{r}
-summary (train_lm_z)
+summary (linModNormalized)
 ```
 
 ### R-quadrato
@@ -637,7 +662,7 @@ Il test R-quadrato misura la proporzione della varianza totale della variabile d
 - **Range:** 0 a 1  
 - **Interpretazione:** 0 indica nessuna spiegazione della varianza da parte del modello. 1 indica una spiegazione completa della varianza da parte del modello.
 ```{r}
-summary_linModNormalized <- summary(train_lm_z)
+summary_linModNormalized <- summary(linModNormalized)
 r_squared <- summary_linModNormalized$r.squared
 cat("R-squared:", r_squared, "\n")
 ```
@@ -647,8 +672,8 @@ Il R-quadrato adattato modifica il R-quadrato per tenere conto del numero di pre
 - **Range:** Può essere negativo, ma generalmente 0 a 1  
 - **Interpretazione:** Valori più vicini a 1 indicano una migliore spiegazione della varianza, considerando il numero di predittori.
 ```{r}
-n <- length(df$o_oreb)
-k <- length(train_lm_z$coefficients) - 1
+n <- length(train$o_reb)
+k <- length(linModNormalized$coefficients) - 1
 adjusted_r_squared <- 1 - ((1 - r_squared) * (n - 1) / (n - k - 1))
 cat("R-quadro adattato:", adjusted_r_squared, "\n")
 ```
@@ -658,7 +683,7 @@ Il test di Shapiro-Wilk sui residui è utilizzato per valutare la normalità dei
 - **Range:** 0 a 1  
 - **Interpretazione:** Valori più vicini a 1 suggeriscono una maggiore probabilità che i residui seguano una distribuzione normale.
 ```{r}
-shapiro.test(residuals(train_lm_z))
+shapiro.test(residuals(linModNormalized))
 ```
 
 ### Test di omoschedasticità
@@ -666,7 +691,7 @@ Il Breusch-Pagan test verifica l'assunzione di omoschedasticità (varianza costa
 - **Range:** 0 a $+\infty$  
 - **Interpretazione:** Valori più alti indicano una maggiore probabilità di eteroschedasticità. Si confronta il valore del test con un valore critico (ad es., da una distribuzione chi-quadrato) per determinare la significatività.
 ```{r}
-bptest(train_lm_z)
+bptest(linModNormalized)
 ```
 
 ### Test di multicollinearità
@@ -674,18 +699,151 @@ Il test di multicollinearità verifica se esiste una correlazione elevata tra le
 - **Range del VIF:** 1 a $+\infty$  
 - **Interpretazione:** 1 indica assenza di multicollinearità. Valori superiori a 5 o 10 sono spesso considerati indicatori di multicollinearità significativa.
 ```{r}
-car::vif(train_lm_z)
+car::vif(linModNormalized)
 ```
 
 ---
 
-# Modello lineare sul dataframe test
+# Rimozione outliers e LASSO
 
-## Grafici
+## Rimozione outliers
 
+TODO: AGGIUNGERE DESCRIZIONE
+```{r Grafico modello attuale, echo=FALSE, message=FALSE, warning=FALSE}
+influencePlot(linModNormalized,5)
+
+```
+
+Trovo gli outliers
+```{r Trovare outliers}
+residui <- residuals(linModNormalized)
+
+soglia_outlier <- 2 
+outliers <- which(abs(residui) > soglia_outlier*sd(residui))
+
+outliers
+```
+
+```{r Rimozione outliers, echo=FALSE, message=FALSE, warning=FALSE}
+if(length(outliers) != 0)
+{
+  train_1 <- train[-outliers,]
+}else
+{
+  train_1 <- train
+}
+```
+
+Summary prima di rimuovere outliers
+```{r Grafici outliers, echo=FALSE, message=FALSE, warning=FALSE}
+
+linModNormalized_1 <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z + f6_z + f7_z + f8_z + f9_z + f10_z, data = train_1)
+
+summary(linModNormalized)
+```
+
+Summary dopo aver rimosso outliers con grafico
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+summary(linModNormalized_1)
+
+# Crea il grafico di influenza
+influence_plot <- influencePlot(linModNormalized_1, id = 5, main = "Influence Plot")
+influence_plot
+```
+
+Nel complesso entrambi i modelli sembrano essere buoni, spiegano entrambi circa l'84% della varianza nella variabile dipendente "won", anche se la rimozione degli outliers ha migliorato leggermente i risultati.
+
+Dato che la differenza tra i due modelli e' molto ridotta (<0.5%), tale da essere trascurabile, abbiamo deciso di utilizzare il modello comprendente gli outliers
+
+## LASSO
+Visualizzazione residui e leverage
+```{r, echo = FALSE}
+ols_plot_resid_lev(linModNormalized)
+ols_plot_resid_lev(linModNormalized_1)
+
+# Crea il grafico di influenza
+# influencePlot(linModNormalized, id = 5, main = "Influence Plot")
+# influencePlot(linModNormalized_1, id = 5, main = "Influence Plot")
+```
+
+Utilizzo LASSO  
+1. Preparazione del Modello di Regressione LASSO
+```{r}
+# METODO DI REGRESSIONE LASSO
+
+# define response variable
+y <- train_1$won
+
+# define matrix of predictor variables
+x <- data.matrix(train_1[, c("f1_z", "f2_z", "f3_z", "f4_z", "f5_z", "f6_z", "f7_z", "f8_z", "f9_z", "f10_z")])
+
+# perform k-fold cross-validation to find optimal lambda value
+cv_model <- cv.glmnet(x, y, alpha = 1)
+
+# find optimal lambda value that minimizes test MSE
+best_lambda <- cv_model$lambda.min
+best_lambda
+```
+
+```{r, echo = FALSE}
+# produce plot of test MSE by lambda value
+plot(cv_model)
+```
+
+```{r}
+# Fitting the model with the best lambda
+best_model <- glmnet(x, y, alpha = 1, lambda = best_lambda)
+
+# Output coefficients and summary
+coef(best_model)
+```
+2. Previsione con LASSO e Modello Lineare
+```{r}
+# PREDICT
+
+# Lasso Prediction
+new = data.matrix(test[,c("f1_z","f2_z","f3_z","f4_z","f5_z", "f6_z", "f7_z", "f8_z", "f9_z", "f10_z")])
+prevLasso = predict(best_model, s = best_lambda, newx = new)
+
+# Linear Model Prediction
+new = subset(test, select = c("f1_z","f2_z","f3_z","f4_z","f5_z", "f6_z", "f7_z", "f8_z", "f9_z", "f10_z"))
+prevLM = predict(linModNormalized_1, newdata = test)
+
+```
+3. Valutazione delle Prestazioni del Modello
+```{r}
+# RMS Lasso
+sqrt(mean((test$won - prevLasso)^2))
+
+# RMS LM
+sqrt(mean((test$won - prevLM)^2))
+
+# Previsioni binarie
+prev <- ifelse(prevLasso > 0.5, "1", "0")
+prev <- as.factor(as.vector(prev))
+
+# Confusion Matrix: previsioni vs valore reale
+table(prev, test$won)
+
+cm <- table(prev, test$won)
+
+# Metriche di Valutazione
+accuracy <- sum(cm[1], cm[4]) / sum(cm[1:4])
+precision <- cm[4] / sum(cm[4], cm[2])
+sensitivity <- cm[4] / sum(cm[4], cm[3])
+fscore <- (2 * (sensitivity * precision)) / (sensitivity + precision)
+specificity <- cm[1] / sum(cm[1], cm[2])
+
+```
+
+```{r}
+sprintf("Accuracy: %f", accuracy)
+sprintf("Precision: %f", precision)
+sprintf("Sensitivity: %f", sensitivity)
+sprintf("F-score: %f", fscore)
+sprintf("Specificity: %f", specificity)
+```
 ---
 
-# LASSO
-
-## Rifare test
+# Conclusioni
 
