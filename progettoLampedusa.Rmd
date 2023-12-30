@@ -102,6 +102,210 @@ print(paste("Percentage non-zero d_reb: ",round(length(which(df_reb$d_reb>0)) /d
 
 ```
 
+# SANDBOX TESTING
+```{r}
+# 
+# values <- aggregate(cbind(o_oreb, o_dreb, d_oreb, d_dreb, o_reb, d_reb, won) ~ tmID, data = df, FUN = sum)
+# 
+# # temp <- hist (temp, col = 'steelblue', main = 'caccaculo', xlab = 'balls')
+# 
+# ### SANDBOX
+# 
+# 
+# teams <- c()
+# 
+# df$reb <- c(df$o_reb + df$d_reb)
+# 
+# summary(df$reb)
+# 
+# for (team in df$tmID)
+# {
+#   teams <- unique(c(teams, team))
+# }
+# 
+# teams <- sort(teams)
+# 
+# values <- aggregate(cbind(reb, o_oreb, o_dreb, d_oreb, d_dreb, o_reb, d_reb, won) ~ tmID, data = df, FUN = sum)
+# 
+# x <- seq(-4, 4, by = 0.01)
+# y <- dnorm(x, mean = 0, sd = 1)
+# plot (x,y, type="l")
+# normal <- data.frame(x, y)
+# 
+# df$reb <- df$o_reb + df$d_reb
+# 
+# # ISTOGRAMMA INTERATTIVO
+# 
+# plot_ly(data = df, x = ~reb, type = "histogram",
+#         marker = list(color = 'lightblue', line = list(color = 'black', width = 1)),
+#         nbinsx = 20) %>% 
+#   layout(title = 'Istogramma dei Rimbalzi',
+#          xaxis = list(title = 'Rimbalzi'),
+#          yaxis = list(title = 'Frequenza'),
+#          shapes = list(type = "line", 
+#                        x0 = mean(df$reb), x1 = mean(df$reb),
+#                        y0 = 0, y1 = 215,
+#                        line = list(color = "red", width = 2, dash = "dash")),
+#          yaxis = list(autorange = TRUE))
+# 
+# 
+# #PLOT DI DENSITA CON SOVRAPPOSIZIONE DI UNA NORMALE IDEALE
+# 
+# density_data <- density(df$reb)
+# mu <- mean(df$reb)
+# sigma <- sd(df$reb)
+# normal_data <- dnorm(density_data$x, mean = mu, sd = sigma)
+# 
+# p <- plot_ly(x = density_data$x, y = density_data$y, type = 'scatter', mode = 'lines',
+#              line = list(color = 'blue', width = 2),
+#              name = "Densità rimbalzi totale") %>%
+#   layout(title = "Densità dei Rimbalzi",
+#          xaxis = list(title = "Rimbalzi"),
+#          yaxis = list(title = "Density", autotick = TRUE, autorange = TRUE))
+# 
+# p <- add_trace(p, x = density_data$x, y = normal_data, mode = 'lines',
+#                line = list(color = 'green', width = 2),
+#                fill = "tozeroy", fillcolor = "rgba(0, 255, 0, 0.2)",
+#                name = "Dist normale ideale")
+# 
+# p <- add_trace(p, x = c(mu, mu), y = c(0, max(density_data$y)),
+#                mode = 'lines', line = list(color = 'red', width = 2, dash = 'dash'),
+#                name = "Media")
+# 
+# (p)
+# 
+# # CORRPLOT
+# 
+# data_subset <- df[, c("reb", "o_reb", "d_reb")]
+# cor_matrix <- cor(data_subset)
+# 
+# rownames(cor_matrix) <- colnames(data_subset)
+# colnames(cor_matrix) <- colnames(data_subset)
+# 
+# cor_data <- reshape2::melt(cor_matrix)
+# names(cor_data) <- c("Var1", "Var2", "Corr")
+# 
+# dimnames(cor_matrix) <- list(rownames(cor_matrix), colnames(cor_matrix))
+# data_for_plotly <- as.data.frame(as.table(cor_matrix))
+# 
+# p <- plot_ly(data = cor_data, 
+#              x = ~Var1, 
+#              y = ~Var2, 
+#              z = ~Corr, 
+#              type = "heatmap", 
+#              colors = colorRampPalette(c("#4575b4", "#91bfdb", "#e0f3f8", "#fee08b", "#d73027"))(100),
+#              hoverinfo = "x+y+z") %>% 
+#   layout(title = 'Correlation Matrix',
+#          xaxis = list(title = "", tickangle = 45, side = "bottom", automargin = TRUE),
+#          yaxis = list(title = "", automargin = TRUE),
+#          autosize = TRUE)
+# 
+# cor_values <- round(as.matrix(cor_matrix), 2)  # Round for readability
+# for (i in seq_len(nrow(cor_matrix))) {
+#   for (j in seq_len(ncol(cor_matrix))) {
+#     p <- p %>% add_annotations(
+#       x = rownames(cor_matrix)[i],
+#       y = colnames(cor_matrix)[j],
+#       text = as.character(cor_values[i, j]),
+#       showarrow = FALSE,
+#       font = list(color = ifelse(cor_values[i, j] < 0.5, "white", "black"))
+#     )
+#   }
+# }
+# 
+# (p)
+# 
+# 
+# #BOXPLOT (1° Versione)
+# 
+# aggregated_data <- df %>%
+#   select(tmID, year, o_reb, d_reb) %>%
+#   group_by(tmID, year) %>%
+#   summarize(
+#     o_reb = mean(o_reb, na.rm = TRUE), 
+#     d_reb = mean(d_reb, na.rm = TRUE)
+#   )
+# 
+# reshaped_data <- aggregated_data %>%
+#   pivot_longer(cols = c(o_reb, d_reb), names_to = "stat_type", values_to = "stat") %>%
+#   unite("new_col", tmID, stat_type, sep = "_") %>%
+#   pivot_wider(names_from = new_col, values_from = "stat")
+# 
+# fig <- plot_ly()
+# 
+# 
+# for (i in 2:ncol(reshaped_data)) {
+#     current_column_data <- reshaped_data[[i]]
+#     fig <- fig %>% add_trace(y = current_column_data, name = colnames(reshaped_data)[i], type = "box")
+# }
+# 
+# 
+# #BOXPLOT (2° Versione)
+# 
+# # Creare categorie per i rimbalzi
+# df$reb_categories <- cut(df$reb, breaks = c(-Inf, 5, 10, 15, Inf), labels = c("0-5", "6-10", "11-15", "16+"))
+# 
+# # Convertire df$won in numeri
+# df$won <- as.numeric(as.character(df$won))
+# 
+# # Creare un boxplot con ggplot2
+# ggplot(df, aes(x = reb_categories, y = won, fill = reb_categories)) +
+#   geom_boxplot(color = "black", notch = FALSE) +
+#   labs(title = "Distribuzione delle Vittorie in base ai Rimbalzi",
+#        x = "Rimbalzi",
+#        y = "Vittorie") +
+#   theme_minimal()
+
+
+```
+
+#TEST ANDERSON-DARLING
+```{r}
+ad.test(df$reb)
+```
+#Con un livello di significatività (α) di 0.01 e un p-value molto piccolo (3.1e-09) ottenuto dal test di normalità di Anderson-Darling per i dati della variabile df$reb, puoi concludere che hai sufficiente evidenza statistica per respingere lipotesi nulla che i dati seguono una distribuzione normale.Con il tuo livello di significatività del 0.01 e il p-value molto piccolo (3.1e-09), il p-value è inferiore al livello di significatività, quindi respingeresti lipotesi nulla. Questo suggerisce che i dati nella variabile df$reb non seguono una distribuzione normale al livello di significatività del 0.01. In termini più pratici, hai abbastanza evidenza statistica per concludere che la variabile df$reb non segue una distribuzione normale basandoti sui risultati del test di Anderson-Darling.
+
+
+#TEST KOLMOGOROV SMIRNOV
+```{r}
+ks.test(df$reb, "pnorm")
+```
+# Il risultato che hai ottenuto riguarda il test di Kolmogorov-Smirnov a campione singolo sui dati contenuti nella variabile df$reb. Il test KS confronta la distribuzione empirica dei tuoi dati con una distribuzione teorica (spesso una distribuzione uniforme). In breve, il risultato suggerisce che i tuoi dati non seguono la distribuzione teorica presunta, e cè un elevata probabilità che la differenza osservata sia statisticamente significativa.
+
+
+#TEST SHAPIRO WILK
+```{r}
+sf.test(df$reb)
+```
+#In sintesi, il risultato del test di Shapiro-Francia indica che i tuoi dati nella variabile df$reb non seguono una distribuzione normale. Questo è supportato dal valore basso del p-value, il quale suggerisce che la differenza tra la distribuzione dei tuoi dati e una distribuzione normale è statisticamente significativa.
+
+
+```{r}
+barplot(df$reb, col = c("#1b98e0", "#353436"))
+
+```
+
+
+```{r}
+
+heatmap_df <- subset(values, select = -c(o_oreb, o_dreb, d_oreb, d_dreb, won, reb))
+rownames(heatmap_df) <- heatmap_df$tmID
+heatmap_df <- heatmap_df[,-1]
+
+heatmaply(
+ heatmap_df,
+ colors = viridis(n = 256,  option = "magma"),
+ k_col = 2,
+ k_row = 4,
+)
+
+plot_ly(values, x = ~tmID, y = ~o_reb, type = 'bar', name = 'Rimbalzi offensivi', marker = list(color = '#FFAFA1')) %>%
+  add_trace(y = ~d_reb, name = 'Rimbalzi difensivi', marker = list(color = '#b2fff8')) %>%
+  layout(yaxis = list(title = 'Valori'), barmode = 'stack')
+
+
+```
+
 ```{r}
 # # STUDIO SULLE VITTORIE
 # 
@@ -267,6 +471,9 @@ print(paste("Percentage non-zero d_reb: ",round(length(which(df_reb$d_reb>0)) /d
 
 ```
 
+
+
+
 ## TESTS DI VERIFICA
 
 ### TEST ANDERSON-DARLING
@@ -315,9 +522,9 @@ df$f10 <- ((df$d_dreb)/(df$d_oreb))^2
 
 
 # Divisione in Test e Train per evitare che il modello fitti troppo bene sui nostri dati
-sample <- sample(c(TRUE, FALSE), nrow(df_1), replace=TRUE, prob=c(0.7, 0.3))
+sample <- sample(c(TRUE, FALSE), nrow(df), replace=TRUE, prob=c(0.7, 0.3))
 
-df = subset(df, select = c("f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9", "f10", "won"))
+df = subset(df, select = c("f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9", "f10", "won", "divID", "confID"))
 
 train  <- df[sample, ]
 test   <- df[!sample, ]
@@ -567,7 +774,7 @@ influencePlot(linModNormalized,5)
 
 residui <- residuals(linModNormalized)
 
-soglia_outlier <- 2 
+soglia_outlier <- 2
 outliers <- which(abs(residui) > soglia_outlier*sd(residui))
 
 outliers
@@ -588,37 +795,9 @@ if(length(outliers) != 0)
 }
 
 
-# df_1$f1 <- (df_1$o_oreb)/(df_1$o_fga-df_1$o_fgm)
-# df_1$f2 <- (df_1$d_dreb)/(df_1$d_fga-df_1$d_fgm)
-# df_1$f3 <- (df_1$o_oreb + 1.5 * df_1$d_dreb)/(df_1$o_dreb + 2 * df_1$d_oreb)
-# df_1$f4 <- (df_1$o_oreb - df_1$o_dreb) + 1.5 * (df_1$d_dreb - df_1$d_oreb)
-# df_1$f5 <- (df_1$d_oreb / df_1$d_to) / (df_1$o_dreb / df_1$o_to)
-# df_1$f6 <- (df_1$o_oreb + df_1$d_dreb) - (df_1$d_oreb - df_1$o_dreb)^2
-# df_1$f7 <- (df_1$f1 + df_1$f2)^2
-# df_1$f8 <- (df_1$o_oreb)/(df_1$o_reb)
-# df_1$f9 <- ((df_1$o_oreb)/(df_1$o_dreb))^2
-# df_1$f10 <- ((df_1$d_dreb)/(df_1$d_oreb))^2
-# 
-# 
-# df_1$f1_z <- scale(df_1$f1)
-# df_1$f2_z <- scale(df_1$f2)
-# df_1$f3_z <- scale(df_1$f3)
-# df_1$f4_z <- scale(df_1$f4)
-# df_1$f5_z <- scale(df_1$f5)
-# df_1$f6_z <- scale(df_1$f6)
-# df_1$f7_z <- scale(df_1$f7)
-# df_1$f8_z <- scale(df_1$f8)
-# df_1$f9_z <- scale(df_1$f9)
-# df_1$f10_z <- scale(df_1$f10)
-
-
 # Divisione in Test e Train per evitare che il modello fitti troppo bene sui nostri dati
 #sample <- sample(c(TRUE, FALSE), nrow(df_1), replace=TRUE, prob=c(0.7, 0.3))
 
-# train_1 = subset(df_1, select = c("f1_z", "f2_z", "f3_z", "f4_z", "f5_z", "f6_z", "f7_z", "f8_z", "f9_z", "f10_z", "won"))
-
-#train_1  <- df[sample, ]
-#test_1   <- df[!sample, ]
 
 #ATTENZIONE: facendo il train sul valore delle variabili, questo significa che sono esse ad essere i nostri dati, non i rimbalzi in se.
 #            importante non confondersi durante l'esposizione.
@@ -648,8 +827,6 @@ influencePlot(linModNormalized_1, id = 5, main = "Influence Plot")
 #        axis.title = element_text(size = 14),  # Etichette degli assi più grandi
 #        axis.text = element_text(size = 12),   # Numeri degli assi più grandi
 #        legend.position="none")  # Nascondi la legenda
-
-
 
 
 
@@ -716,7 +893,7 @@ prevLasso = predict(best_model, s = best_lambda, newx = new)
 
 #LM
 new = subset(test, select = c("f1_z","f2_z","f3_z","f4_z","f5_z", "f6_z", "f7_z", "f8_z", "f9_z", "f10_z"))
-prevLM = predict(linModNormalized_1, newdata = test)
+prevLM = predict(linModNormalized_1, newdata = new)
 
 
 #RMS Lasso
@@ -746,296 +923,85 @@ specificity <- cm[1] / sum(cm[1], cm[2])
 
 ```
 
-
-```{r}
-
-# SANDBOX TESTING
-# QUI SI TESTA TUTTO CIÒ CHE POI VERRÀ AGGGIUNTO NEL DOCUMENTO SOPRA
-
-values <- aggregate(cbind(o_oreb, o_dreb, d_oreb, d_dreb, o_reb, d_reb, won) ~ tmID, data = df, FUN = sum)
-
-# temp <- hist (temp, col = 'steelblue', main = 'caccaculo', xlab = 'balls')
-
-### SANDBOX
-
-
-teams <- c()
-
-df$reb <- c(df$o_reb + df$d_reb)
-
-summary(df$reb)
-
-for (team in df$tmID)
-{
-  teams <- unique(c(teams, team))
-}
-
-teams <- sort(teams)
-
-values <- aggregate(cbind(reb, o_oreb, o_dreb, d_oreb, d_dreb, o_reb, d_reb, won) ~ tmID, data = df, FUN = sum)
-
-x <- seq(-4, 4, by = 0.01)
-y <- dnorm(x, mean = 0, sd = 1)
-plot (x,y, type="l")
-normal <- data.frame(x, y)
-
-df$reb <- df$o_reb + df$d_reb
-
-# ISTOGRAMMA INTERATTIVO
-
-plot_ly(data = df, x = ~reb, type = "histogram",
-        marker = list(color = 'lightblue', line = list(color = 'black', width = 1)),
-        nbinsx = 20) %>% 
-  layout(title = 'Istogramma dei Rimbalzi',
-         xaxis = list(title = 'Rimbalzi'),
-         yaxis = list(title = 'Frequenza'),
-         shapes = list(type = "line", 
-                       x0 = mean(df$reb), x1 = mean(df$reb),
-                       y0 = 0, y1 = 215,
-                       line = list(color = "red", width = 2, dash = "dash")),
-         yaxis = list(autorange = TRUE))
-
-
-#PLOT DI DENSITA CON SOVRAPPOSIZIONE DI UNA NORMALE IDEALE
-
-density_data <- density(df$reb)
-mu <- mean(df$reb)
-sigma <- sd(df$reb)
-normal_data <- dnorm(density_data$x, mean = mu, sd = sigma)
-
-p <- plot_ly(x = density_data$x, y = density_data$y, type = 'scatter', mode = 'lines',
-             line = list(color = 'blue', width = 2),
-             name = "Densità rimbalzi totale") %>%
-  layout(title = "Densità dei Rimbalzi",
-         xaxis = list(title = "Rimbalzi"),
-         yaxis = list(title = "Density", autotick = TRUE, autorange = TRUE))
-
-p <- add_trace(p, x = density_data$x, y = normal_data, mode = 'lines',
-               line = list(color = 'green', width = 2),
-               fill = "tozeroy", fillcolor = "rgba(0, 255, 0, 0.2)",
-               name = "Dist normale ideale")
-
-p <- add_trace(p, x = c(mu, mu), y = c(0, max(density_data$y)),
-               mode = 'lines', line = list(color = 'red', width = 2, dash = 'dash'),
-               name = "Media")
-
-(p)
-
-# CORRPLOT
-
-data_subset <- df[, c("reb", "o_reb", "d_reb")]
-cor_matrix <- cor(data_subset)
-
-rownames(cor_matrix) <- colnames(data_subset)
-colnames(cor_matrix) <- colnames(data_subset)
-
-cor_data <- reshape2::melt(cor_matrix)
-names(cor_data) <- c("Var1", "Var2", "Corr")
-
-dimnames(cor_matrix) <- list(rownames(cor_matrix), colnames(cor_matrix))
-data_for_plotly <- as.data.frame(as.table(cor_matrix))
-
-p <- plot_ly(data = cor_data, 
-             x = ~Var1, 
-             y = ~Var2, 
-             z = ~Corr, 
-             type = "heatmap", 
-             colors = colorRampPalette(c("#4575b4", "#91bfdb", "#e0f3f8", "#fee08b", "#d73027"))(100),
-             hoverinfo = "x+y+z") %>% 
-  layout(title = 'Correlation Matrix',
-         xaxis = list(title = "", tickangle = 45, side = "bottom", automargin = TRUE),
-         yaxis = list(title = "", automargin = TRUE),
-         autosize = TRUE)
-
-cor_values <- round(as.matrix(cor_matrix), 2)  # Round for readability
-for (i in seq_len(nrow(cor_matrix))) {
-  for (j in seq_len(ncol(cor_matrix))) {
-    p <- p %>% add_annotations(
-      x = rownames(cor_matrix)[i],
-      y = colnames(cor_matrix)[j],
-      text = as.character(cor_values[i, j]),
-      showarrow = FALSE,
-      font = list(color = ifelse(cor_values[i, j] < 0.5, "white", "black"))
-    )
-  }
-}
-
-(p)
-
-
-#BOXPLOT (1° Versione)
-
-aggregated_data <- df %>%
-  select(tmID, year, o_reb, d_reb) %>%
-  group_by(tmID, year) %>%
-  summarize(
-    o_reb = mean(o_reb, na.rm = TRUE), 
-    d_reb = mean(d_reb, na.rm = TRUE)
-  )
-
-reshaped_data <- aggregated_data %>%
-  pivot_longer(cols = c(o_reb, d_reb), names_to = "stat_type", values_to = "stat") %>%
-  unite("new_col", tmID, stat_type, sep = "_") %>%
-  pivot_wider(names_from = new_col, values_from = "stat")
-
-fig <- plot_ly()
-
-
-for (i in 2:ncol(reshaped_data)) {
-    current_column_data <- reshaped_data[[i]]
-    fig <- fig %>% add_trace(y = current_column_data, name = colnames(reshaped_data)[i], type = "box")
-}
-
-
-#BOXPLOT (2° Versione)
-
-# Creare categorie per i rimbalzi
-df$reb_categories <- cut(df$reb, breaks = c(-Inf, 5, 10, 15, Inf), labels = c("0-5", "6-10", "11-15", "16+"))
-
-# Convertire df$won in numeri
-df$won <- as.numeric(as.character(df$won))
-
-# Creare un boxplot con ggplot2
-ggplot(df, aes(x = reb_categories, y = won, fill = reb_categories)) +
-  geom_boxplot(color = "black", notch = FALSE) +
-  labs(title = "Distribuzione delle Vittorie in base ai Rimbalzi",
-       x = "Rimbalzi",
-       y = "Vittorie") +
-  theme_minimal()
-
-
-```
-
-
-
-#TEST ANDERSON-DARLING
-```{r}
-ad.test(df$reb)
-```
-#Con un livello di significatività (α) di 0.01 e un p-value molto piccolo (3.1e-09) ottenuto dal test di normalità di Anderson-Darling per i dati della variabile df$reb, puoi concludere che hai sufficiente evidenza statistica per respingere lipotesi nulla che i dati seguono una distribuzione normale.Con il tuo livello di significatività del 0.01 e il p-value molto piccolo (3.1e-09), il p-value è inferiore al livello di significatività, quindi respingeresti lipotesi nulla. Questo suggerisce che i dati nella variabile df$reb non seguono una distribuzione normale al livello di significatività del 0.01. In termini più pratici, hai abbastanza evidenza statistica per concludere che la variabile df$reb non segue una distribuzione normale basandoti sui risultati del test di Anderson-Darling.
-
-
-#TEST KOLMOGOROV SMIRNOV
-```{r}
-ks.test(df$reb, "pnorm")
-```
-# Il risultato che hai ottenuto riguarda il test di Kolmogorov-Smirnov a campione singolo sui dati contenuti nella variabile df$reb. Il test KS confronta la distribuzione empirica dei tuoi dati con una distribuzione teorica (spesso una distribuzione uniforme). In breve, il risultato suggerisce che i tuoi dati non seguono la distribuzione teorica presunta, e cè un elevata probabilità che la differenza osservata sia statisticamente significativa.
-
-
-#TEST SHAPIRO WILK
-```{r}
-sf.test(df$reb)
-```
-#In sintesi, il risultato del test di Shapiro-Francia indica che i tuoi dati nella variabile df$reb non seguono una distribuzione normale. Questo è supportato dal valore basso del p-value, il quale suggerisce che la differenza tra la distribuzione dei tuoi dati e una distribuzione normale è statisticamente significativa.
-
-```{r}
-barplot(df$reb, col = c("#1b98e0", "#353436"))
-
-```
-
-```{r}
-
-heatmap_df <- subset(values, select = -c(o_oreb, o_dreb, d_oreb, d_dreb, won, reb))
-rownames(heatmap_df) <- heatmap_df$tmID
-heatmap_df <- heatmap_df[,-1]
-
-heatmaply(
- heatmap_df,
- colors = viridis(n = 256,  option = "magma"),
- k_col = 2,
- k_row = 4,
-)
-
-plot_ly(values, x = ~tmID, y = ~o_reb, type = 'bar', name = 'Rimbalzi offensivi', marker = list(color = '#FFAFA1')) %>%
-  add_trace(y = ~d_reb, name = 'Rimbalzi difensivi', marker = list(color = '#b2fff8')) %>%
-  layout(yaxis = list(title = 'Valori'), barmode = 'stack')
-
-
-```
-
 #VARIABILI DUMMY
 
 ```{r}
 
-# VARIABILI DUMMY CON TEST ANOVA su ConferenceID
+# Esecuzione di un test ANOVA
+# Supponiamo che 'won' sia la variabile dipendente
+resp <- anova(lm(won ~ confID, data=train_1))
 
-# Controlla i valori univoci nella colonna 'conference'
-unique_conferences <- unique(df$confID)
-print(unique_conferences)
+if(resp["confID","Pr(>F)"] < 0.05){
+  print("Si rifiuta l'ipotesi nulla perchè la variabile Conference ha un effetto sulle vittorie. Posso inserire a modello la variabile")
+}else{
+  print("Si accetta l'ipotesi nulla perchè la variabile Conference non ha un effetto sulle vittorie. Non posso inserire a modello la variabile")
+}
 
-# Supponiamo che 'conference' sia la variabile categorica di interesse
-df$conference <- as.factor(df$confID)
 
-# Creazione di variabili dummy
-dummy_vars <- model.matrix(~ df$confID - 1, data=df)  # -1 per evitare la colinearità
-
-# Aggiunta delle variabili dummy al dataframe
-df <- cbind(df, dummy_vars)
 
 # Esecuzione di un test ANOVA
 # Supponiamo che 'won' sia la variabile dipendente
-anova(lm(df$won ~ df$confID, data=df))
+resp <- anova(lm(won ~ divID, data=train_1))
 
-# si tiene l'ipotesi nulla perchè la variabile correlazione non ha un effetto sulle vittorie. 
-# Non Posso inserire a modello la variabile
-
-
-
-
-# VARIABILI DUMMY CON TEST ANOVA su DivisionID
-
-# Controlla i valori univoci nella colonna 'conference'
-unique_conferences <- unique(df$divID)
-print(unique_conferences)
-
-# Supponiamo che 'conference' sia la variabile categorica di interesse
-df$conference <- as.factor(df$divID)
-
-# Creazione di variabili dummy
-dummy_vars <- model.matrix(~ df$divID - 1, data=df)  # -1 per evitare la colinearità
-
-# Aggiunta delle variabili dummy al dataframe
-df <- cbind(df, dummy_vars)
-
-# Esecuzione di un test ANOVA
-# Supponiamo che 'won' sia la variabile dipendente
-anova(lm(df$won ~ df$divID, data=df))
-
-
-# si rifiuta l'ipotesi perchè la variabile divisione ha un effetto sulle vittorie. Posso inserire a modello la variabile
-
-linModNormalized1 <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z + divID, data = df)
-summary(linModNormalized1)
+if(resp["divID","Pr(>F)"] < 0.05){
+  
+  print("Si rifiuta l'ipotesi nulla perchè la variabile Division ha un effetto sulle vittorie. Posso inserire a modello la variabile")
+  div = TRUE
+}else{
+  
+  print("Si accetta l'ipotesi nulla perchè la variabile Division non ha un effetto sulle vittorie. Non posso inserire a modello la variabile")
+  div = FALSE
+}
 
 ```
 
 #EFFETTI INTERAZIONE
 
 ```{r}
+if(div){
+  linModNormalized1 <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z + f6_z + f7_z + f8_z + f9_z + f10_z + divID + f1_z:f2_z + f4_z:divID, data = train_1)
+}else{
+  linModNormalized1 <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z + f6_z + f7_z + f8_z + f9_z + f10_z + f1_z:f2_z + f4_z:divID, data = train_1)
+}
 
-linModNormalized1 <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z + divID + f1_z:f2_z + f4_z:divID, data = df)
+riassunto <- summary(linModNormalized1)
+
+nomi_righe <- rownames(riassunto$coefficients)
+nomi_da_escludere <- c("(Intercept)", "f1_z:f2_z", "f4_z:divIDCD", "f4_z:divIDMW", "f4_z:divIDNW", "f4_z:divIDPC", "f4_z:divIDSE", "f4_z:divIDSW", "divIDCD", "divIDMW", "divIDNW", "divIDPC", "divIDSE", "divIDSW")
+nomi_righe_da_utilizzare <- setdiff(nomi_righe, nomi_da_escludere)
+
+if("divIDCD" %in% nomi_righe){
+  nomi_righe_da_utilizzare <- append(nomi_righe_da_utilizzare, c("divID"))
+}
+
+div_indice_inizio <- which(rownames(riassunto$coefficients) == "f4_z:divIDCD")
+div_indice_fine <- which(rownames(riassunto$coefficients) == "f4_z:divIDSW")
+div_p_values <- riassunto$coefficients[div_indice_inizio:div_indice_fine, "Pr(>|t|)"]
+
+if(mean(div_p_values) < 0.05){
+  
+  variabili <- append(nomi_righe_da_utilizzare, c("f4_z:divID"))
+}
+
+if(riassunto$coefficients["f1_z:f2_z","Pr(>|t|)"] < 0.05){
+  
+  variabili <- append(nomi_righe_da_utilizzare, c("f1_z:f2_z"))
+}
+
+if(!(mean(div_p_values) < 0.05) && !(riassunto$coefficients["f1_z:f2_z","Pr(>|t|)"] < 0.05)){
+  
+  variabili <- nomi_righe_da_utilizzare
+}
+
+formula_significativa <- as.formula(paste("won ~", paste(variabili, collapse = " + ")))
+
+linModNormalized1 <- lm(formula_significativa, data = train_1)
 summary(linModNormalized1)
-
 
 # f4 è indicatore che cresce all'aumentare dei rimbalzi ottenuti e diminuisce all'aumentare dei rimbalzi subiti.
 # Interazione tra f4 e la divisione non è significativa, contrariamente al fatto che invece interazione tra f1 e f2 è significativo
 
 
-# AGGIORNAMENTO Del modello lineare togliendo la seconda interazione
-
-linModNormalized2 <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z + divID + f1_z:f2_z, data = df)
-
-
-```
-
-
-#test F, significatività singoli coefficienti, R^2
-
-```{r}
-
-summary(linModNormalized2)
-
-#Nel complesso, il modello sembra ben adattato ai dati, spiegando una parte significativa della variazione nelle vittorie delle squadre di pallacanestro. La significatività delle variabili derivate (f1_z, f2_z, f3_z, f4_z, f5_z) e delle variabili dummy divID suggerisce che questi fattori sono importanti nella predizione del numero di vittorie. Il termine di interazione f1_z:f2_z è significativo, indicando che c'è un effetto sinergico tra le variabili f1_z e f2_z nella loro influenza sul numero di vittorie.
 
 ```
 
@@ -1043,18 +1009,16 @@ summary(linModNormalized2)
 
 ```{r}
 
-linModNormalized2_pois = glm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z + divID + f1_z:f2_z, family=poisson(link=log), data = df)
-summary(linModNormalized2_pois)
+linModNormalized1_pois = glm(formula_significativa, family=poisson(link=log), data = train_1)
+summary(linModNormalized1_pois)
 
 
-normal = coefficients(linModNormalized2)
-poisson = exp(coefficients(linModNormalized2_pois))
+normal = coefficients(linModNormalized1)
+poisson = exp(coefficients(linModNormalized1_pois))
 
 cbind(normal, poisson)
 
 #Considerazioni Generali:
 #È importante notare che gli effetti delle variabili possono essere interpretati in modo diverso a seconda della distribuzione scelta per il modello. La scelta tra distribuzione normale e di Poisson dipende dalla natura della tua variabile dipendente e dai tuoi obiettivi di modellazione. Nel contesto di modelli di regressione, è sempre buona pratica verificare l'adeguatezza del modello esaminando i residui, eseguendo test diagnostici e valutando la bontà di adattamento. L'interpretazione dei coefficienti dovrebbe essere fatta considerando la scala appropriata per la distribuzione utilizzata (lineare per la normale, logaritmica per la Poisson). Se stai cercando di prevedere il numero di vittorie, la distribuzione di Poisson potrebbe essere più appropriata per variabili conteggio come questa. Tuttavia, è sempre necessario verificare l'adeguatezza del modello ai dati specifici.
-
-
 
 ```
