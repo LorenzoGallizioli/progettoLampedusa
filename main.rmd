@@ -229,29 +229,41 @@ Nel nostro dataframe sono incluse variabili specifiche per analizzare in dettagl
 
 ```{r Plot densita per ogni variabile, echo = FALSE}
 df_reb <- subset(df, select = c("o_oreb", "o_dreb", "o_reb", "d_oreb", "d_dreb", "d_reb", "won"))
-  
-par(mfrow = c(2, 3))  # Imposta il layout a 2 righe e 3 colonne
 
-for (variables in 1:(dim(df_reb)[2]-1)){
-  thisvar = df_reb[,variables]
+# Imposta il layout a 2 righe e 3 colonne per i grafici di densità
+par(mfrow = c(2, 3))
+
+# Ciclo per generare grafici di densità per ciascuna variabile di interesse
+for (variables in 1:(dim(df_reb)[2]-1)) {
+  thisvar <- df_reb[, variables]
   d <- density(thisvar)
   xmin <- floor(min(thisvar))
   xmax <- ceiling(max(thisvar))
   
   # Crea il plot della densità con stile accattivante
-  plot(d, main = names(df_reb)[variables], xlab = "", col = "skyblue", lwd = 1, xlim = c(xmin, xmax), ylim = c(0, max(d$y)*1.1))
-
+  plot(d, main = names(df_reb)[variables], xlab = "", col = "blue", lwd = 1.5, xlim = c(xmin, xmax), ylim = c(0, max(d$y)*1.1))
+  
   # Aggiungi la distribuzione normale teorica ideale in rosso
   x <- seq(xmin, xmax, length = 100)
-  lines(x, dnorm(x, mean = mean(thisvar), sd = sd(thisvar)), col = "red", lwd = 1)
-
+  lines(x, dnorm(x, mean = mean(thisvar), sd = sd(thisvar)), col = "red", lwd = 1.5)  # Modifica lo spessore delle linee
+  
   # Aggiungi griglia per migliorare la leggibilità
   grid()
 }
 
-# Aggiungi titolo
-title("Density plots with Normal Distribution", line = -17, cex.main = 2, outer = FALSE)
+# Aggiungi titolo in grassetto e corsivo, con spessore del testo modificato
+title(bquote(bold(italic("Density plots with Normal Distribution"))), line = -17, cex.main = 2, outer = TRUE)
+```
 
+### Percentuale di valori non zero per ciascuna variabile di interesse
+```{r Percentuale di valori non zero per ogni variabile, echo = FALSE}
+# Stampa percentuale di valori non zero per ciascuna variabile di interesse
+print(paste("Percentage non-zero o_oreb: ", round(length(which(df_reb$o_oreb > 0)) / dim(df_reb)[1] * 100, 2)))
+print(paste("Percentage non-zero o_dreb: ", round(length(which(df_reb$o_dreb > 0)) / dim(df_reb)[1] * 100, 2)))
+print(paste("Percentage non-zero o_reb: ", round(length(which(df_reb$o_reb > 0)) / dim(df_reb)[1] * 100, 2)))
+print(paste("Percentage non-zero d_oreb: ", round(length(which(df_reb$d_oreb > 0)) / dim(df_reb)[1] * 100, 2)))
+print(paste("Percentage non-zero d_dreb: ", round(length(which(df_reb$d_dreb > 0)) / dim(df_reb)[1] * 100, 2)))
+print(paste("Percentage non-zero d_reb: ", round(length(which(df_reb$d_reb > 0)) / dim(df_reb)[1] * 100, 2)))
 
 ```
 
@@ -268,20 +280,22 @@ heatmaply(
  colors = viridis(n = 256,  option = "magma"),
  k_col = 2,
  k_row = 4,
+  main = "<b><i>Confronto tra rimbalzi (Heatmap)</i></b>"
 )
+
 ```
 
 ```{r Istogramma stacked rimbalzi, warning = FALSE, message = FALSE, echo = FALSE}
 plot_ly(values, x = ~tmID, y = ~o_reb, type = 'bar', name = 'Rimbalzi offensivi', marker = list(color = '#FFAFA1')) %>%
   add_trace(y = ~d_reb, name = 'Rimbalzi difensivi', marker = list(color = '#b2fff8')) %>%
-  layout(yaxis = list(title = 'Valori'), barmode = 'stack')
+  layout(yaxis = list(title = 'Valori'), barmode = 'stack', title="<b><i>Confronto tra rimbalzi (Istogramma)</i></b>")
 ```
 
 ```{r Istogramma rimbalzi, warning = FALSE, message = FALSE, echo = FALSE}
 plot_ly(data = df, x = ~reb, type = "histogram",
         marker = list(color = 'lightblue', line = list(color = 'black', width = 1)),
         nbinsx = 20) %>% 
-  layout(title = 'Istogramma dei Rimbalzi',
+  layout(title = '<b><i>Frequenza dei Rimbalzi</i></b>',
          xaxis = list(title = 'Rimbalzi'),
          yaxis = list(title = 'Frequenza'),
          shapes = list(type = "line", 
@@ -300,7 +314,7 @@ normal_data <- dnorm(density_data$x, mean = mu, sd = sigma)
 p <- plot_ly(x = density_data$x, y = density_data$y, type = 'scatter', mode = 'lines',
              line = list(color = 'blue', width = 2),
              name = "Densità rimbalzi totale") %>%
-  layout(title = "Densità dei Rimbalzi",
+  layout(title = "<b><i>Densità dei Rimbalzi</i></b>",
          xaxis = list(title = "Rimbalzi"),
          yaxis = list(title = "Density", autotick = TRUE, autorange = TRUE))
 
@@ -337,7 +351,7 @@ for (i in 2:ncol(reshaped_data)) {
     current_column_data <- reshaped_data[[i]]
     fig <- fig %>% add_trace(y = current_column_data, name = colnames(reshaped_data)[i], type = "box")
 }
-
+fig <- fig %>% layout(title = "<b><i>Boxplot dei Rimbalzi Offensivi e Difensivi</i></b>", yaxis = list(title = "Valori"), xaxis = list(title = "tmID"))
 (fig)
 ```
 
@@ -361,7 +375,7 @@ p <- plot_ly(data = cor_data,
              type = "heatmap", 
              colors = colorRampPalette(c("#4575b4", "#91bfdb", "#e0f3f8", "#fee08b", "#d73027"))(100),
              hoverinfo = "x+y+z") %>% 
-  layout(title = 'Correlation Matrix',
+  layout(title = '<b><i>Correlation Matrix</i></b>',
          xaxis = list(title = "", tickangle = 45, side = "bottom", automargin = TRUE),
          yaxis = list(title = "", automargin = TRUE),
          autosize = TRUE)
