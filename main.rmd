@@ -15,37 +15,36 @@ editor_options:
     reference_location: document
 ---
 
-
-## Indice
-- [Progetto numero 5](#progetto-numero-5)
-- [Presentazione problema](#presentazione-problema)
-- [Analisi dati iniziale e grafici](#analisi-dati-iniziale-e-grafici)
-  - [Correlazione dati](#correlazione-dati)
-  - [Analisi vittorie](#analisi-vittorie)
-  - [Analisi rimbalzi](#analisi-rimbalzi)
-  - [Test](#test)
-    - [Test Anderson-Darling sui rimbalzi](#test-anderson-darling-sui-rimbalzi)
-    - [Test Kolmogorov-Smirnov](#test-kolmogorov-smirnov)
-    - [Test Shapiro-Wilk](#test-shapiro-wilk)
-- [Divisione train/test](#divisione-train/test)
-- [Presentazione modello lineare](#presentazione-modello-lineare)
-  - [Modello: L'importanza dei rimbalzi](#modello:-l'importanza-dei-rimbalzi)
-  - [Formule](#formule)
-  - [Modello lineare sul dataframe train](#modello-lineare-sul-dataframe-train)
-  - [Grafici](#grafici)
-- [Modello lineare normalizzato sul dataframe train](#modello-lineare-normalizzato-sul-dataframe-train)
-  - [Grafici](#grafici)
-- [Test modello lineare](#test-modello-lineare)
+# Indice
+  - [Indice](#indice)
+  - [Progetto numero 5](#progetto-numero-5)
+  - [Presentazione problema](#presentazione-problema)
+  - [Analisi dati iniziale e grafici](#analisi-dati-iniziale-e-grafici) 
+    - [Correlazione dati](#correlazione-dati)
+    - [Analisi vittorie](#analisi-vittorie)
+    - [Analisi rimbalzi](#analisi-rimbalzi)
+    - [Test](#test)
+      - [Test Anderson-Darling sui rimbalzi](#test-anderson-darling-sui-rimbalzi)
+      - [Test Kolmogorov-Smirnov](#test-kolmogorov-smirnov)
+      - [Test Shapiro-Wilk](#test-shapiro-wilk)
+  - [Divisione train/test](#divisione-train/test)
+  - [Presentazione modello lineare](#presentazione-modello-lineare)
+    - [Modello: L'importanza dei rimbalzi](#modello:-l'importanza-dei-rimbalzi)
+    - [Formule](#formule)
+    - [Modello lineare sul dataframe train](#modello-lineare-sul-dataframe-train)
+    - [Grafici](#grafici)
+  - [Modello lineare normalizzato sul dataframe train](#modello-lineare-normalizzato-sul-dataframe-train)
+  - [Test modello lineare](#test-modello-lineare)
     - [Summary](#summary)
     - [R-quadrato](#r-quadrato)
     - [R-quadrato Adattato](#r-quadrato-adattato)
     - [Test Shapiro](#test-shapiro)
     - [Test di omoschedasticità](#test-di-omoschedasticità)
     - [Test di multicollinearità](#test-di-multicollinearità)
-- [Modello lineare sul dataframe test](#modello-lineare-sul-dataframe-test)
-  - [Grafici](#grafici)
-- [LASSO](#lasso)
-  - [Rifare test](#rifare-test)
+  - [Modello lineare sul dataframe test](#modello-lineare-sul-dataframe-test)
+  - [LASSO](#lasso)
+  - [Rimozione outliers e LASSO](#rimozione-outliers-e-lasso)
+    - [Rimozione outliers](#rimozione-outliers)
 
 ---
 
@@ -477,6 +476,31 @@ Questa formula calcola la differenza netta tra i rimbalzi catturati e quelli per
 - **Formula 5: Rapporto Rimbalzi/Palle Perse**
 Questa formula offre un confronto tra l'effetto dei rimbalzi sulla perdita di palla in attacco e in difesa. Il numeratore rappresenta il rapporto tra "Rimbalzi subiti in difesa" e "Palle perse in difesa", mentre il denominatore fa lo stesso per l'attacco. Questo rapporto mette in luce l'impatto dei rimbalzi sulle opportunità perse, sia in termini di difesa che di attacco.
 
+> $\text{Formula6} = (\text{Rimbalzi ottenuti in attacco} + \text{Rimbalzi ottenuti in difesa}) - (\text{Rimbalzi subiti in difesa} - \text{Rimbalzi subiti in attacco})^2$  
+
+- **Formula 6: Bilancio Complessivo Rimbalzi**  
+Questa formula calcola un indice che tiene conto sia dei rimbalzi ottenuti in attacco (Rimbalzi ottenuti in attacco) e in difesa (Rimbalzi ottenuti in difesa), sia dei rimbalzi subiti in difesa (Rimbalzi subiti in difesa) e in attacco (Rimbalzi subiti in attacco), elevando al quadrato la differenza tra i rimbalzi subiti. Offre una visione complessiva dell'efficacia della squadra nel controllo dei rimbalzi sotto entrambi i canestri.
+
+> $\text{Formula7} = (\text{Efficienza nel Rimbalzo Offensivo} + \text{Competenza nel Rimbalzo Difensivo})^2$  
+
+- **Formula 7: Sinergia Tra Rimbalzi Offensivi e Difensivi**  
+Combina le misurazioni dell'efficienza nei rimbalzi offensivi (Efficienza nel Rimbalzo Offensivo) e difensivi (Competenza nel Rimbalzo Difensivo), elevandone la somma al quadrato. Questo calcolo evidenzia l'importanza della sinergia tra le due componenti del gioco sui rimbalzi.
+
+> $\text{Formula8} = \frac{\text{Rimbalzi ottenuti in attacco}}{\text{Totale rimbalzi in attacco}}$  
+
+- **Formula 8: Proporzione Rimbalzi Offensivi**  
+Questa formula determina la percentuale dei rimbalzi offensivi (Rimbalzi ottenuti in attacco) sul totale dei rimbalzi in attacco (Totale rimbalzi in attacco). Fornisce un'indicazione diretta dell'efficienza di una squadra nel recuperare la palla dopo i tiri falliti in attacco.
+
+> $\text{Formula9} = \left(\frac{\text{Rimbalzi ottenuti in attacco}}{\text{Rimbalzi subiti in attacco}}\right)^2$  
+
+- **Formula 9: Predominanza dei Rimbalzi Offensivi**  
+Calcola il rapporto tra i rimbalzi offensivi ottenuti (Rimbalzi ottenuti in attacco) e i rimbalzi subiti in attacco (Rimbalzi subiti in attacco), elevato al quadrato. Questa formula enfatizza la capacità di una squadra di dominare sotto il proprio canestro in fase offensiva.
+
+> $\text{Formula10} = \left(\frac{\text{Rimbalzi ottenuti in difesa}}{\text{Rimbalzi subiti in difesa}}\right)^2$  
+
+- **Formula 10: Predominanza dei Rimbalzi Difensivi**  
+Analoga alla Formula 9, ma applicata al contesto difensivo. Misura il rapporto tra i rimbalzi difensivi ottenuti (Rimbalzi ottenuti in difesa) e i rimbalzi subiti in difesa (Rimbalzi subiti in difesa), elevato al quadrato. Sottolinea l'efficacia di una squadra nel proteggere il proprio canestro in fase difensiva.
+
 ## Modello lineare sul dataframe train
 
 Legenda significato acronimi:
@@ -706,15 +730,15 @@ car::vif(linModNormalized)
 
 # Rimozione outliers e LASSO
 
-## Rimozione outliers
+Questa sezione si dedica all'identificazione e rimozione degli outliers nel nostro modello lineare normalizzato. Gli outliers possono influenzare notevolmente l'accuratezza e l'affidabilità delle previsioni del modello.  
 
-TODO: AGGIUNGERE DESCRIZIONE
-```{r Grafico modello attuale, echo=FALSE, message=FALSE, warning=FALSE}
+## Identificazione degli Outliers
+Il primo passo è identificare gli outliers. Utilizziamo un grafico di influenza per visualizzare i punti che hanno un impatto maggiore sul modello.
+```{r Grafico modello attuale, echo=TRUE, message=FALSE, warning=FALSE}
 influencePlot(linModNormalized,5)
 
 ```
-
-Trovo gli outliers
+Successivamente, calcoliamo i residui del modello e identifichiamo come outliers quei punti la cui distanza dalla media è superiore a un valore soglia, in questo caso due deviazioni standard.
 ```{r Trovare outliers}
 residui <- residuals(linModNormalized)
 
@@ -723,51 +747,61 @@ outliers <- which(abs(residui) > soglia_outlier*sd(residui))
 
 outliers
 ```
-
-```{r Rimozione outliers, echo=FALSE, message=FALSE, warning=FALSE}
+## Rimozione degli Outliers
+Dopo aver identificato gli outliers, procediamo con la loro rimozione dal dataset di allenamento.
+```{r Rimozione outliers, echo=TRUE, message=FALSE, warning=FALSE}
 if(length(outliers) != 0)
 {
   train_1 <- train[-outliers,]
 }else
 {
+  # questo è il caso in cui non sono presenti outliers
   train_1 <- train
 }
 ```
+## Confronto dei Modelli Prima e Dopo la Rimozione degli Outliers
+Confrontiamo i summary del modello prima e dopo la rimozione degli outliers per valutare l'impatto di questa operazione sulle prestazioni del modello.  
 
-Summary prima di rimuovere outliers
+- Prima della Rimozione degli Outliers:  
+Visualizziamo il riepilogo del modello originale per avere un punto di riferimento.
 ```{r Grafici outliers, echo=FALSE, message=FALSE, warning=FALSE}
-
-linModNormalized_1 <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z + f6_z + f7_z + f8_z + f9_z + f10_z, data = train_1)
-
 summary(linModNormalized)
 ```
-
-Summary dopo aver rimosso outliers con grafico
+- Dopo la Rimozione degli Outliers:  
+Riepiloghiamo il modello aggiornato e visualizziamo un grafico di influenza per osservare l'impatto della rimozione degli outliers.
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
-summary(linModNormalized_1)
+linModNormalized_1 <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z + f6_z + f7_z + f8_z + f9_z + f10_z, data = train_1)
 
+summary(linModNormalized_1)
+```
+E il rispettivo grafico di influenza
+```{r}
 # Crea il grafico di influenza
 influence_plot <- influencePlot(linModNormalized_1, id = 5, main = "Influence Plot")
 influence_plot
 ```
-
-Nel complesso entrambi i modelli sembrano essere buoni, spiegano entrambi circa l'84% della varianza nella variabile dipendente "won", anche se la rimozione degli outliers ha migliorato leggermente i risultati.
-
-Dato che la differenza tra i due modelli e' molto ridotta (<0.5%), tale da essere trascurabile, abbiamo deciso di utilizzare il modello comprendente gli outliers
+## Conclusione
+Entrambi i modelli mostrano prestazioni simili, spiegando circa l'84% della varianza nella variabile dipendente "won". Tuttavia, la rimozione degli outliers ha leggermente migliorato i risultati. Dato che la differenza tra i due modelli è minima (<0.5%), e quindi trascurabile, abbiamo optato per mantenere il modello che include gli outliers.
 
 ## LASSO
-Visualizzazione residui e leverage
+
+### Visualizzazione Residui e Leverage
+Questo blocco di codice utilizza la funzione `ols_plot_resid_lev` per visualizzare la relazione tra i residui e il leverage per entrambi i modelli lineari (prima e dopo la rimozione degli outliers). Questa visualizzazione aiuta a identificare ulteriori punti influenti o pattern nei residui che potrebbero influenzare le prestazioni del modello.
+
 ```{r, echo = FALSE}
 ols_plot_resid_lev(linModNormalized)
 ols_plot_resid_lev(linModNormalized_1)
-
-# Crea il grafico di influenza
-# influencePlot(linModNormalized, id = 5, main = "Influence Plot")
-# influencePlot(linModNormalized_1, id = 5, main = "Influence Plot")
 ```
 
-Utilizzo LASSO  
-1. Preparazione del Modello di Regressione LASSO
+### Utilizzo LASSO
+
+### 1. Preparazione del Modello di Regressione LASSO
+Qui prepariamo un modello di regressione LASSO. Il LASSO è utilizzato per la selezione di variabili e la regolarizzazione, aiutando a prevenire l'overfitting e migliorare la generalizzazione del modello.
+
+- Definiamo prima la variabile risposta e la matrice dei predittori.
+- Eseguiamo poi la cross-validation k-fold per trovare il valore ottimale di lambda, il parametro di regolarizzazione in LASSO.
+- Visualizziamo il plot di MSE (Mean Squared Error) rispetto ai vari valori di lambda.
+
 ```{r}
 # METODO DI REGRESSIONE LASSO
 
@@ -790,6 +824,8 @@ best_lambda
 plot(cv_model)
 ```
 
+- Addestramento del modello LASSO con il miglior lambda trovato e visualizzazione dei coefficienti.
+
 ```{r}
 # Fitting the model with the best lambda
 best_model <- glmnet(x, y, alpha = 1, lambda = best_lambda)
@@ -797,7 +833,11 @@ best_model <- glmnet(x, y, alpha = 1, lambda = best_lambda)
 # Output coefficients and summary
 coef(best_model)
 ```
-2. Previsione con LASSO e Modello Lineare
+
+### 2. Previsione con LASSO e Modello Lineare
+
+Effettuiamo le previsioni utilizzando sia il modello LASSO che quello lineare sui dati di test.
+
 ```{r}
 # PREDICT
 
@@ -810,21 +850,54 @@ new = subset(test, select = c("f1_z","f2_z","f3_z","f4_z","f5_z", "f6_z", "f7_z"
 prevLM = predict(linModNormalized_1, newdata = test)
 
 ```
-3. Valutazione delle Prestazioni del Modello
+
+### 3. Valutazione delle Prestazioni del Modello
+Confrontiamo le prestazioni di entrambi i modelli (LASSO e lineare) attraverso diverse metriche.
+
+- Calcolo del RMS (Root Mean Square)  
+Questi blocchi di codice calcolano il RMS, una misura dell'errore di previsione, per il modello LASSO e il modello lineare (LM). Il RMS fornisce una stima dell'errore quadratico medio tra i valori previsti e i valori reali.
 ```{r}
 # RMS Lasso
 sqrt(mean((test$won - prevLasso)^2))
 
 # RMS LM
 sqrt(mean((test$won - prevLM)^2))
+```
 
+- Previsioni Binarie e Matrice di Confusione  
+Convertiamo le previsioni del modello LASSO in valori binari (0 o 1) e generiamo una matrice di confusione per confrontare le previsioni con i valori reali. Questo passaggio è utile per valutare la classificazione effettuata dal modello.
+
+```{r}
 # Previsioni binarie
 prev <- ifelse(prevLasso > 0.5, "1", "0")
 prev <- as.factor(as.vector(prev))
 
 # Confusion Matrix: previsioni vs valore reale
 table(prev, test$won)
+```
 
+### Calcolo delle Metriche di Valutazione  
+Calcoliamo diverse metriche di valutazione come l'accuratezza (accuracy), la precisione (precision), la sensibilità (sensitivity), l'F-score e la specificità (specificity). Queste metriche forniscono una valutazione complessiva dell'efficacia del modello.
+
+Ecco come interpretarle:
+
+- **Accuracy** (Accuratezza):
+  - **Significato**: La proporzione di previsioni corrette (sia positive che negative) rispetto al totale delle previsioni.
+  - **Interpretazione**: Un valore elevato indica che il modello è generalmente accurato nel classificare sia le istanze positive che quelle negative. Tuttavia, in contesti con classi sbilanciate, una alta accuracy può essere fuorviante.
+- **Precision** (Precisione):
+  - **Significato**: La proporzione di previsioni positive corrette rispetto al totale delle previsioni positive fatte dal modello.
+  - **Interpretazione**: Misura la qualità delle previsioni positive del modello. Una alta precisione indica che una grande percentuale delle previsioni positive del modello è effettivamente corretta.
+- **Sensitivity** (Sensibilità) o Recall:
+  - **Significato**: La proporzione di veri positivi rispetto al totale delle istanze effettivamente positive.
+  - **Interpretazione**: Indica quanto bene il modello è in grado di identificare le istanze positive. Un valore alto significa che il modello cattura bene la maggior parte delle istanze positive.
+- **F-score**:
+  - **Significato**: Una media armonica di precision e sensitivity. 
+  - **Interpretazione**: Combina la precisione e la sensibilità in un singolo numero. È utile quando si desidera un equilibrio tra precisione e sensibilità, specialmente in contesti con distribuzioni di classe disuguali.
+- **Specificity** (Specificità):
+  - **Significato**: La proporzione di veri negativi rispetto al totale delle istanze effettivamente negative.
+  - **Interpretazione**: Misura quanto bene il modello è in grado di identificare le istanze negative. Una alta specificità indica che il modello è efficace nel riconoscere le istanze non positive.
+
+```{r}
 cm <- table(prev, test$won)
 
 # Metriche di Valutazione
@@ -836,12 +909,12 @@ specificity <- cm[1] / sum(cm[1], cm[2])
 
 ```
 
-```{r}
-sprintf("Accuracy: %f", accuracy)
-sprintf("Precision: %f", precision)
-sprintf("Sensitivity: %f", sensitivity)
+```{r, echo = FALSE}
+sprintf("Accuratezza: %f", accuracy)
+sprintf("Precisione: %f", precision)
+sprintf("Sensibilità: %f", sensitivity)
 sprintf("F-score: %f", fscore)
-sprintf("Specificity: %f", specificity)
+sprintf("Specificità: %f", specificity)
 ```
 ---
 
