@@ -96,8 +96,8 @@ knitr::opts_knit$set(root.dir = here("0_Materiale"))
 
 # Analisi dati iniziale e grafici
 
-TODO: aggiungere descrizione per ogni grafico
 
+Il chunk riportato legge un dataset da un file, filtra le righe in base ai criteri sopra riportati, calcola una nuova variabile e offre la possibilità di ottenere un riassunto statistico dei dati filtrati.
 ```{r Lettura dati dal dataset}
 filepath <- here("0_Materiale", "basketball_teams.txt")
 dataset <- read.delim(filepath)
@@ -111,6 +111,7 @@ df$reb <- df$o_reb + df$d_reb
 
 # summary(df)
 ```
+
 
 ## Correlazione dati
 
@@ -137,78 +138,6 @@ p
 
 ```
 
-## Analisi vittorie
-
-```{r Analisi distribuzione vittorie - boxplot, warning=FALSE, echo = FALSE, message = FALSE, message = FALSE}
-
-# BOXPLOT
-
-aggregated_data <- df %>%
-  select(tmID, year, won) %>%
-  group_by(tmID, year) %>%
-  summarize(
-    won = mean(won, na.rm = TRUE), 
-  )
-
-reshaped_data <- aggregated_data %>%
-  pivot_longer(cols = c(won), names_to = "stat_type", values_to = "stat") %>%
-  unite("new_col", tmID, stat_type, sep = "_") %>%
-  pivot_wider(names_from = new_col, values_from = "stat")
-
-fig <- plot_ly()
-
-
-for (i in 2:ncol(reshaped_data)) {
-    current_column_data <- reshaped_data[[i]]
-    fig <- fig %>% add_trace(y = current_column_data, name = colnames(reshaped_data)[i], type = "box")
-}
-
-(fig)
-
-```
-
-```{r, Analisi distribuzione vittorie - istogramma, warning = FALSE, echo = FALSE, message = FALSE}
-
-# ISTOGRAMMA
-
-histogram <- plot_ly(df, x = ~won, type = "histogram", marker = list(color = "skyblue", line = list(color = "white", width = 0.5))) %>%
-  layout(title = "Distribuzione delle Vittorie",
-         xaxis = list(title = "Numero di Vittorie"),
-         yaxis = list(title = "Frequenza"),
-         barmode = "overlay") %>%
-  add_trace(x = ~mean(won), type = "scatter", mode = "lines", line = list(color = "red", width = 2), name = "Media")
-
-# Visualizza l'istogramma interattivo
-histogram
-
-```
-
-```{r, Analisi distribuzione vittorie - densita, warning = FALSE, echo = FALSE, message = FALSE}
-
-# DENSITA
-
-density_plot <- density(df$won)
-
-# Crea il plot di densità con plot_ly
-density_interactive <- plot_ly(x = density_plot$x, y = density_plot$y, type = "scatter", mode = "lines", 
-                               line = list(color = "skyblue", width = 2)) %>%
-  layout(title = list(text = "Distribuzione di Densità delle Vittorie", x = 0.5),
-         xaxis = list(title = "Numero di Vittorie"),
-         yaxis = list(title = "Densità"),
-         showlegend = FALSE) %>%
-  add_trace(x = c(mean(df$won), mean(df$won)), y = c(0, max(density_plot$y)), 
-            type = "scatter", mode = "lines", line = list(color = "red", width = 2),
-            name = "Media") %>%
-  add_trace(x = mean(df$won), y = max(density_plot$y), type = "scatter", mode = "markers", 
-            marker = list(color = "red", size = 8)) %>%
-  add_annotations(text = sprintf("Media: %.2f", mean(df$won)), x = mean(df$won), y = max(density_plot$y) * 1.05, 
-                  arrowhead = 2, arrowcolor = "red", arrowsize = 1.5, arrowwidth = 2, 
-                  ax = 0, ay = -40, xshift = 10, yshift = -10)
-
-# Visualizza il plot di densità interattivo
-density_interactive
-
-```
 
 ## Analisi rimbalzi
 
@@ -256,6 +185,8 @@ title(bquote(bold(italic("Density plots with Normal Distribution"))), line = -17
 ```
 
 ### Percentuale di valori non zero per ciascuna variabile di interesse
+
+Viene Calcolata la percentuale di valori non zero per ciascuna variabile di interesse all'interno del dataframe df_reb, serve per verificare ulteriormente la consistenza dei dati acqusiti.
 ```{r Percentuale di valori non zero per ogni variabile, echo = FALSE}
 # Stampa percentuale di valori non zero per ciascuna variabile di interesse
 print(paste("Percentage non-zero o_oreb: ", round(length(which(df_reb$o_oreb > 0)) / dim(df_reb)[1] * 100, 2)))
@@ -267,6 +198,8 @@ print(paste("Percentage non-zero d_reb: ", round(length(which(df_reb$d_reb > 0))
 
 ```
 
+
+#DA AGGIUNGERE SPIEGAZIONE GRAFICO
 ```{r Heatmap rimbalzi, warning = FALSE, message = FALSE, echo = FALSE}
 
 values <- aggregate(cbind(reb, o_oreb, o_dreb, d_oreb, d_dreb, o_reb, d_reb, won) ~ tmID, data = df, FUN = sum)
@@ -285,12 +218,16 @@ heatmaply(
 
 ```
 
+
+#DA AGGIUNGERE SPIEGAZIONE GRAFICO
 ```{r Istogramma stacked rimbalzi, warning = FALSE, message = FALSE, echo = FALSE}
 plot_ly(values, x = ~tmID, y = ~o_reb, type = 'bar', name = 'Rimbalzi offensivi', marker = list(color = '#FFAFA1')) %>%
   add_trace(y = ~d_reb, name = 'Rimbalzi difensivi', marker = list(color = '#b2fff8')) %>%
   layout(yaxis = list(title = 'Valori'), barmode = 'stack', title="<b><i>Confronto tra rimbalzi (Istogramma)</i></b>")
 ```
 
+
+#DA AGGIUNGERE SPIEGAZIONE GRAFICO
 ```{r Istogramma rimbalzi, warning = FALSE, message = FALSE, echo = FALSE}
 plot_ly(data = df, x = ~reb, type = "histogram",
         marker = list(color = 'lightblue', line = list(color = 'black', width = 1)),
@@ -305,6 +242,8 @@ plot_ly(data = df, x = ~reb, type = "histogram",
          yaxis = list(autorange = TRUE))
 ```
 
+
+#DA AGGIUNGERE SPIEGAZIONE GRAFICO
 ```{r Densita rimbalzi, warning = FALSE, message = FALSE, echo = FALSE}
 density_data <- density(df$reb)
 mu <- mean(df$reb)
@@ -330,6 +269,8 @@ p <- add_trace(p, x = c(mu, mu), y = c(0, max(density_data$y)),
 (p)
 ```
 
+
+#DA AGGIUNGERE SPIEGAZIONE GRAFICO
 ```{r Boxplot rimbalzi, warning = FALSE, message = FALSE, echo = FALSE}
 aggregated_data <- df %>%
   select(tmID, year, o_reb, d_reb) %>%
@@ -355,6 +296,8 @@ fig <- fig %>% layout(title = "<b><i>Boxplot dei Rimbalzi Offensivi e Difensivi<
 (fig)
 ```
 
+
+#DA AGGIUNGERE SPIEGAZIONE GRAFICO
 ```{r Corrplot rimbalzi, warning = FALSE, message = FALSE, echo = FALSE}
 data_subset <- df[, c("reb", "o_reb", "d_reb")]
 cor_matrix <- cor(data_subset)
@@ -396,6 +339,86 @@ for (i in seq_len(nrow(cor_matrix))) {
 (p)
 ```
 
+## Analisi vittorie
+
+
+#DA AGGIUNGERE SPIEGAZIONE GRAFICO
+```{r Analisi distribuzione vittorie - boxplot, warning=FALSE, echo = FALSE, message = FALSE, message = FALSE}
+
+# BOXPLOT
+
+aggregated_data <- df %>%
+  select(tmID, year, won) %>%
+  group_by(tmID, year) %>%
+  summarize(
+    won = mean(won, na.rm = TRUE), 
+  )
+
+reshaped_data <- aggregated_data %>%
+  pivot_longer(cols = c(won), names_to = "stat_type", values_to = "stat") %>%
+  unite("new_col", tmID, stat_type, sep = "_") %>%
+  pivot_wider(names_from = new_col, values_from = "stat")
+
+fig <- plot_ly()
+
+
+for (i in 2:ncol(reshaped_data)) {
+    current_column_data <- reshaped_data[[i]]
+    fig <- fig %>% add_trace(y = current_column_data, name = colnames(reshaped_data)[i], type = "box")
+}
+
+(fig)
+
+```
+
+
+#DA AGGIUNGERE SPIEGAZIONE GRAFICO
+```{r, Analisi distribuzione vittorie - istogramma, warning = FALSE, echo = FALSE, message = FALSE}
+
+# ISTOGRAMMA
+
+histogram <- plot_ly(df, x = ~won, type = "histogram", marker = list(color = "skyblue", line = list(color = "white", width = 0.5))) %>%
+  layout(title = "Distribuzione delle Vittorie",
+         xaxis = list(title = "Numero di Vittorie"),
+         yaxis = list(title = "Frequenza"),
+         barmode = "overlay") %>%
+  add_trace(x = ~mean(won), type = "scatter", mode = "lines", line = list(color = "red", width = 2), name = "Media")
+
+# Visualizza l'istogramma interattivo
+histogram
+
+```
+
+
+#DA AGGIUNGERE SPIEGAZIONE GRAFICO
+```{r, Analisi distribuzione vittorie - densita, warning = FALSE, echo = FALSE, message = FALSE}
+
+# DENSITA
+
+density_plot <- density(df$won)
+
+# Crea il plot di densità con plot_ly
+density_interactive <- plot_ly(x = density_plot$x, y = density_plot$y, type = "scatter", mode = "lines", 
+                               line = list(color = "skyblue", width = 2)) %>%
+  layout(title = list(text = "Distribuzione di Densità delle Vittorie", x = 0.5),
+         xaxis = list(title = "Numero di Vittorie"),
+         yaxis = list(title = "Densità"),
+         showlegend = FALSE) %>%
+  add_trace(x = c(mean(df$won), mean(df$won)), y = c(0, max(density_plot$y)), 
+            type = "scatter", mode = "lines", line = list(color = "red", width = 2),
+            name = "Media") %>%
+  add_trace(x = mean(df$won), y = max(density_plot$y), type = "scatter", mode = "markers", 
+            marker = list(color = "red", size = 8)) %>%
+  add_annotations(text = sprintf("Media: %.2f", mean(df$won)), x = mean(df$won), y = max(density_plot$y) * 1.05, 
+                  arrowhead = 2, arrowcolor = "red", arrowsize = 1.5, arrowwidth = 2, 
+                  ax = 0, ay = -40, xshift = 10, yshift = -10)
+
+# Visualizza il plot di densità interattivo
+density_interactive
+
+```
+
+
 ## Test
 
 ### Test Anderson-Darling sui rimbalzi
@@ -404,21 +427,22 @@ Il test Anderson-Darling è un test statistico non parametrico, utilizzato per v
 - **Range**: 0 a $+\infty$  
 - **Interpretazione**: Valori più bassi indicano una maggiore aderenza alla distribuzione normale. Si confronta il valore di test con valori critici specifici per determinare se rifiutare l'ipotesi di normalità.
 ```{r, warning=FALSE}
+# Questo codice esegue il test di Anderson-Darling sulla variabile 'reb' nel tuo dataset (df)
+
 ad.test(df$reb)
 ```
 
 Con un livello di significatività ($\alpha$) di 0.01 e un p-value molto
 piccolo (3.1e-09) ottenuto dal test di normalità di Anderson-Darling per
-i dati della variabile df\$reb, puoi concludere che hai sufficiente
-evidenza statistica per respingere lipotesi nulla che i dati seguono una
-distribuzione normale.Con il tuo livello di significatività del 0.01 e
+i dati della variabile df\$reb, si puo concludere che si hanno sufficienti
+evidenze statistiche per respingere lipotesi nulla che i dati seguano una
+distribuzione normale. Con il livello di significatività del 0.01 e
 il p-value molto piccolo (3.1e-09), il p-value è inferiore al livello di
-significatività, quindi respingeresti lipotesi nulla. Questo suggerisce
+significatività, quindi si respinge lipotesi nulla. Questo suggerisce
 che i dati nella variabile df\$reb non seguono una distribuzione normale
-al livello di significatività del 0.01. In termini più pratici, hai
-abbastanza evidenza statistica per concludere che la variabile df\$reb
-non segue una distribuzione normale basandoti sui risultati del test di
-Anderson-Darling.
+al livello di significatività del 0.01. In termini più pratici, si hanno
+abbastanza evidenze statistice per concludere che la variabile df\$reb
+non segue una distribuzione normale.
 
 ### Test Kolmogorov-Smirnov
 
@@ -426,14 +450,15 @@ Il test Kolmogorov-Smirnov (K-S) è un metodo non parametrico utilizzato per det
 - **Range**: 0 a 1  
 - **Interpretazione**: Valori più bassi indicano una maggiore somiglianza alla distribuzione normale. Un valore di test significativamente grande porta al rifiuto dell'ipotesi di normalità.
 ```{r, warning=FALSE}
+# Test di Kolmogorov-Smirnov per confrontare la distribuzione di 'reb' con una distribuzione normale
+
 ks.test(df$reb, "pnorm")
 ```
 
-Il risultato che hai ottenuto riguarda il test di Kolmogorov-Smirnov a
-campione singolo sui dati contenuti nella variabile df\$reb. Il test KS
-confronta la distribuzione empirica dei tuoi dati con una distribuzione
+Il test KS
+confronta la distribuzione empirica dei dati con una distribuzione
 teorica (spesso una distribuzione uniforme). In breve, il risultato
-suggerisce che i tuoi dati non seguono la distribuzione teorica
+suggerisce che i nostri dati non seguono la distribuzione teorica normale
 presunta, e cè un elevata probabilità che la differenza osservata sia
 statisticamente significativa.
 
@@ -443,13 +468,15 @@ Il test Shapiro-Wilk è un metodo statistico non parametrico utilizzato specific
 - **Range**: 0 a 1  
 - **Interpretazione**: Valori più vicini a 1 suggeriscono una maggiore aderenza alla distribuzione normale. Valori significativamente bassi indicano la deviazione dalla normalità.
 ```{r, warning=FALSE}
+# Test di Shapiro-Wilk per la normalità dei dati nella variabile 'reb' (rimbalzi)
+
 ks.test(df$reb, "pnorm")
 ```
 
-In sintesi, il risultato del test di Shapiro-Francia indica che i tuoi
+In sintesi, il risultato del test di Shapiro-Francia indica che i
 dati nella variabile df\$reb non seguono una distribuzione normale.
 Questo è supportato dal valore basso del p-value, il quale suggerisce
-che la differenza tra la distribuzione dei tuoi dati e una distribuzione
+che la differenza tra la distribuzione dei dati e una distribuzione
 normale è statisticamente significativa.
 
 ---
@@ -541,6 +568,7 @@ df$f10 <- ((df$d_dreb)/(df$d_oreb))^2
 
 ```
 
+Si esegue la divisione del dataframe df in un set di addestramento (train) e un set di test (test). La divisione è effettuata campionando casualmente il 70% delle righe per l'addestramento e utilizzando il restante 30% per il test. Successivamente, viene creato il modello lineare utilizzando le variabili predittive sopra create per prevedere la variabile di risposta won nel set di addestramento.
 ```{r Divisione tra train e test}
 
 num_rows_to_sample <- round(0.7 * nrow(df))
@@ -555,53 +583,6 @@ linMod <- lm(won ~ f1 + f2 + f3 + f4 + f5 + f6 + f7 + f8 + f9 + f10, data = trai
 summary (linMod)
 
 ```
-
-## Grafici
-
-TODO: Aggiungere presentazione grafici
-
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-# Funzione per creare il plot di Residuals vs Fitted (Residui vs. Valori Previsti)
-res_vs_fitted <- ggplot(linMod, aes(.fitted, .resid)) +
-  geom_point(color = "skyblue", alpha = 0.7, size = 3) +
-  geom_smooth(se = FALSE, color = "red", method = "loess", size = 1) +
-  labs(title = "Residuals vs Fitted", x = "Fitted Values", y = "Residuals") +
-  theme_minimal() +
-  theme(plot.title = element_text(size = 14, face = "bold"))
-
-# Funzione per creare il plot QQ dei Residui
-qq_plot <- ggplot(linMod, aes(sample = .stdresid)) +
-  stat_qq(color = "skyblue", size = 2) +
-  stat_qq_line(color = "red", size = 1) +
-  labs(title = "QQ Plot dei Residui", x = "Quantiles teorici", y = "Quantiles osservati") +
-  theme_minimal() +
-  theme(plot.title = element_text(size = 14, face = "bold"))
-
-# Funzione per creare il plot Scale-Location
-scale_location_plot <- ggplot(linMod, aes(.fitted, sqrt(abs(.stdresid)))) +
-  geom_point(color = "skyblue", alpha = 0.7, size = 3) +
-  geom_smooth(se = FALSE, color = "red", method = "loess", size = 1) +
-  labs(title = "Scale-Location Plot", x = "Fitted Values", y = "sqrt(|Standardized Residuals|)") +
-  theme_minimal() +
-  theme(plot.title = element_text(size = 14, face = "bold"))
-
-# Funzione per creare il plot Residuals vs Leverage (Residui vs. Leverage)
-res_vs_leverage <- ggplot(linMod, aes(.hat, .stdresid)) +
-  geom_point(color = "skyblue", alpha = 0.7, size = 3) +
-  geom_smooth(se = FALSE, color = "red", method = "loess", size = 1) +
-  labs(title = "Residuals vs Leverage", x = "Leverage", y = "Standardized Residuals") +
-  theme_minimal() +
-  theme(plot.title = element_text(size = 14, face = "bold"))
-
-plotly_res_vs_fitted <- ggplotly(res_vs_fitted)
-plotly_qq_plot <- ggplotly(qq_plot)
-plotly_scale_location_plot <- ggplotly(scale_location_plot)
-plotly_res_vs_leverage <- ggplotly(res_vs_leverage)
-
-subplot(plotly_res_vs_fitted, plotly_qq_plot, plotly_scale_location_plot, plotly_res_vs_leverage)
-```
-
----
 
 # Modello lineare normalizzato sul dataframe train
 
@@ -642,45 +623,22 @@ summary(linModNormalized)
 
 ## Grafici
 
-```{r echo = FALSE, message = FALSE, message=FALSE, warning=FALSE}
-# Funzione per creare il plot di Residuals vs Fitted (Residui vs. Valori Previsti)
-res_vs_fitted <- ggplot(linModNormalized, aes(.fitted, .resid)) +
-  geom_point(color = "skyblue", alpha = 0.7, size = 3) +
-  geom_smooth(se = FALSE, color = "red", method = "loess", size = 1) +
-  labs(title = "Residuals vs Fitted", x = "Fitted Values", y = "Residuals") +
-  theme_minimal() +
-  theme(plot.title = element_text(size = 14, face = "bold"))
-
-# Funzione per creare il plot QQ dei Residui
-qq_plot <- ggplot(linModNormalized, aes(sample = .stdresid)) +
-  stat_qq(color = "skyblue", size = 2) +
-  stat_qq_line(color = "red", size = 1) +
-  labs(title = "QQ Plot dei Residui", x = "Quantiles teorici", y = "Quantiles osservati") +
-  theme_minimal() +
-  theme(plot.title = element_text(size = 14, face = "bold"))
-
-# Funzione per creare il plot Scale-Location
-scale_location_plot <- ggplot(linModNormalized, aes(.fitted, sqrt(abs(.stdresid)))) +
-  geom_point(color = "skyblue", alpha = 0.7, size = 3) +
-  geom_smooth(se = FALSE, color = "red", method = "loess", size = 1) +
-  labs(title = "Scale-Location Plot", x = "Fitted Values", y = "sqrt(|Standardized Residuals|)") +
-  theme_minimal() +
-  theme(plot.title = element_text(size = 14, face = "bold"))
-
-# Funzione per creare il plot Residuals vs Leverage (Residui vs. Leverage)
-res_vs_leverage <- ggplot(linModNormalized, aes(.hat, .stdresid)) +
-  geom_point(color = "skyblue", alpha = 0.7, size = 3) +
-  geom_smooth(se = FALSE, color = "red", method = "loess", size = 1) +
-  labs(title = "Residuals vs Leverage", x = "Leverage", y = "Standardized Residuals") +
-  theme_minimal() +
-  theme(plot.title = element_text(size = 14, face = "bold"))
-
-plotly_res_vs_fitted <- ggplotly(res_vs_fitted)
-plotly_qq_plot <- ggplotly(qq_plot)
-plotly_scale_location_plot <- ggplotly(scale_location_plot)
-plotly_res_vs_leverage <- ggplotly(res_vs_leverage)
-
-subplot(plotly_res_vs_fitted, plotly_qq_plot, plotly_scale_location_plot, plotly_res_vs_leverage)
+#DA AGGIUNGERE SPIEGAZIONE GRAFICO
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# Imposta il layout della pagina
+par(mfrow = c(2, 2))
+# Grafico dei residui standardizzati
+plot(linModNormalized, which = 1, col = "skyblue", pch = 16, main = "Residui Standardizzati")
+abline(h = 0, col = "red", lty = 2)  # Aggiungi una linea orizzontale a zero nel grafico dei residui standardizzati
+# Grafico dei livelli
+plot(linModNormalized, which = 2, col = "lightgreen", pch = 16, main = "Grafico dei Livelli")
+# Grafico della distribuzione dei residui
+plot(linModNormalized, which = 3, col = "pink", pch = 16, main = "Distribuzione dei Residui")
+# Grafico di Q-Q plot dei residui
+plot(linModNormalized, which = 4, col = "orange", pch = 16, main = "Q-Q Plot dei Residui")
+# Aggiungi altre personalizzazioni a piacere, come titoli, etichette degli assi, ecc.
+# Ripristina il layout predefinito
+par(mfrow = c(1, 1))
 ```
 
 ---
@@ -725,7 +683,7 @@ shapiro.test(residuals(linModNormalized))
 ```
 
 ### Test di omoschedasticità
-Il Breusch-Pagan test verifica l'assunzione di omoschedasticità (varianza costante) dei residui in un modello di regressione. La presenza di eteroschedasticità (varianza non costante) nei residui può portare a stime inefficaci e test statistici non affidabili.  
+Il test di Breusch-Pagan verifica l'assunzione di omoschedasticità (varianza costante) dei residui in un modello di regressione. La presenza di eteroschedasticità (varianza non costante) nei residui può portare a stime inefficaci e test statistici non affidabili.  
 - **Range:** 0 a $+\infty$  
 - **Interpretazione:** Valori più alti indicano una maggiore probabilità di eteroschedasticità. Si confronta il valore del test con un valore critico (ad es., da una distribuzione chi-quadrato) per determinare la significatività.
 ```{r}
@@ -754,11 +712,17 @@ influencePlot(linModNormalized,5)
 ```
 Successivamente, calcoliamo i residui del modello e identifichiamo come outliers quei punti la cui distanza dalla media è superiore a un valore soglia, in questo caso due deviazioni standard.
 ```{r Trovare outliers}
+# Il codice implementa l'individuazione degli outliers considerando i residui che superano una soglia moltiplicata per la deviazione standard.
+
+# Calcola i residui dal modello di regressione lineare normalizzato
 residui <- residuals(linModNormalized)
 
-soglia_outlier <- 2 
+# Definisci una soglia per gli outlier
+soglia_outlier <- 2
 outliers <- which(abs(residui) > soglia_outlier*sd(residui))
 
+# Identifica gli outlier basati sulla soglia definita
+outliers <- which(abs(residui) > soglia_outlier * sd(residui))
 outliers
 ```
 ## Rimozione degli Outliers
@@ -769,7 +733,7 @@ if(length(outliers) != 0)
   train_1 <- train[-outliers,]
 }else
 {
-  # questo è il caso in cui non sono presenti outliers
+  # questo è il caso in cui non siano presenti outliers
   train_1 <- train
 }
 ```
@@ -782,30 +746,29 @@ Visualizziamo il riepilogo del modello originale per avere un punto di riferimen
 summary(linModNormalized)
 ```
 - Dopo la Rimozione degli Outliers:  
-Riepiloghiamo il modello aggiornato e visualizziamo un grafico di influenza per osservare l'impatto della rimozione degli outliers.
+Ricreiamo il modello e visualizziamo il grafico di influenza per osservare l'impatto della rimozione degli outliers.
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 linModNormalized_1 <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z + f6_z + f7_z + f8_z + f9_z + f10_z, data = train_1)
 
 summary(linModNormalized_1)
 ```
-E il rispettivo grafico di influenza
+grafico di influenza:
 ```{r}
 # Crea il grafico di influenza
 influence_plot <- influencePlot(linModNormalized_1, id = 5, main = "Influence Plot")
 influence_plot
 ```
-## Conclusione
-Entrambi i modelli mostrano prestazioni simili, spiegando circa l'84% della varianza nella variabile dipendente "won". Tuttavia, la rimozione degli outliers ha leggermente migliorato i risultati. Dato che la differenza tra i due modelli è minima (<0.5%), e quindi trascurabile, abbiamo optato per mantenere il modello che include gli outliers.
-
-## LASSO
 
 ### Visualizzazione Residui e Leverage
 Questo blocco di codice utilizza la funzione `ols_plot_resid_lev` per visualizzare la relazione tra i residui e il leverage per entrambi i modelli lineari (prima e dopo la rimozione degli outliers). Questa visualizzazione aiuta a identificare ulteriori punti influenti o pattern nei residui che potrebbero influenzare le prestazioni del modello.
 
-```{r, echo = FALSE}
+```{r}
 ols_plot_resid_lev(linModNormalized)
 ols_plot_resid_lev(linModNormalized_1)
 ```
+
+## Conclusione
+Entrambi i modelli mostrano prestazioni simili, spiegando circa l'84% della varianza nella variabile dipendente "won". Tuttavia, la rimozione degli outliers ha leggermente migliorato i risultati.
 
 ### Utilizzo LASSO
 
