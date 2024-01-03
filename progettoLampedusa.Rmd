@@ -44,7 +44,8 @@ knitr::opts_knit$set(root.dir = here("0_Materiale"))
 ```{r}
 
 # Leggi il dataset da un file di testo
-dataset <- read.delim("basketball_teams.txt")
+filepath <- here("0_Materiale", "basketball_teams.txt")
+dataset <- read.delim(filepath)
 
 # Definisci il primo e l'ultimo anno del range da considerare per lo studio
 FIRST <- 1976
