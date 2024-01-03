@@ -69,25 +69,28 @@ Ulteriori informazioni riguardanti l'esecuzione del programma e l'utilizzo della
 
 ```{r Inizializzazione, message=FALSE, warning=FALSE, include=FALSE}
 
-library(here)
-library(corrplot)
-library(nortest)
-library(lmtest)
-library(car)
-library(plotly)
-library(heatmaply)
-library(ggheatmap)
-library(gridExtra)
-library(olsrr)
-library(ggplot2)
-library(viridis)
-library(glmnet)
-library(highcharter)
-library(reshape2)
-library(RColorBrewer)
-library(tidyr)
-library(dplyr)
+# Carica le librerie necessarie
+library(here)         # Gestione dei percorsi dei file
+library(corrplot)     # Visualizzazione matrice di correlazione
+library(nortest)      # Test di normalità
+library(lmtest)       # Test diagnostici per modelli lineari
+library(car)          # Test di collinearità e altri test per modelli lineari
+library(plotly)       # Visualizzazioni interattive
+library(heatmaply)    # Heatmap interattivo
+library(ggheatmap)    # Heatmap con ggplot2
+library(gridExtra)    # Organizzazione di grafici con grid
+library(ggfortify)    # Visualizzazioni grafiche per modelli statistici
+library(olsrr)        # Diagnostica e grafici per modelli di regressione
+library(ggplot2)      # Creazione di grafici con ggplot2
+library(viridis)      # Colormaps viridis
+library(glmnet)       # Modelli di regressione con penalizzazione lasso ed elastic net
+library(highcharter)  # Creazione di grafici interattivi con Highcharts
+library(reshape2)     # Manipolazione dati
+library(RColorBrewer) # Colormaps
+library(tidyr)        # Manipolazione dati
+library(dplyr)        # Manipolazione dati
 
+# Configura il percorso di root per la generazione di report
 knitr::opts_knit$set(root.dir = here("0_Materiale"))
 
 ```
@@ -99,22 +102,28 @@ knitr::opts_knit$set(root.dir = here("0_Materiale"))
 
 Il chunk riportato legge un dataset da un file, filtra le righe in base ai criteri sopra riportati, calcola una nuova variabile e offre la possibilità di ottenere un riassunto statistico dei dati filtrati.
 ```{r Lettura dati dal dataset}
+
+# Leggi il dataset da un file di testo
 filepath <- here("0_Materiale", "basketball_teams.txt")
 dataset <- read.delim(filepath)
-# str(dataset)
 
-FIRST <- 1976 # primo anno del range da considerare per lo studio
-LAST <- 2011 # ultimo anno del range da considerare per lo studio 
+# Definisci il primo e l'ultimo anno del range da considerare per lo studio
+FIRST <- 1976
+LAST <- 2011
 
-df <- dataset [dataset$lgID=="NBA" & dataset$year >= FIRST & dataset$year <= LAST & dataset$games==82,]
-df$reb <- df$o_reb + df$d_reb
+# Filtra il dataset secondo le condizioni specificate
+df <- dataset[dataset$lgID == "NBA" & dataset$year >= FIRST & dataset$year <= LAST & dataset$games == 82,]
 
-# summary(df)
+# Converti la colonna lgID in un fattore per consentire la generazione di variabili dummy
+dataset$lgID <- as.factor(dataset$lgID)
+
+# Stampiamo un riassunto statistico del dataframe filtrato
+summary(df)
+
 ```
 
 
 ## Correlazione dati
-
 ```{r Analisi correlazione dati - corrplot, echo=FALSE, warning = FALSE, message = FALSE}
 
 # CORRPLOT
@@ -125,16 +134,31 @@ cor_matrix <- cor(data_subset, use = "complete.obs")
 cor_data <- melt(cor_matrix)
 names(cor_data) <- c("Variable1", "Variable2", "Correlation")
 
-# Create the heatmap
-p <- plot_ly(data = cor_data, x = ~Variable1, y = ~Variable2, z = ~Correlation, 
-             type = "heatmap", 
-             colors = viridis(n = 1024,  option = "magma"),
-             hoverinfo = "x+y+z") %>% 
-  layout(title = 'Correlation Matrix Heatmap',
-         xaxis = list(tickangle = 45),
-         yaxis = list(tickangle = 45),
-         autosize = TRUE)
-p
+
+
+# HEATMAP
+
+p <- plot_ly(data = cor_data, x = ~Variable1, y = ~Variable2, z = ~Correlation,
+             type = "heatmap",
+             colors = viridis(n = 1024, option = "magma"),
+             hoverinfo = "x+y+z") %>%
+  layout(
+    title = '<b><i>Correlation Matrix Heatmap</i></b>',
+    xaxis = list(
+      title = list(text = "<b><i>Variabile 1</i></b>", standoff = 0),
+      tickangle = 45,
+      zeroline = FALSE
+    ),
+    yaxis = list(
+      title = list(text = "<b><i>Variabile 2</i></b>", standoff = 0),
+      tickangle = 45,
+      zeroline = FALSE
+    ),
+    autosize = TRUE
+  )
+
+# Visualizza la heatmap
+(p)
 
 ```
 
@@ -157,6 +181,8 @@ Nel nostro dataframe sono incluse variabili specifiche per analizzare in dettagl
   - Questo è il totale dei rimbalzi che una squadra ottiene o concede mentre è in difesa. Offre una visione olistica dell'impegno e dell'efficacia di una squadra nel controllare la zona difensiva durante il gioco.
 
 ```{r Plot densita per ogni variabile, echo = FALSE}
+
+# Seleziona le colonne pertinenti dal dataframe
 df_reb <- subset(df, select = c("o_oreb", "o_dreb", "o_reb", "d_oreb", "d_dreb", "d_reb", "won"))
 
 # Imposta il layout a 2 righe e 3 colonne per i grafici di densità
@@ -182,12 +208,14 @@ for (variables in 1:(dim(df_reb)[2]-1)) {
 
 # Aggiungi titolo in grassetto e corsivo, con spessore del testo modificato
 title(bquote(bold(italic("Density plots with Normal Distribution"))), line = -17, cex.main = 2, outer = TRUE)
+
 ```
 
 ### Percentuale di valori non zero per ciascuna variabile di interesse
 
 Viene Calcolata la percentuale di valori non zero per ciascuna variabile di interesse all'interno del dataframe df_reb, serve per verificare ulteriormente la consistenza dei dati acqusiti.
 ```{r Percentuale di valori non zero per ogni variabile, echo = FALSE}
+
 # Stampa percentuale di valori non zero per ciascuna variabile di interesse
 print(paste("Percentage non-zero o_oreb: ", round(length(which(df_reb$o_oreb > 0)) / dim(df_reb)[1] * 100, 2)))
 print(paste("Percentage non-zero o_dreb: ", round(length(which(df_reb$o_dreb > 0)) / dim(df_reb)[1] * 100, 2)))
@@ -202,33 +230,47 @@ print(paste("Percentage non-zero d_reb: ", round(length(which(df_reb$d_reb > 0))
 #DA AGGIUNGERE SPIEGAZIONE GRAFICO
 ```{r Heatmap rimbalzi, warning = FALSE, message = FALSE, echo = FALSE}
 
+# Calcolo di valori aggregati per le variabili specificate
 values <- aggregate(cbind(reb, o_oreb, o_dreb, d_oreb, d_dreb, o_reb, d_reb, won) ~ tmID, data = df, FUN = sum)
+
+
+# HEATMAP
 
 heatmap_df <- subset(values, select = -c(o_oreb, o_dreb, d_oreb, d_dreb, won, reb))
 rownames(heatmap_df) <- heatmap_df$tmID
 heatmap_df <- heatmap_df[,-1]
 
-heatmaply(
+heatmap_plot <- heatmaply(
  heatmap_df,
  colors = viridis(n = 256,  option = "magma"),
  k_col = 2,
  k_row = 4,
-  main = "<b><i>Confronto tra rimbalzi (Heatmap)</i></b>"
 )
+
+(heatmap_plot)
 
 ```
 
 
 #DA AGGIUNGERE SPIEGAZIONE GRAFICO
-```{r Istogramma stacked rimbalzi, warning = FALSE, message = FALSE, echo = FALSE}
-plot_ly(values, x = ~tmID, y = ~o_reb, type = 'bar', name = 'Rimbalzi offensivi', marker = list(color = '#FFAFA1')) %>%
+```{r Barplot stacked rimbalzi, warning = FALSE, message = FALSE, echo = FALSE}
+
+# BARPLOT
+
+bar_plot <- plot_ly(values, x = ~tmID, y = ~o_reb, type = 'bar', name = 'Rimbalzi offensivi', marker = list(color = '#FFAFA1')) %>%
   add_trace(y = ~d_reb, name = 'Rimbalzi difensivi', marker = list(color = '#b2fff8')) %>%
-  layout(yaxis = list(title = 'Valori'), barmode = 'stack', title="<b><i>Confronto tra rimbalzi (Istogramma)</i></b>")
+  layout(yaxis = list(title = 'Valori'), barmode = 'stack')
+
+(bar_plot)
+
 ```
 
 
 #DA AGGIUNGERE SPIEGAZIONE GRAFICO
 ```{r Istogramma rimbalzi, warning = FALSE, message = FALSE, echo = FALSE}
+
+# ISTOGRAMMA INTERATTIVO
+
 histogram <- plot_ly(data = df, x = ~reb, type = "histogram",
         marker = list(color = 'skyblue', line = list(color = 'black', width = 1)),
         nbinsx = 20, legendgroup = "Rimbalzi", name = "Campione") %>% 
@@ -237,17 +279,21 @@ histogram <- plot_ly(data = df, x = ~reb, type = "histogram",
             y = c(0, 215),
             line = list(color = "red", width = 2, dash = "dash"),
             name = "Media") %>%
-  layout(title = list(text = "<b><i>Frequenza dei Rimbalzi</i></b>", pad = 10),
+  layout(title = list(text = "<b><i>Istogramma dei Rimbalzi</i></b>", pad = 10),
          xaxis = list(title = '<b><i>Rimbalzi</i></b>'),
          yaxis = list(title = '<b><i>Frequenza</i></b>'),
          legend = list(title = "<b><i>Legenda</i></b>", tracegrouporder = "reversed"))
 
 (histogram)
+
 ```
 
 
 #DA AGGIUNGERE SPIEGAZIONE GRAFICO
 ```{r Densita rimbalzi, warning = FALSE, message = FALSE, echo = FALSE}
+
+# PLOT DI DENSITA CON SOVRAPPOSIZIONE DI UNA NORMALE IDEALE
+
 density_data <- density(df$reb)
 mu <- mean(df$reb)
 sigma <- sd(df$reb)
@@ -270,11 +316,15 @@ density_plot <- add_trace(density_plot, x = c(mu, mu), y = c(0, max(density_data
                name = "Media")
 
 (density_plot)
+
 ```
 
 
 #DA AGGIUNGERE SPIEGAZIONE GRAFICO
 ```{r Boxplot rimbalzi, warning = FALSE, message = FALSE, echo = FALSE}
+
+# BOX PLOT
+
 aggregated_data <- df %>%
   select(tmID, year, o_reb, d_reb) %>%
   group_by(tmID, year) %>%
@@ -293,15 +343,16 @@ for (i in 2:ncol(reshaped_data)) {
     box_plot <- box_plot %>% add_trace(y = current_column_data, name = colnames(reshaped_data)[i], type = "box")
 }
 
-box_plot <- box_plot %>% layout(title = "<b><i>Boxplot dei Rimbalzi Offensivi e Difensivi</i></b>", yaxis = list(title = "Valori"), xaxis = list(title = "tmID"))
 (box_plot)
-
 
 ```
 
 
 #DA AGGIUNGERE SPIEGAZIONE GRAFICO
 ```{r Corrplot rimbalzi, warning = FALSE, message = FALSE, echo = FALSE}
+
+# CORRPLOT
+
 data_subset <- df[, c("reb", "o_reb", "d_reb")]
 cor_matrix <- cor(data_subset)
 
@@ -321,7 +372,7 @@ cor_plot <- plot_ly(data = cor_data,
              type = "heatmap", 
              colors = colorRampPalette(c("#4575b4", "#91bfdb", "#e0f3f8", "#fee08b", "#d73027"))(100),
              hoverinfo = "x+y+z") %>% 
-  layout(title = '<b><i>Correlation Matrix</i></b>',
+  layout(title = 'Correlation Matrix',
          xaxis = list(title = "", tickangle = 45, side = "bottom", automargin = TRUE),
          yaxis = list(title = "", automargin = TRUE),
          autosize = TRUE)
@@ -339,6 +390,7 @@ for (i in seq_len(nrow(cor_matrix))) {
   }
 }
 (cor_plot)
+
 ```
 
 ## Analisi vittorie
@@ -347,7 +399,8 @@ for (i in seq_len(nrow(cor_matrix))) {
 #DA AGGIUNGERE SPIEGAZIONE GRAFICO
 ```{r Analisi distribuzione vittorie - boxplot, warning=FALSE, echo = FALSE, message = FALSE, message = FALSE}
 
-#BOXPLOT
+# BOXPLOT
+
 aggregated_data <- df %>%
   select(tmID, year, won) %>%
   group_by(tmID, year) %>%
@@ -367,7 +420,7 @@ for (i in 2:ncol(reshaped_data)) {
   fig <- fig %>% add_trace(y = current_column_data, name = colnames(reshaped_data)[i], type = "box")
 }
 
-fig <- fig %>% layout(title = "<b><i>Boxplot delle vittorie</i></b>", yaxis = list(title = "Numero vittorie"), xaxis = list(title = "tmID"))
+# Visualizza il boxplot interattivo
 (fig)
 
 ```
@@ -375,9 +428,12 @@ fig <- fig %>% layout(title = "<b><i>Boxplot delle vittorie</i></b>", yaxis = li
 
 #DA AGGIUNGERE SPIEGAZIONE GRAFICO
 ```{r, Analisi distribuzione vittorie - istogramma, warning = FALSE, echo = FALSE, message = FALSE}
+
 # ISTOGRAMMA INTERATTIVO
+
 # Calcola la media della variabile "won" nel data frame "df"
 mean_value <- mean(df$won)
+
 # Crea un istogramma con plot_ly
 histogram <- plot_ly(df, x = ~won, type = "histogram",
                      marker = list(color = "skyblue", line = list(color = "white", width = 0.5)),
@@ -394,13 +450,14 @@ histogram <- plot_ly(df, x = ~won, type = "histogram",
                   arrowhead = 2, arrowcolor = "red", arrowsize = 1.5, arrowwidth = 2)
 
 # Visualizza l'istogramma interattivo
-(histogram)
+histogram
 
 ```
 
 
 #DA AGGIUNGERE SPIEGAZIONE GRAFICO
 ```{r, Analisi distribuzione vittorie - densita, warning = FALSE, echo = FALSE, message = FALSE}
+
 # PLOT DENSITA INTERATTIVO
 
 # Calcola la densità delle vittorie
@@ -423,7 +480,7 @@ density_interactive <- plot_ly(x = density_plot$x, y = density_plot$y, type = "s
                   ax = 0, ay = -40)
 
 # Visualizza il plot di densità interattivo
-(density_interactive)
+density_interactive
 
 ```
 
@@ -436,9 +493,10 @@ Il test Anderson-Darling è un test statistico non parametrico, utilizzato per v
 - **Range**: 0 a $+\infty$  
 - **Interpretazione**: Valori più bassi indicano una maggiore aderenza alla distribuzione normale. Si confronta il valore di test con valori critici specifici per determinare se rifiutare l'ipotesi di normalità.
 ```{r, warning=FALSE}
-# Questo codice esegue il test di Anderson-Darling sulla variabile 'reb' nel tuo dataset (df)
 
+# Questo codice esegue il test di Anderson-Darling sulla variabile 'reb' nel tuo dataset (df)
 ad.test(df$reb)
+
 ```
 
 Con un livello di significatività ($\alpha$) di 0.01 e un p-value molto
@@ -459,9 +517,10 @@ Il test Kolmogorov-Smirnov (K-S) è un metodo non parametrico utilizzato per det
 - **Range**: 0 a 1  
 - **Interpretazione**: Valori più bassi indicano una maggiore somiglianza alla distribuzione normale. Un valore di test significativamente grande porta al rifiuto dell'ipotesi di normalità.
 ```{r, warning=FALSE}
-# Test di Kolmogorov-Smirnov per confrontare la distribuzione di 'reb' con una distribuzione normale
 
+# Test di Kolmogorov-Smirnov per confrontare la distribuzione di 'reb' con una distribuzione normale
 ks.test(df$reb, "pnorm")
+
 ```
 
 Il test KS
@@ -477,9 +536,10 @@ Il test Shapiro-Wilk è un metodo statistico non parametrico utilizzato specific
 - **Range**: 0 a 1  
 - **Interpretazione**: Valori più vicini a 1 suggeriscono una maggiore aderenza alla distribuzione normale. Valori significativamente bassi indicano la deviazione dalla normalità.
 ```{r, warning=FALSE}
-# Test di Shapiro-Wilk per la normalità dei dati nella variabile 'reb' (rimbalzi)
 
+# Test di Shapiro-Wilk per la normalità dei dati nella variabile 'reb' (rimbalzi)
 sf.test(df$reb)
+
 ```
 
 In sintesi, il risultato del test di Shapiro-Francia indica che i
@@ -564,6 +624,7 @@ Legenda significato acronimi:
 
 ```{r Formule, warning = FALSE}
 
+# Definizione di nuove variabili
 df$f1 <- (df$o_oreb) / (df$o_fga - df$o_fgm)
 df$f2 <- (df$d_dreb) / (df$d_fga - df$d_fgm)
 df$f3 <- (df$o_oreb + 1.5 * df$d_dreb) / (df$o_dreb + 2 * df$d_oreb)
@@ -579,12 +640,15 @@ df$f10 <- ((df$d_dreb) / (df$d_oreb))^2
 
 Si esegue la divisione del dataframe df in un set di addestramento (train) e un set di test (test). La divisione è effettuata campionando casualmente il 70% delle righe per l'addestramento e utilizzando il restante 30% per il test. Successivamente, viene creato il modello lineare utilizzando le variabili predittive sopra create per prevedere la variabile di risposta won nel set di addestramento.
 ```{r Divisione tra train e test}
-sample <- sample(c(TRUE, FALSE), nrow(df), replace=TRUE, prob=c(0.7, 0.3))
 
+# Divisione in Test e Train per evitare che il modello fitti troppo bene sui nostri dati
+sample <- sample(c(TRUE, FALSE), nrow(df), replace=TRUE, prob=c(0.7, 0.3))
 df = subset(df, select = c("f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9", "f10", "won", "divID", "confID"))
 
 train  <- df[sample, ]
 test   <- df[!sample, ]
+
+#ATTENZIONE: facendo il train sul valore delle variabili, questo significa che sono esse ad essere i nostri dati, non i rimbalzi in se.
 
 # Creazione del modello lineare
 linMod <- lm(won ~ f1 + f2 + f3 + f4 + f5 + f6 + f7 + f8 + f9 + f10, data = train)
@@ -632,20 +696,26 @@ linModNormalized <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z + f6_z + f7_z + f8
 
 #DA AGGIUNGERE SPIEGAZIONE GRAFICO
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
+
 # Imposta il layout della pagina
 par(mfrow = c(2, 2))
+
 # Grafico dei residui standardizzati
 plot(linModNormalized, which = 1, col = "skyblue", pch = 16, main = "Residui Standardizzati")
-abline(h = 0, col = "red", lty = 2)  # Aggiungi una linea orizzontale a zero nel grafico dei residui standardizzati
+abline(h = 0, col = "red", lty = 2)  # Aggiunta una linea orizzontale a zero nel grafico dei residui standardizzati
+
 # Grafico dei livelli
 plot(linModNormalized, which = 2, col = "lightgreen", pch = 16, main = "Grafico dei Livelli")
+
 # Grafico della distribuzione dei residui
 plot(linModNormalized, which = 3, col = "pink", pch = 16, main = "Distribuzione dei Residui")
+
 # Grafico di Q-Q plot dei residui
 plot(linModNormalized, which = 4, col = "orange", pch = 16, main = "Q-Q Plot dei Residui")
-# Aggiungi altre personalizzazioni a piacere, come titoli, etichette degli assi, ecc.
+
 # Ripristina il layout predefinito
 par(mfrow = c(1, 1))
+
 ```
 
 ---
@@ -657,7 +727,9 @@ Il processo di test di un modello lineare è cruciale per assicurare la sua affi
 ### Summary
 Per una comprensione immediata del modello, è utile visualizzare il riepilogo tramite `summary(linModNormalized)`. Questo fornisce dettagli sui coefficienti, la significatività statistica e altre metriche chiave.
 ```{r}
+
 summary (linModNormalized)
+
 ```
 
 ### R-quadrato
@@ -665,9 +737,11 @@ Il test R-quadrato misura la proporzione della varianza totale della variabile d
 - **Range:** 0 a 1  
 - **Interpretazione:** 0 indica nessuna spiegazione della varianza da parte del modello. 1 indica una spiegazione completa della varianza da parte del modello.
 ```{r}
+
 summary_linModNormalized <- summary(linModNormalized)
 r_squared <- summary_linModNormalized$r.squared
 cat("R-quadro:", r_squared, "\n")
+
 ```
 
 ### R-quadrato Adattato
@@ -675,10 +749,12 @@ Il R-quadrato adattato modifica il R-quadrato per tenere conto del numero di pre
 - **Range:** Può essere negativo, ma generalmente 0 a 1  
 - **Interpretazione:** Valori più vicini a 1 indicano una migliore spiegazione della varianza, considerando il numero di predittori.
 ```{r}
+
 n <- length(train$o_reb)
 k <- length(linModNormalized$coefficients) - 1
 adjusted_r_squared <- 1 - ((1 - r_squared) * (n - 1) / (n - k - 1))
 cat("R-quadro adattato:", adjusted_r_squared, "\n")
+
 ```
 
 ### Test Shapiro
@@ -686,7 +762,9 @@ Il test di Shapiro-Wilk sui residui è utilizzato per valutare la normalità dei
 - **Range:** 0 a 1  
 - **Interpretazione:** Valori più vicini a 1 suggeriscono una maggiore probabilità che i residui seguano una distribuzione normale.
 ```{r}
+
 shapiro.test(residuals(linModNormalized))
+
 ```
 
 ### Test di omoschedasticità
@@ -694,7 +772,9 @@ Il test di Breusch-Pagan verifica l'assunzione di omoschedasticità (varianza co
 - **Range:** 0 a $+\infty$  
 - **Interpretazione:** Valori più alti indicano una maggiore probabilità di eteroschedasticità. Si confronta il valore del test con un valore critico (ad es., da una distribuzione chi-quadrato) per determinare la significatività.
 ```{r}
+
 bptest(linModNormalized)
+
 ```
 
 ### Test di multicollinearità
@@ -702,7 +782,9 @@ Il test di multicollinearità verifica se esiste una correlazione elevata tra le
 - **Range del VIF:** 1 a $+\infty$  
 - **Interpretazione:** 1 indica assenza di multicollinearità. Valori superiori a 5 o 10 sono spesso considerati indicatori di multicollinearità significativa.
 ```{r}
+
 car::vif(linModNormalized)
+
 ```
 
 ---
@@ -714,6 +796,8 @@ Questa sezione si dedica all'identificazione e rimozione degli outliers nel nost
 ## Identificazione degli Outliers
 Il primo passo è identificare gli outliers. Utilizziamo un grafico di influenza per visualizzare i punti che hanno un impatto maggiore sul modello.
 ```{r Grafico modello attuale, echo=TRUE, message=FALSE, warning=FALSE}
+
+# Influence plot il modello lineare normalizzato linModNormalized
 influencePlot(linModNormalized, id = 5)
 
 # Personalizzazione del grafico
@@ -723,7 +807,6 @@ title(main = "Influence Plot - Modello 1", col.main = "blue", font.main = 4)
 ```
 Successivamente, calcoliamo i residui del modello e identifichiamo come outliers quei punti la cui distanza dalla media è superiore a un valore soglia, in questo caso due deviazioni standard.
 ```{r Trovare outliers}
-# Il codice implementa l'individuazione degli outliers considerando i residui che superano una soglia moltiplicata per la deviazione standard.
 
 # Calcola i residui dal modello di regressione lineare normalizzato
 residui <- residuals(linModNormalized)
@@ -735,18 +818,21 @@ outliers <- which(abs(residui) > soglia_outlier*sd(residui))
 # Identifica gli outlier basati sulla soglia definita
 outliers <- which(abs(residui) > soglia_outlier * sd(residui))
 outliers
+
 ```
 ## Rimozione degli Outliers
 Dopo aver identificato gli outliers, procediamo con la loro rimozione dal dataset di allenamento.
 ```{r Rimozione outliers, echo=TRUE, message=FALSE, warning=FALSE}
-if(length(outliers) != 0)
-{
+
+# Rimuovi gli outliers e ricrea il modello lineare normalizzato
+if (length(outliers) != 0) {
   train_1 <- train[-outliers,]
-}else
-{
-  # questo è il caso in cui non siano presenti outliers
-  train_1 <- train
+} else {
+  train_1 <- train  # questo è il caso in cui non siano presenti outliers
 }
+
+# ATTENZIONE: facendo il train sul valore delle variabili, questo significa che sono esse ad essere i nostri dati, non i rimbalzi in sé.
+
 ```
 ## Confronto dei Modelli Prima e Dopo la Rimozione degli Outliers
 Confrontiamo i summary del modello prima e dopo la rimozione degli outliers per valutare l'impatto di questa operazione sulle prestazioni del modello.  
@@ -754,23 +840,31 @@ Confrontiamo i summary del modello prima e dopo la rimozione degli outliers per 
 - Prima della Rimozione degli Outliers:  
 Visualizziamo il riepilogo del modello originale per avere un punto di riferimento.
 ```{r Grafici outliers, echo=FALSE, message=FALSE, warning=FALSE}
+
+# Stampa i summary
 summary(linModNormalized)
+
 ```
 - Dopo la Rimozione degli Outliers:  
 Ricreiamo il modello e visualizziamo il grafico di influenza per osservare l'impatto della rimozione degli outliers.
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
 linModNormalized_1 <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z + f6_z + f7_z + f8_z + f9_z + f10_z, data = train_1)
 
+# Stampa i summary
 summary(linModNormalized_1)
+
 ```
 grafico di influenza:
 ```{r}
+
 # Influence plot per il modello lineare normalizzato linModNormalized_1
 influencePlot(linModNormalized_1, id = 5)
 
 # Personalizzazione del grafico
 par(mar=c(5, 5, 2, 2))
-# Aggiungi un titolo sopra al grafico
+
+# Aggiunta un titolo sopra al grafico
 title(main = "Influence Plot - Modello 2", col.main = "blue", font.main = 4)
 
 ```
@@ -779,8 +873,13 @@ title(main = "Influence Plot - Modello 2", col.main = "blue", font.main = 4)
 Questo blocco di codice utilizza la funzione `ols_plot_resid_lev` per visualizzare la relazione tra i residui e il leverage per entrambi i modelli lineari (prima e dopo la rimozione degli outliers). Questa visualizzazione aiuta a identificare ulteriori punti influenti o pattern nei residui che potrebbero influenzare le prestazioni del modello.
 
 ```{r}
+
+# Visualizza il grafico dei residui rispetto ai livelli per il modello lineare normalizzato linModNormalized
 ols_plot_resid_lev(linModNormalized)
+
+# Visualizza il grafico dei residui rispetto ai livelli per il modello lineare normalizzato linModNormalized_1
 ols_plot_resid_lev(linModNormalized_1)
+
 ```
 
 ## Conclusione
@@ -795,42 +894,51 @@ Qui prepariamo un modello di regressione LASSO. Il LASSO è utilizzato per la se
 - Eseguiamo poi la cross-validation k-fold per trovare il valore ottimale di lambda, il parametro di regolarizzazione in LASSO.
 - Visualizziamo il plot di MSE (Mean Squared Error) rispetto ai vari valori di lambda.
 
-```{r}
-# METODO DI REGRESSIONE LASSO
 
-# define response variable
+# METODO DI REGRESSIONE LASSO
+```{r}
+
+# Il codice implementa il metodo di regressione LASSO con cross-validation per trovare il miglior valore lambda.
+
+
+# Definizione della variabile di risposta
 y <- train_1$won
 
-# define matrix of predictor variables
+# Definizione della matrice delle variabili predittive (uso solo poche variabili ma potete farlo con tutte da togliere però la risposta area)
 x <- data.matrix(train_1[, c("f1_z", "f2_z", "f3_z", "f4_z", "f5_z", "f6_z", "f7_z", "f8_z", "f9_z", "f10_z")])
 
-# perform k-fold cross-validation to find optimal lambda value
+# Esegui la cross-validation k-fold per trovare il valore lambda ottimale
 cv_model <- cv.glmnet(x, y, alpha = 1)
 
-# find optimal lambda value that minimizes test MSE
+# Trova il valore lambda ottimale che minimizza il test MSE
 best_lambda <- cv_model$lambda.min
 best_lambda
+
+# Addestramento del modello con cross-validation
+cv_model <- cv.glmnet(x, y)
 
 # Grafico personalizzato
 plot(cv_model, xvar="lambda", main="", xlab="log(Lambda)", ylab="Mean Squared Error", col="blue", lwd=2)
 
-# Aggiungi un titolo personalizzato con formattazione LaTeX per grassetto e corsivo
+# Aggiunta un titolo personalizzato con formattazione LaTeX per grassetto e corsivo
 title(main=expression(bold(italic("Validazione Incrociata"))), line = 3)
+
 ```
 
-```{r, echo = FALSE}
-# produce plot of test MSE by lambda value
-plot(cv_model)
-```
 
 - Addestramento del modello LASSO con il miglior lambda trovato e visualizzazione dei coefficienti.
 
 ```{r}
-# Fitting the model with the best lambda
+
+# Fittiamo il modello con il miglior lambda (penalizzazione)
 best_model <- glmnet(x, y, alpha = 1, lambda = best_lambda)
 
-# Output coefficients and summary
+# Stampa i coefficienti del modello LASSO
 coef(best_model)
+
+# Stampa il summary del modello lineare normalizzato precedente per confronto
+summary(linModNormalized_1)
+
 ```
 
 ### 2. Previsione con LASSO e Modello Lineare
@@ -838,7 +946,10 @@ coef(best_model)
 Effettuiamo le previsioni utilizzando sia il modello LASSO che quello lineare sui dati di test.
 
 ```{r}
-# PREDICT
+
+# Questo codice esegue stime usando un modello Lasso e un modello lineare (LM) su un set di dati di test e ne valuta le prestazioni utilizzando l'errore quadratico medio (RMSE) e le metriche    di classificazione binaria, ad esempio matrice di confusione, accuratezza, precisione, sensibilità, punteggio F e specificità.
+
+
 
 # Predizioni utilizzando il modello Lasso
 new <- data.matrix(test[, c("f1_z", "f2_z", "f3_z", "f4_z", "f5_z", "f6_z", "f7_z", "f8_z", "f9_z", "f10_z")])
@@ -856,23 +967,27 @@ Confrontiamo le prestazioni di entrambi i modelli (LASSO e lineare) attraverso d
 - Calcolo del RMS (Root Mean Square)  
 Questi blocchi di codice calcolano il RMS, una misura dell'errore di previsione, per il modello LASSO e il modello lineare (LM). Il RMS fornisce una stima dell'errore quadratico medio tra i valori previsti e i valori reali.
 ```{r}
-# RMS Lasso
-sqrt(mean((test$won - prevLasso)^2))
 
-# RMS LM
-sqrt(mean((test$won - prevLM)^2))
+# Calcolo dell'Errore Quadratico Medio (RMSE) per il modello Lasso
+rmsLasso <- sqrt(mean((test$won - prevLasso)^2))
+
+# Calcolo dell'Errore Quadratico Medio (RMSE) per il modello LM (Linear Model)
+rmsLM <- sqrt(mean((test$won - prevLM)^2))
+
 ```
 
 - Previsioni Binarie e Matrice di Confusione  
 Convertiamo le previsioni del modello LASSO in valori binari (0 o 1) e generiamo una matrice di confusione per confrontare le previsioni con i valori reali. Questo passaggio è utile per valutare la classificazione effettuata dal modello.
 
 ```{r}
-# Previsioni binarie
-prev <- ifelse(prevLasso > 0.5, "1", "0")
-prev <- as.factor(as.vector(prev))
 
-# Confusion Matrix: previsioni vs valore reale
-table(prev, test$won)
+# Classificazione binaria utilizzando una soglia (0.5) per le predizioni del modello Lasso
+prev <- ifelse(prevLasso > 0.5, "1", "0")
+prev <- as.factor(prev)
+
+# Matrice di Confusione per le predizioni del modello Lasso
+confMatrix <- table(prev, test$won)
+
 ```
 
 ### Calcolo delle Metriche di Valutazione  
@@ -897,28 +1012,36 @@ Ecco come interpretarle:
   - **Interpretazione**: Misura quanto bene il modello è in grado di identificare le istanze negative. Una alta specificità indica che il modello è efficace nel riconoscere le istanze non positive.
 
 ```{r}
-cm <- table(prev, test$won)
 
-# Metriche di Valutazione
-accuracy <- sum(cm[1], cm[4]) / sum(cm[1:4])
-precision <- cm[4] / sum(cm[4], cm[2])
-sensitivity <- cm[4] / sum(cm[4], cm[3])
+# Metriche di Performance
+accuracy <- sum(confMatrix[1], confMatrix[4]) / sum(confMatrix[1:4])
+precision <- confMatrix[4] / sum(confMatrix[4], confMatrix[2])
+sensitivity <- confMatrix[4] / sum(confMatrix[4], confMatrix[3])
 fscore <- (2 * (sensitivity * precision)) / (sensitivity + precision)
-specificity <- cm[1] / sum(cm[1], cm[2])
+specificity <- confMatrix[1] / sum(confMatrix[1], confMatrix[2])
 
 ```
 
 ```{r, echo = FALSE}
-sprintf("Accuratezza: %f", accuracy)
-sprintf("Precisione: %f", precision)
-sprintf("Sensibilità: %f", sensitivity)
-sprintf("F-score: %f", fscore)
-sprintf("Specificità: %f", specificity)
+
+# Visualizza i Risultati
+print(paste("Accuratezza:", round(accuracy, digits = 4)))
+print(paste("Precisione:", round(precision, digits = 4)))
+print(paste("Sensibilità:", round(sensitivity, digits = 4)))
+print(paste("F-Score:", round(fscore, digits = 4)))
+print(paste("Specificità:", round(specificity, digits = 4)))
+
+# Confronto tra RMS
+print(paste("RMS Lasso:", round(rmsLasso, digits = 4)))
+print(paste("RMS Modello Lineare:", round(rmsLM, digits = 4)))
+
 ```
 
 #TEST ANOVA
 ```{r}
+
 # Esecuzione di un test ANOVA per la variabile 'confID' come predittore
+
 # Supponiamo che 'won' sia la variabile dipendente
 resp_conf <- anova(lm(won ~ confID, data = train_1))
 
@@ -929,9 +1052,12 @@ if (resp_conf["confID", "Pr(>F)"] < 0.05) {
   print("Si accetta l'ipotesi nulla perché la variabile Conference non ha un effetto sulle vittorie. Non posso inserire a modello la variabile.")
 }
 
+
 # Esecuzione di un test ANOVA per la variabile 'divID' come predittore
+
 # Supponiamo che 'won' sia la variabile dipendente
 resp_div <- anova(lm(won ~ divID, data = train_1))
+
 
 # Verifica se la variabile 'divID' ha un effetto significativo sulle vittorie
 if (resp_div["divID", "Pr(>F)"] < 0.05) {
@@ -945,8 +1071,8 @@ if (resp_div["divID", "Pr(>F)"] < 0.05) {
 ```
 
 #EFFETTI INTERAZIONE
-
 ```{r}
+
 # Verifica del valore di 'div' per costruire il modello appropriato
 if (div) {
   linModNormalized1 <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z + f6_z + f7_z + f8_z + f9_z + f10_z + divID + f1_z:f2_z + f4_z:divID, data = train_1)
@@ -1004,10 +1130,13 @@ summary(linModNormalized1)
 
 ```
 
-# Può aiutare l’uso della POISSON?
 
+# Può aiutare l’uso della POISSON?
 ```{r}
+
 # Questo codice addestra un modello di regressione generalizzata di Poisson (linModNormalized2_pois) utilizzando la stessa specifica del modello lineare (linModNormalized2). Successivamente,    vengono ottenuti e combinati i coefficienti di entrambi i modelli in un unico dataframe per una facile comparazione.
+
+
 
 # Creazioni di un modello di regressione generalizzata di Poisson
 linModNormalized1_pois = glm(formula_significativa, family=poisson(link=log), data = train_1)
@@ -1021,7 +1150,6 @@ poisson = exp(coefficients(linModNormalized1_pois))
 coefficients_table <- cbind(normal, poisson)
 
 coefficients_table
-
 
 
 #Considerazioni Generali:
