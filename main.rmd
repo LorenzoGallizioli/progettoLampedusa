@@ -732,12 +732,15 @@ linModNormalized <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z + f6_z + f7_z + f8
 
 ### Grafici
 
-I quattro grafici rappresentano una diagnosi della regressione lineare condotta per studiare la relazione tra rimbalzi e vittorie.
+I quattro grafici costituiscono un'esplorazione diagnostica del modello di regressione lineare applicato per analizzare la correlazione tra i rimbalzi (sia offensivi che difensivi) e le vittorie di una squadra di basket.
 
-1. Il primo grafico "Residui Standardizzati" mostra la dispersione dei residui (differenze tra valori osservati e valori previsti dal modello) rispetto ai valori adattati.
-2. Il secondo grafico è un "Q-Q Plot dei Residui Standardizzati" che confronta la distribuzione dei residui con una distribuzione normale teorica. 
-3. Il terzo grafico "Scale-Location" fornisce un controllo della eteroscedasticità (varianza non costante dei residui).
-4. Infine, il "Q-Q Plot dei Residui" con la distanza di Cook evidenzia l'influenza di ogni osservazione sulla stima dei parametri del modello.
+1. Il primo grafico, denominato "Residui Standardizzati vs Valori Adattati", mette in luce la relazione tra i residui del modello e i valori predetti. La distribuzione casuale dei punti attorno all'asse orizzontale è un indicatore della qualità dell'adattamento del modello. La linea rossa tratteggiata offre un riferimento per identificare eventuali pattern sistematici nei residui che potrebbero suggerire non linearità, eteroscedasticità o punti influenti.
+
+2. Il secondo grafico è un "Q-Q Plot dei Residui Standardizzati", che confronta la distribuzione dei residui del modello con quella che ci si aspetterebbe da una distribuzione normale. Questo tipo di grafico è cruciale per valutare l'assunzione della normalità dei residui, un presupposto fondamentale della regressione lineare. I punti seguono la linea diagonale rappresentativa della distribuzione normale teorica, e le deviazioni da questa linea possono indicare deviazioni dalla normalità.
+
+3. Il terzo grafico, "Scale-Location" (o Spread-Location Plot), è utilizzato per verificare l'assunzione di omoscedasticità, ovvero la costanza della varianza dei residui attraverso il range dei valori predetti dal modello. Una dispersione uniforme dei punti lungo l'asse orizzontale suggerisce che la varianza dei residui è costante. Variazioni significative da questa uniformità possono indicare eteroscedasticità, che è una violazione di un'altra assunzione fondamentale della regressione lineare.
+
+4. Il quarto grafico presenta il "Q-Q Plot dei Residui" con la distanza di Cook, che è una misura dell'influenza di ogni osservazione sui parametri stimati del modello. Valori elevati della distanza di Cook possono indicare punti con un'influenza sproporzionata, che potrebbero essere considerati outlier o punti di leva che meritano un'ulteriore indagine.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
@@ -764,10 +767,13 @@ par(mfrow = c(1, 1))
 
 Ecco cosa possiamo dedurre da questi grafici:
 
-1. Dall'analisi del primo grafico, si nota che i residui non sembrano seguire un pattern specifico rispetto ai valori adattati, indicando una buona casualità, nonostante la presenza di alcuni punti che deviano significativamente dalla linea rossa di nessuna autocorrelazione. 
-2. Il Q-Q plot mostra una lieve deviazione dalla linea teorica, suggerendo una possibile presenza di coda pesante o outliers. 
-3. Il grafico Scale-Location mostra segni di eteroscedasticità, dato che la dispersione dei residui cambia con i valori adattati.
-4. Infine, la distanza di Cook nel quarto grafico evidenzia alcune osservazioni con un'influenza superiore sulla stima dei parametri, suggerendo un'ulteriore indagine su questi punti per comprendere la loro influenzasul modello.
+1. L'analisi del primo grafico rivela una disposizione abbastanza casuale dei residui attorno allo zero, suggerendo che il modello non presenta errori sistematici nella predizione. Tuttavia, la presenza di alcuni punti distanti dalla massa centrale potrebbe indicare la presenza di outliers o di punti con pattern di varianza non catturati dal modello.
+
+2. Il secondo grafico, il Q-Q plot, mostra una generale aderenza alla linea teorica, con alcune deviazioni evidenti nelle code. Queste deviazioni possono suggerire la presenza di outliers o che la distribuzione dei residui è leggermente asimmetrica, questioni che richiedono un'attenta valutazione.
+
+3. Nel terzo grafico, la dispersione non uniforme dei punti suggerisce che la varianza dei residui non è costante per tutti i valori predetti, un fenomeno noto come eteroscedasticità. Questo aspetto potrebbe essere mitigato attraverso trasformazioni dei dati o l'utilizzo di modelli più complessi che tengono conto di varianze eterogenee.
+
+4. Il quarto grafico mostra che la maggior parte delle osservazioni ha una distanza di Cook bassa, il che implica un impatto minimo sulla stima dei parametri del modello. Tuttavia, ci sono alcuni punti che superano la soglia suggerita, indicati con i numeri di osservazione, che potrebbero essere esaminati più a fondo per comprendere la loro potenziale influenza sulle previsioni del modello.
 
 ---
 
@@ -852,6 +858,8 @@ Incorporando LASSO, possiamo quindi affrontare due problematiche fondamentali: l
 
 La prima fase nel perfezionamento del modello implica l'identificazione accurata degli outliers. Per questa operazione, adottiamo un grafico di influenza, uno strumento grafico che mette in evidenza le osservazioni che esercitano un'influenza eccessiva sulla stima dei parametri.
 
+Questo tipo di grafico è utilizzato per valutare l'effetto che ogni osservazione ha sulla stima dei coefficienti del modello. Le dimensioni dei cerchi sono proporzionali alla distanza di Cook, una misura che combina la deviazione dei residui standardizzati (sull'asse verticale) e il leverage o hat-values (sull'asse orizzontale). Un valore di leverage alto indica che l'osservazione ha un grande impatto sulla forma del modello, mentre residui standardizzati grandi indicano deviazioni dai valori predetti. La combinazione di entrambi può segnalare punti potenzialmente influenti o outlier.
+
 ```{r Grafico modello attuale, echo=FALSE, message=FALSE, warning=FALSE}
 
 # Influence plot il modello lineare normalizzato linModNormalized
@@ -862,6 +870,8 @@ par(mar=c(5, 5, 2, 2))
 title(main = "Influence Plot - Modello 1", col.main = "blue", font.main = 4)
 
 ```
+
+Esaminando il grafico, si notano alcune osservazioni con cerchi di dimensioni maggiori, in particolare le osservazioni 957, 822 e 769, che hanno una distanza di Cook relativamente alta e quindi esercitano un'influenza maggiore sul modello rispetto ad altre osservazioni. Queste osservazioni dovrebbero essere esaminate attentamente, poiché la loro rimozione o la correzione dei dati sottostanti potrebbe significativamente alterare i coefficienti stimati nel modello di regressione.
 
 Valutiamo i residui rispetto ai valori predetti e definiamo come outliers quegli osservazioni la cui deviazione dalla media supera un limite prefissato, che in questo contesto è stabilito a due deviazioni standard.
 
@@ -925,7 +935,8 @@ summary(linModNormalized_1)
 ```
 
 ### Grafico di Influenza:
-  Il grafico aggiornato sarà indicativo delle modifiche nella distribuzione dei residui e dell'influenza degli outliers sulla stima dei parametri.
+
+La metodologia è identica a quella del primo grafico, ma le osservazioni qui rappresentate possono essere differenti a causa delle variazioni nei dati o nei coefficienti inclusi in questo secondo modello. Di nuovo, i cerchi più grandi rappresentano una maggiore distanza di Cook e quindi una maggiore influenza sull'adattamento del modello.
 
 ```{r, echo = FALSE, warning=FALSE}
 
@@ -940,8 +951,10 @@ title(main = "Influence Plot - Modello 2", col.main = "blue", font.main = 4)
 
 ```
 
+In questo grafico, l'osservazione 769 si distingue nuovamente come la più influente, indicando che questo punto dati è particolarmente critico per entrambi i modelli di regressione. Altre osservazioni, come le 693 e 1206, mostrano anche un'alta influenza ma in misura minore rispetto al modello addestrato con gli outliers.
+
 ### Visualizzazione Residui e Leverage
-Questo blocco di codice utilizza la funzione `ols_plot_resid_lev` per visualizzare la relazione tra i residui e il leverage per entrambi i modelli lineari (prima e dopo la rimozione degli outliers). Questa visualizzazione aiuta a identificare ulteriori punti influenti o pattern nei residui che potrebbero influenzare le prestazioni del modello.
+Questo blocco di codice utilizza la funzione `ols_plot_resid_lev` per visualizzare la relazione tra i residui e il leverage per entrambi i modelli lineari. I due grafici rappresentano una comparativa diagnostica dei residui standardizzati rispetto al leverage per due versioni di un modello di regressione lineare: il primo prima della rimozione degli outliers e il secondo dopo tale processo. Questi grafici sono strumenti essenziali per valutare la presenza e l'impatto di outliers e punti ad alto leverage sulla stima dei parametri del modello. La soglia di leverage è indicata da una linea verticale rossa, e i punti sono colorati diversamente per indicare se sono normali, outliers, punti ad alto leverage, o una combinazione di queste caratteristiche.
 
 ```{r, warning=FALSE, echo = FALSE}
 
@@ -952,6 +965,8 @@ ols_plot_resid_lev(linModNormalized)
 ols_plot_resid_lev(linModNormalized_1)
 
 ```
+
+Esaminando i due grafici, è evidente che il secondo modello presenta meno osservazioni con alto leverage, come dimostrato dalla riduzione dei punti che superano la soglia di leverage. Ciò suggerisce che la rimozione degli outliers ha avuto l'effetto desiderato di ridurre l'influenza di osservazioni atipiche e potenzialmente distorsive sul modello di regressione.
 
 ### Risultati
 
