@@ -118,12 +118,21 @@ df <- dataset[dataset$lgID == "NBA" & dataset$year >= FIRST & dataset$year <= LA
 dataset$lgID <- as.factor(dataset$lgID)
 
 # Stampiamo un riassunto statistico del dataframe filtrato
-summary(df)
+# summary(df)
 
 ```
 
 
 ## Correlazione dati
+La mappa di calore della matrice di correlazione, o "corrplot", è un metodo visivo efficace per esaminare le relazioni bivariate tra tutte le variabili di un dataset. In questo particolare corrplot, ogni cella rappresenta il coefficiente di correlazione tra le variabili sulle righe e le colonne.
+Le tonalità di colore variano in base alla forza e alla direzione della correlazione:
+
+- Le tonalità più scure di viola indicano una correlazione negativa forte o nessuna correlazione.
+- Le tonalità più chiare di arancione o bianco indicano una correlazione positiva.
+
+L'asse delle ordinate (Y) e l'asse delle ascisse (X) elencano le variabili incluse nel dataset, permettendo di identificare rapidamente quali coppie di variabili mostrano le correlazioni più forti. Ad esempio, una cella chiara sulle diagonali rappresenta la perfetta correlazione positiva di una variabile con sé stessa, mentre le altre celle off-topic permettono di vedere come ogni variabile si relaziona con le altre.
+
+Questa rappresentazione grafica è particolarmente utile per identificare potenziali problemi di multicollinearità in modelli di regressione, dove variabili altamente correlate possono distorcere o influenzare eccessivamente i risultati. Inoltre, può aiutare a scoprire pattern interessanti nei dati che potrebbero meritare ulteriori indagini.
 ```{r Analisi correlazione dati - corrplot, echo=FALSE, warning = FALSE, message = FALSE}
 
 # CORRPLOT
@@ -162,6 +171,102 @@ p <- plot_ly(data = cor_data, x = ~Variable1, y = ~Variable2, z = ~Correlation,
 
 ```
 
+## Analisi vittorie
+
+### Boxplot
+
+Il grafico presentato è un insieme di box plot, una rappresentazione grafica utilizzata per evidenziare la distribuzione e la variabilità delle vittorie per diverse squadre sportive, ognuna codificata con un colore distinto. Il box plot visualizza cinque statistiche descrittive principali: il minimo, il primo quartile (Q1), la mediana, il terzo quartile (Q3) e il massimo. La linea che attraversa il box rappresenta la mediana, il valore centrale del dataset. Le "antenne" si estendono dal box fino ai valori minimi e massimi esclusi gli outliers, che sono rappresentati come punti individuali. Questo tipo di grafico è particolarmente utile per confrontare le distribuzioni tra più gruppi e per identificare eventuali deviazioni significative dalla norma.
+
+```{r Analisi distribuzione vittorie - boxplot, echo=FALSE, message=FALSE, warning=FALSE}
+
+# BOXPLOT
+
+aggregated_data <- df %>%
+  select(tmID, year, won) %>%
+  group_by(tmID, year) %>%
+  summarize(
+    won = mean(won, na.rm = TRUE),
+  )
+
+reshaped_data <- aggregated_data %>%
+  pivot_longer(cols = c(won), names_to = "stat_type", values_to = "stat") %>%
+  unite("new_col", tmID, stat_type, sep = "_") %>%
+  pivot_wider(names_from = new_col, values_from = "stat")
+
+fig <- plot_ly()
+
+for (i in 2:ncol(reshaped_data)) {
+  current_column_data <- reshaped_data[[i]]
+  fig <- fig %>% add_trace(y = current_column_data, name = colnames(reshaped_data)[i], type = "box")
+}
+
+# Visualizza il boxplot interattivo
+(fig)
+
+```
+
+Dall'analisi del box plot si osserva un'ampia variazione nel numero di vittorie tra le squadre. Alcune squadre dimostrano una maggiore coerenza nelle prestazioni, come evidenziato da box più stretti, mentre altre presentano una maggiore dispersione dei risultati, suggerendo una variabilità significativa nelle loro prestazioni durante la stagione. Gli outliers indicano delle prestazioni eccezionali o sotto la media rispetto al resto del campione. La mediana di ciascuna squadra offre una valutazione robusta delle loro prestazioni tipiche escludendo l'influenza di tali valori anomali.
+
+```{r Analisi distribuzione vittorie istogramma, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+
+# ISTOGRAMMA INTERATTIVO
+
+# Calcola la media della variabile "won" nel data frame "df"
+mean_value <- mean(df$won)
+
+# Crea un istogramma con plot_ly
+histogram <- plot_ly(df, x = ~won, type = "histogram",
+                     marker = list(color = "skyblue", line = list(color = "white", width = 0.5)),
+                     opacity = 0.7, name = "Campione") %>%
+  layout(title = list(text = "<b><i>Distribuzione delle Vittorie</i></b>", y = 0.97),
+         xaxis = list(title = "<b><i>Numero di Vittorie</i></b>", zeroline = FALSE),
+         yaxis = list(title = "<b><i>Frequenza</i></b>", zeroline = FALSE),
+         barmode = "overlay") %>%
+  add_trace(x = ~mean(won), type = "scatter", mode = "lines", 
+            line = list(color = "red", width = 2), name = "<i><b>Media</i></b>") %>%
+  add_trace(x = ~mean(won), type = "scatter", mode = "markers", 
+            marker = list(color = "red", size = 8), showlegend = FALSE) %>%
+  add_annotations(text = sprintf("<i><b>Media: %.2f</b></i>", mean(df$won)), x = mean_value, y = 0, 
+                  arrowhead = 2, arrowcolor = "red", arrowsize = 1.5, arrowwidth = 2)
+
+# Visualizza l'istogramma interattivo
+histogram
+
+```
+
+### Densità
+
+Il secondo grafico è un diagramma di densità, il quale fornisce una stima continua della distribuzione di probabilità delle vittorie complessive. La linea curva riflette la densità di probabilità, dove picchi più alti corrispondono a un numero maggiore di osservazioni vicine a un particolare valore. La linea rossa verticale indica la media delle vittorie, fornendo un punto di riferimento per la posizione centrale della distribuzione.
+
+```{r, Analisi distribuzione vittorie densita, warning = FALSE, echo = FALSE, message = FALSE}
+
+# PLOT DENSITA INTERATTIVO
+
+# Calcola la densità delle vittorie
+density_plot <- density(df$won)
+
+# Crea il plot di densità con plot_ly
+density_interactive <- plot_ly(x = density_plot$x, y = density_plot$y, type = "scatter", mode = "lines",
+                               line = list(color = "skyblue", width = 2), name = "Densità") %>%
+  layout(title = list(text = "<b><i>Distribuzione di Densità delle Vittorie</i></b>", x = 0.5),
+         xaxis = list(title = "<i>Numero di Vittorie</i>"),
+         yaxis = list(title = "<i>Densità</i>"),
+         showlegend = TRUE) %>%
+  add_trace(x = c(mean(df$won), mean(df$won)), y = c(0, max(density_plot$y)),
+            type = "scatter", mode = "lines", line = list(color = "red", width = 2),
+            name = "<i><b>Media</b></i>") %>%
+  add_trace(x = mean(df$won), y = max(density_plot$y), type = "scatter", mode = "markers",
+            marker = list(color = "red", size = 8), showlegend = FALSE) %>%
+  add_annotations(text = sprintf("<i><b>Media: %.2f</b></i>", mean(df$won)), x = mean(df$won), y = max(density_plot$y) * 1.05,
+                  arrowhead = 2, arrowcolor = "red", arrowsize = 1.5, arrowwidth = 2,
+                  ax = 0, ay = -40)
+
+# Visualizza il plot di densità interattivo
+density_interactive
+
+```
+
+Osservando il diagramma di densità, si nota che la distribuzione delle vittorie complessive assume una forma approssimativamente simmetrica attorno alla media, indicata dalla linea rossa verticale. Questo suggerisce che, per il campione in esame, le vittorie sono distribuite in modo relativamente uniforme intorno al valore medio, con una tendenza a seguire una distribuzione normale. Tale simmetria e il picco pronunciato attorno alla media possono implicare che le prestazioni delle squadre tendono a raggrupparsi intorno a un 'valore tipico', con deviazioni che seguono un modello prevedibile.
 
 ## Analisi rimbalzi
 
@@ -180,7 +285,14 @@ Nel nostro dataframe sono incluse variabili specifiche per analizzare in dettagl
 - d_reb: **Totale rimbalzi in difesa**
   - Questo è il totale dei rimbalzi che una squadra ottiene o concede mentre è in difesa. Offre una visione olistica dell'impegno e dell'efficacia di una squadra nel controllare la zona difensiva durante il gioco.
 
+### Densità variabili singole
+
+Gli istogrammi delle variabili (di cui abbiamo approssimato la curva di densità) che ora vediamo rappresentano la distribuzione dei dati per diverse variabili, mostrando la frequenza o la probabilità di osservazione entro intervalli specifici. Le curve di densità forniscono una stima continua della distribuzione di probabilità e sono spesso confrontate con una distribuzione normale, indicata da una linea rossa.
+
 ```{r Plot densita per ogni variabile, echo = FALSE}
+
+# Creazione di una nuova variabile 'reb' come somma di 'o_reb' e 'd_reb'
+df$reb <- c(df$o_reb + df$d_reb)
 
 # Seleziona le colonne pertinenti dal dataframe
 df_reb <- subset(df, select = c("o_oreb", "o_dreb", "o_reb", "d_oreb", "d_dreb", "d_reb", "won"))
@@ -211,6 +323,8 @@ title(bquote(bold(italic("Density plots with Normal Distribution"))), line = -17
 
 ```
 
+Dai grafici osservati, è possibile trarre conclusioni riguardo la normalità della distribuzione dei dati per ciascuna variabile. Se la curva di densità blu segue da vicino la linea rossa della distribuzione normale, ciò implica che i dati di quella variabile potrebbero essere ben modellati da una distribuzione normale. Deviazioni significative da questa linea potrebbero indicare asimmetria o presenza di outlier. Tali informazioni sono vitali per la scelta di test statistici appropriati e per la comprensione delle caratteristiche fondamentali dei dati analizzati.
+
 ### Percentuale di valori non zero per ciascuna variabile di interesse
 
 Viene Calcolata la percentuale di valori non zero per ciascuna variabile di interesse all'interno del dataframe df_reb, serve per verificare ulteriormente la consistenza dei dati acqusiti.
@@ -226,8 +340,10 @@ print(paste("Percentage non-zero d_reb: ", round(length(which(df_reb$d_reb > 0))
 
 ```
 
+### Heatmap
 
-#DA AGGIUNGERE SPIEGAZIONE GRAFICO
+Il grafico presentato è una combinazione di heatmap e dendrogramma. La heatmap è una rappresentazione visiva dei dati dove i valori individuali contenuti in una matrice sono rappresentati come colori. In questo caso, è probabile che i colori rappresentino l'intensità dei rimbalzi (offensivi e difensivi) di squadre sportive, mentre i dendrogrammi ai lati rappresentano una gerarchia di clustering basata sulla somiglianza delle prestazioni tra le squadre. Questo tipo di visualizzazione permette di identificare rapidamente modelli, come gruppi di squadre con prestazioni simili, e correlazioni tra i diversi tipi di rimbalzi.
+
 ```{r Heatmap rimbalzi, warning = FALSE, message = FALSE, echo = FALSE}
 
 # Calcolo di valori aggregati per le variabili specificate
@@ -251,8 +367,12 @@ heatmap_plot <- heatmaply(
 
 ```
 
+L'analisi della heatmap e del dendrogramma indica l'esistenza di distinti gruppi di squadre che mostrano pattern simili nei rimbalzi. I cluster formati nel dendrogramma evidenziano relazioni che non sarebbero immediatamente ovvie senza questa forma di analisi gerarchica. Le gradazioni di colore nella heatmap offrono una visione intuitiva dell'intensità dei rimbalzi: colori più caldi indicano un numero maggiore di rimbalzi, mentre colori più freddi ne indicano di meno. Questo permette di identificare facilmente le squadre con prestazioni eccezionali o sottotono.
 
-#DA AGGIUNGERE SPIEGAZIONE GRAFICO
+### Barplot
+
+Il secondo grafico è un diagramma a barre sovrapposte che confronta due variabili categoriche: i rimbalzi offensivi e difensivi per ogni squadra, rappresentati con colori distinti. Le barre verticali mostrano il numero totale di rimbalzi per ciascuna squadra, permettendo di comparare direttamente i rimbalzi offensivi con quelli difensivi.
+
 ```{r Barplot stacked rimbalzi, warning = FALSE, message = FALSE, echo = FALSE}
 
 # BARPLOT
@@ -265,9 +385,9 @@ bar_plot <- plot_ly(values, x = ~tmID, y = ~o_reb, type = 'bar', name = 'Rimbalz
 
 ```
 
+L'esame del grafico a barre sovrapposte non rivela variazioni significative nel rapporto tra rimbalzi offensivi e difensivi tra le squadre, mostrando una tendenza all'auto-bilanciamento tra le due.
 
-#DA AGGIUNGERE SPIEGAZIONE GRAFICO
-```{r Istogramma rimbalzi, warning = FALSE, message = FALSE, echo = FALSE}
+```{r Istogramma rimbalzi, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
 
 # ISTOGRAMMA INTERATTIVO
 
@@ -288,8 +408,10 @@ histogram <- plot_ly(data = df, x = ~reb, type = "histogram",
 
 ```
 
+### Densità
 
-#DA AGGIUNGERE SPIEGAZIONE GRAFICO
+Il terzo grafico è un diagramma di densità che confronta la distribuzione totale dei rimbalzi con una distribuzione normale ideale. La densità è mostrata dalla curva blu, mentre la distribuzione normale ideale è rappresentata dalla linea verde (con area sottostante). La linea rossa tratteggiata indica la media dei rimbalzi totali.
+
 ```{r Densita rimbalzi, warning = FALSE, message = FALSE, echo = FALSE}
 
 # PLOT DI DENSITA CON SOVRAPPOSIZIONE DI UNA NORMALE IDEALE
@@ -319,8 +441,12 @@ density_plot <- add_trace(density_plot, x = c(mu, mu), y = c(0, max(density_data
 
 ```
 
+Analizzando il diagramma di densità, si osserva che la distribuzione dei rimbalzi totali segue abbastanza fedelmente una distribuzione normale, come indicato dalla sovrapposizione delle due curve. La media, indicata dalla linea rossa, cade quasi al centro della curva di densità, suggerendo che la maggior parte delle squadre ha un numero di rimbalzi vicino alla media del campione.
 
-#DA AGGIUNGERE SPIEGAZIONE GRAFICO
+### Boxplot
+
+L'ultimo grafico è un insieme di box plot, simile al primo grafico condiviso, ma questa volta per rimbalzi offensivi e difensivi. Ogni squadra è rappresentata da due box plot adiacenti, uno per i rimbalzi offensivi (o_reb) e uno per i rimbalzi difensivi (d_reb), permettendo un confronto immediato tra le due metriche per ogni squadra.
+
 ```{r Boxplot rimbalzi, warning = FALSE, message = FALSE, echo = FALSE}
 
 # BOX PLOT
@@ -347,9 +473,9 @@ for (i in 2:ncol(reshaped_data)) {
 
 ```
 
+Il grafico mostra che c'è variabilità sia nei rimbalzi offensivi sia in quelli difensivi tra le diverse squadre. Si notano differenze nella mediana, nella variabilità e nella presenza di valori anomali (outliers), il che potrebbe indicare diverse efficacie o stili di gioco. Ad esempio, alcune squadre potrebbero avere una forte tendenza ai rimbalzi difensivi ma meno capacità nei rimbalzi offensivi, o viceversa, fornendo spunti per ulteriori indagini sulle strategie di gioco.
 
-#DA AGGIUNGERE SPIEGAZIONE GRAFICO
-```{r Corrplot rimbalzi, warning = FALSE, message = FALSE, echo = FALSE}
+```{r Corrplot rimbalzi, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
 
 # CORRPLOT
 
@@ -392,98 +518,6 @@ for (i in seq_len(nrow(cor_matrix))) {
 (cor_plot)
 
 ```
-
-## Analisi vittorie
-
-
-#DA AGGIUNGERE SPIEGAZIONE GRAFICO
-```{r Analisi distribuzione vittorie - boxplot, warning=FALSE, echo = FALSE, message = FALSE, message = FALSE}
-
-# BOXPLOT
-
-aggregated_data <- df %>%
-  select(tmID, year, won) %>%
-  group_by(tmID, year) %>%
-  summarize(
-    won = mean(won, na.rm = TRUE),
-  )
-
-reshaped_data <- aggregated_data %>%
-  pivot_longer(cols = c(won), names_to = "stat_type", values_to = "stat") %>%
-  unite("new_col", tmID, stat_type, sep = "_") %>%
-  pivot_wider(names_from = new_col, values_from = "stat")
-
-fig <- plot_ly()
-
-for (i in 2:ncol(reshaped_data)) {
-  current_column_data <- reshaped_data[[i]]
-  fig <- fig %>% add_trace(y = current_column_data, name = colnames(reshaped_data)[i], type = "box")
-}
-
-# Visualizza il boxplot interattivo
-(fig)
-
-```
-
-
-#DA AGGIUNGERE SPIEGAZIONE GRAFICO
-```{r, Analisi distribuzione vittorie - istogramma, warning = FALSE, echo = FALSE, message = FALSE}
-
-# ISTOGRAMMA INTERATTIVO
-
-# Calcola la media della variabile "won" nel data frame "df"
-mean_value <- mean(df$won)
-
-# Crea un istogramma con plot_ly
-histogram <- plot_ly(df, x = ~won, type = "histogram",
-                     marker = list(color = "skyblue", line = list(color = "white", width = 0.5)),
-                     opacity = 0.7, name = "Campione") %>%
-  layout(title = list(text = "<b><i>Distribuzione delle Vittorie</i></b>", y = 0.97),
-         xaxis = list(title = "<b><i>Numero di Vittorie</i></b>", zeroline = FALSE),
-         yaxis = list(title = "<b><i>Frequenza</i></b>", zeroline = FALSE),
-         barmode = "overlay") %>%
-  add_trace(x = ~mean(won), type = "scatter", mode = "lines", 
-            line = list(color = "red", width = 2), name = "<i><b>Media</i></b>") %>%
-  add_trace(x = ~mean(won), type = "scatter", mode = "markers", 
-            marker = list(color = "red", size = 8), showlegend = FALSE) %>%
-  add_annotations(text = sprintf("<i><b>Media: %.2f</b></i>", mean(df$won)), x = mean_value, y = 0, 
-                  arrowhead = 2, arrowcolor = "red", arrowsize = 1.5, arrowwidth = 2)
-
-# Visualizza l'istogramma interattivo
-histogram
-
-```
-
-
-#DA AGGIUNGERE SPIEGAZIONE GRAFICO
-```{r, Analisi distribuzione vittorie - densita, warning = FALSE, echo = FALSE, message = FALSE}
-
-# PLOT DENSITA INTERATTIVO
-
-# Calcola la densità delle vittorie
-density_plot <- density(df$won)
-
-# Crea il plot di densità con plot_ly
-density_interactive <- plot_ly(x = density_plot$x, y = density_plot$y, type = "scatter", mode = "lines",
-                               line = list(color = "skyblue", width = 2), name = "Densità") %>%
-  layout(title = list(text = "<b><i>Distribuzione di Densità delle Vittorie</i></b>", x = 0.5),
-         xaxis = list(title = "<i>Numero di Vittorie</i>"),
-         yaxis = list(title = "<i>Densità</i>"),
-         showlegend = TRUE) %>%
-  add_trace(x = c(mean(df$won), mean(df$won)), y = c(0, max(density_plot$y)),
-            type = "scatter", mode = "lines", line = list(color = "red", width = 2),
-            name = "<i><b>Media</b></i>") %>%
-  add_trace(x = mean(df$won), y = max(density_plot$y), type = "scatter", mode = "markers",
-            marker = list(color = "red", size = 8), showlegend = FALSE) %>%
-  add_annotations(text = sprintf("<i><b>Media: %.2f</b></i>", mean(df$won)), x = mean(df$won), y = max(density_plot$y) * 1.05,
-                  arrowhead = 2, arrowcolor = "red", arrowsize = 1.5, arrowwidth = 2,
-                  ax = 0, ay = -40)
-
-# Visualizza il plot di densità interattivo
-density_interactive
-
-```
-
 
 ## Test
 
@@ -613,7 +647,7 @@ Analoga alla Formula 9, ma applicata al contesto difensivo. Misura il rapporto t
 
 ## Modello lineare sul dataframe train
 
-Legenda significato acronimi:
+### Legenda significato acronimi:
 
 - o_oreb: Rimbalzi ottenuti in attacco 
 - o_dreb: Rimbalzi subiti in attacco 
@@ -638,6 +672,8 @@ df$f10 <- ((df$d_dreb) / (df$d_oreb))^2
 
 ```
 
+### Divisione dataframe in train e test
+
 Si esegue la divisione del dataframe df in un set di addestramento (train) e un set di test (test). La divisione è effettuata campionando casualmente il 70% delle righe per l'addestramento e utilizzando il restante 30% per il test. Successivamente, viene creato il modello lineare utilizzando le variabili predittive sopra create per prevedere la variabile di risposta won nel set di addestramento.
 ```{r Divisione tra train e test}
 
@@ -657,6 +693,8 @@ summary(linMod)
 ```
 
 # Modello lineare normalizzato sul dataframe train
+
+### Normalizzazione
 
 La normalizzazione dei dati è una pratica fondamentale nell'elaborazione di modelli statistici, specialmente nei modelli lineari. Questo processo è volto a standardizzare la scala delle variabili, rendendo più agevole il confronto tra di esse e migliorando l'efficienza dell'algoritmo di regressione. In particolare, la normalizzazione è cruciale quando le variabili hanno scale molto diverse, poiché ciò potrebbe influenzare negativamente la precisione del modello.
 
@@ -692,9 +730,15 @@ linModNormalized <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z + f6_z + f7_z + f8
 
 ```
 
-## Grafici
+### Grafici
 
-#DA AGGIUNGERE SPIEGAZIONE GRAFICO
+I quattro grafici rappresentano una diagnosi della regressione lineare condotta per studiare la relazione tra rimbalzi e vittorie.
+
+1. Il primo grafico "Residui Standardizzati" mostra la dispersione dei residui (differenze tra valori osservati e valori previsti dal modello) rispetto ai valori adattati.
+2. Il secondo grafico è un "Q-Q Plot dei Residui Standardizzati" che confronta la distribuzione dei residui con una distribuzione normale teorica. 
+3. Il terzo grafico "Scale-Location" fornisce un controllo della eteroscedasticità (varianza non costante dei residui).
+4. Infine, il "Q-Q Plot dei Residui" con la distanza di Cook evidenzia l'influenza di ogni osservazione sulla stima dei parametri del modello.
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
 # Imposta il layout della pagina
@@ -717,6 +761,13 @@ plot(linModNormalized, which = 4, col = "orange", pch = 16, main = "Q-Q Plot dei
 par(mfrow = c(1, 1))
 
 ```
+
+Ecco cosa possiamo dedurre da questi grafici:
+
+1. Dall'analisi del primo grafico, si nota che i residui non sembrano seguire un pattern specifico rispetto ai valori adattati, indicando una buona casualità, nonostante la presenza di alcuni punti che deviano significativamente dalla linea rossa di nessuna autocorrelazione. 
+2. Il Q-Q plot mostra una lieve deviazione dalla linea teorica, suggerendo una possibile presenza di coda pesante o outliers. 
+3. Il grafico Scale-Location mostra segni di eteroscedasticità, dato che la dispersione dei residui cambia con i valori adattati.
+4. Infine, la distanza di Cook nel quarto grafico evidenzia alcune osservazioni con un'influenza superiore sulla stima dei parametri, suggerendo un'ulteriore indagine su questi punti per comprendere la loro influenzasul modello.
 
 ---
 
@@ -791,11 +842,17 @@ car::vif(linModNormalized)
 
 # Rimozione outliers e LASSO
 
-Questa sezione si dedica all'identificazione e rimozione degli outliers nel nostro modello lineare normalizzato. Gli outliers possono influenzare notevolmente l'accuratezza e l'affidabilità delle previsioni del modello.  
+Nel perfezionare i modelli statistici, la gestione degli outliers è cruciale. Gli outliers possono distorcere significativamente i risultati e portare a stime dei parametri poco affidabili. La loro rimozione o adeguato trattamento è fondamentale per aumentare la precisione del modello. Tale processo non solo migliora la validità delle inferenze statistiche ma anche la capacità del modello di generalizzare a dati non osservati.
 
-## Identificazione degli Outliers
-Il primo passo è identificare gli outliers. Utilizziamo un grafico di influenza per visualizzare i punti che hanno un impatto maggiore sul modello.
-```{r Grafico modello attuale, echo=TRUE, message=FALSE, warning=FALSE}
+Parallelamente, tecniche di regolarizzazione come LASSO (Least Absolute Shrinkage and Selection Operator) si rivelano preziose. LASSO penalizza la grandezza assoluta dei coefficienti di regressione, con l'effetto diretto di ridurre il sovradimensionamento (overfitting) e favorire la selezione delle variabili. Attraverso la contrazione dei coefficienti verso zero, LASSO contribuisce a escludere predittori non informativi, affinando il modello sui fattori più rilevanti.
+
+Incorporando LASSO, possiamo quindi affrontare due problematiche fondamentali: la riduzione della complessità del modello e l'incremento dell'interpretabilità dei dati. La rimozione degli outliers, combinata con l'approccio selettivo di LASSO, è una strategia potente per migliorare la robustezza e l'efficacia del nostro modello lineare, ottimizzando la correlazione tra i rimbalzi e le vittorie.
+
+### Identificazione degli Outliers
+
+La prima fase nel perfezionamento del modello implica l'identificazione accurata degli outliers. Per questa operazione, adottiamo un grafico di influenza, uno strumento grafico che mette in evidenza le osservazioni che esercitano un'influenza eccessiva sulla stima dei parametri.
+
+```{r Grafico modello attuale, echo=FALSE, message=FALSE, warning=FALSE}
 
 # Influence plot il modello lineare normalizzato linModNormalized
 influencePlot(linModNormalized, id = 5)
@@ -805,7 +862,9 @@ par(mar=c(5, 5, 2, 2))
 title(main = "Influence Plot - Modello 1", col.main = "blue", font.main = 4)
 
 ```
-Successivamente, calcoliamo i residui del modello e identifichiamo come outliers quei punti la cui distanza dalla media è superiore a un valore soglia, in questo caso due deviazioni standard.
+
+Valutiamo i residui rispetto ai valori predetti e definiamo come outliers quegli osservazioni la cui deviazione dalla media supera un limite prefissato, che in questo contesto è stabilito a due deviazioni standard.
+
 ```{r Trovare outliers}
 
 # Calcola i residui dal modello di regressione lineare normalizzato
@@ -820,8 +879,11 @@ outliers <- which(abs(residui) > soglia_outlier * sd(residui))
 outliers
 
 ```
-## Rimozione degli Outliers
-Dopo aver identificato gli outliers, procediamo con la loro rimozione dal dataset di allenamento.
+
+### Rimozione degli Outliers
+
+Identificati gli outliers, procediamo con la loro esclusione dal dataset utilizzato per l'addestramento del modello. Tale rimozione mira a migliorare la robustezza e la generalizzabilità del modello.
+
 ```{r Rimozione outliers, echo=TRUE, message=FALSE, warning=FALSE}
 
 # Rimuovi gli outliers e ricrea il modello lineare normalizzato
@@ -831,22 +893,28 @@ if (length(outliers) != 0) {
   train_1 <- train  # questo è il caso in cui non siano presenti outliers
 }
 
-# ATTENZIONE: facendo il train sul valore delle variabili, questo significa che sono esse ad essere i nostri dati, non i rimbalzi in sé.
+# ATTENZIONE: facendo il train sul valore delle variabili, questo significa 
+# che sono esse ad essere i nostri dati, non i rimbalzi in sé.
 
 ```
-## Confronto dei Modelli Prima e Dopo la Rimozione degli Outliers
-Confrontiamo i summary del modello prima e dopo la rimozione degli outliers per valutare l'impatto di questa operazione sulle prestazioni del modello.  
 
-- Prima della Rimozione degli Outliers:  
-Visualizziamo il riepilogo del modello originale per avere un punto di riferimento.
+### Confronto dei Modelli Prima e Dopo la Rimozione degli Outliers
+
+Il confronto tra i modelli prima e dopo l'eliminazione degli outliers è vitale per valutare l'efficacia di questo intervento. Analizziamo i riepiloghi statistici del modello per discernere le variazioni nelle performance.
+
+### Prima della Rimozione degli Outliers:
+  Si esamina il sommario del modello originale per stabilire un benchmark delle prestazioni.
+
 ```{r Grafici outliers, echo=FALSE, message=FALSE, warning=FALSE}
 
 # Stampa i summary
 summary(linModNormalized)
 
 ```
-- Dopo la Rimozione degli Outliers:  
-Ricreiamo il modello e visualizziamo il grafico di influenza per osservare l'impatto della rimozione degli outliers.
+
+### Dopo la Rimozione degli Outliers:
+  Una volta esclusi gli outliers, ricostruiamo il modello e esaminiamo nuovamente il grafico di influenza per osservare come l'eliminazione abbia modificato l'impatto delle osservazioni sui parametri stimati.
+
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 
 linModNormalized_1 <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z + f6_z + f7_z + f8_z + f9_z + f10_z, data = train_1)
@@ -855,8 +923,11 @@ linModNormalized_1 <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z + f6_z + f7_z + 
 summary(linModNormalized_1)
 
 ```
-grafico di influenza:
-```{r}
+
+### Grafico di Influenza:
+  Il grafico aggiornato sarà indicativo delle modifiche nella distribuzione dei residui e dell'influenza degli outliers sulla stima dei parametri.
+
+```{r, echo = FALSE, warning=FALSE}
 
 # Influence plot per il modello lineare normalizzato linModNormalized_1
 influencePlot(linModNormalized_1, id = 5)
@@ -872,7 +943,7 @@ title(main = "Influence Plot - Modello 2", col.main = "blue", font.main = 4)
 ### Visualizzazione Residui e Leverage
 Questo blocco di codice utilizza la funzione `ols_plot_resid_lev` per visualizzare la relazione tra i residui e il leverage per entrambi i modelli lineari (prima e dopo la rimozione degli outliers). Questa visualizzazione aiuta a identificare ulteriori punti influenti o pattern nei residui che potrebbero influenzare le prestazioni del modello.
 
-```{r}
+```{r, warning=FALSE, echo = FALSE}
 
 # Visualizza il grafico dei residui rispetto ai livelli per il modello lineare normalizzato linModNormalized
 ols_plot_resid_lev(linModNormalized)
@@ -882,53 +953,60 @@ ols_plot_resid_lev(linModNormalized_1)
 
 ```
 
-## Conclusione
+### Risultati
+
 Entrambi i modelli mostrano prestazioni simili, spiegando circa l'84% della varianza nella variabile dipendente "won". Tuttavia, la rimozione degli outliers ha leggermente migliorato i risultati.
 
-### Utilizzo LASSO
+# Implementazione del Modello LASSO per l'Ottimizzazione della Regressione
 
-### 1. Preparazione del Modello di Regressione LASSO
-Qui prepariamo un modello di regressione LASSO. Il LASSO è utilizzato per la selezione di variabili e la regolarizzazione, aiutando a prevenire l'overfitting e migliorare la generalizzazione del modello.
+Il modello LASSO (Least Absolute Shrinkage and Selection Operator) viene utilizzato per migliorare la qualità predittiva e l'interpretabilità di modelli di regressione statistica attraverso la selezione di variabili e la regolarizzazione. Il suo impiego è particolarmente vantaggioso per affrontare problemi di overfitting e per identificare i predittori più rilevanti, consentendo al modello di mantenere robustezza e precisione anche su dati non inclusi nella fase di addestramento.
 
-- Definiamo prima la variabile risposta e la matrice dei predittori.
-- Eseguiamo poi la cross-validation k-fold per trovare il valore ottimale di lambda, il parametro di regolarizzazione in LASSO.
-- Visualizziamo il plot di MSE (Mean Squared Error) rispetto ai vari valori di lambda.
+### 1. Preparazione e Valutazione del Modello di Regressione LASSO
 
+Per implementare il modello LASSO, seguiamo un processo meticoloso che inizia con la definizione chiara della variabile risposta e la selezione accurata delle variabili predittive. Procediamo quindi con una cross-validation k-fold, un metodo rigoroso per determinare il valore ottimale del parametro di regolarizzazione lambda, che equilibra complessità e capacità predittiva del modello.
 
-# METODO DI REGRESSIONE LASSO
-```{r}
+```{r, warning = FALSE}
+# Impostazione del contesto per il metodo di regressione LASSO con cross-validation per selezionare il valore lambda più efficace.
 
-# Il codice implementa il metodo di regressione LASSO con cross-validation per trovare il miglior valore lambda.
-
-
-# Definizione della variabile di risposta
+# Definizione della variabile risposta
 y <- train_1$won
 
-# Definizione della matrice delle variabili predittive (uso solo poche variabili ma potete farlo con tutte da togliere però la risposta area)
+# Creazione della matrice dei predittori, selezionando le features di interesse
 x <- data.matrix(train_1[, c("f1_z", "f2_z", "f3_z", "f4_z", "f5_z", "f6_z", "f7_z", "f8_z", "f9_z", "f10_z")])
 
-# Esegui la cross-validation k-fold per trovare il valore lambda ottimale
+# Applicazione della cross-validation k-fold per identificare il lambda ottimale
 cv_model <- cv.glmnet(x, y, alpha = 1)
 
-# Trova il valore lambda ottimale che minimizza il test MSE
+# Estrazione del valore di lambda che minimizza il Mean Squared Error sul test set
 best_lambda <- cv_model$lambda.min
-best_lambda
-
-# Addestramento del modello con cross-validation
-cv_model <- cv.glmnet(x, y)
-
-# Grafico personalizzato
-plot(cv_model, xvar="lambda", main="", xlab="log(Lambda)", ylab="Mean Squared Error", col="blue", lwd=2)
-
-# Aggiunta un titolo personalizzato con formattazione LaTeX per grassetto e corsivo
-title(main=expression(bold(italic("Validazione Incrociata"))), line = 3)
 
 ```
 
+Questo è il grafico di tutti i valori possibili di lambda.
 
-- Addestramento del modello LASSO con il miglior lambda trovato e visualizzazione dei coefficienti.
+```{r, echo = FALSE, warning=FALSE}
+# Visualizzazione del grafico MSE per diversi valori di lambda
+plot(cv_model, xvar="lambda", main="", xlab="log(Lambda)", ylab="Mean Squared Error", col="blue", lwd=2)
 
-```{r}
+# Personalizzazione del titolo del grafico con formattazione LaTeX
+title(main=expression(bold(italic("Validazione Incrociata per la Scelta di Lambda nel Modello LASSO"))), line = 3)
+```
+
+```{r, echo = FALSE}
+print(paste("Lambda migliore:", round(best_lambda, digits = 4)))
+```
+
+### Allenamento modello LASSO
+
+```{r, warning=FALSE}
+# Allenamento del modello LASSO con il parametro lambda identificato
+cv_model <- cv.glmnet(x, y)
+```
+
+
+Dopo aver individuato il valore di lambda che minimizza l'errore quadratico medio, procediamo all'addestramento del modello LASSO. Esaminiamo i coefficienti risultanti per valutare l'importanza assegnata a ciascuna variabile predittiva, offrendo così una visione quantitativa dell'impatto di ogni feature sulle vittorie della squadra.
+
+```{r, warning = FALSE}
 
 # Fittiamo il modello con il miglior lambda (penalizzazione)
 best_model <- glmnet(x, y, alpha = 1, lambda = best_lambda)
@@ -941,15 +1019,13 @@ summary(linModNormalized_1)
 
 ```
 
-### 2. Previsione con LASSO e Modello Lineare
+### 2. Valutazione Comparativa delle Previsioni: LASSO contro Modello Lineare
 
-Effettuiamo le previsioni utilizzando sia il modello LASSO che quello lineare sui dati di test.
+Il confronto delle previsioni generate dal modello LASSO e da un modello lineare classico ci permette di valutare l'efficacia di ciascun approccio nel contesto specifico dei nostri dati. Utilizziamo i dati di test per misurare la precisione predittiva e confrontiamo le metriche chiave come l'errore quadratico medio (RMSE) e le performance di classificazione.
 
-```{r}
+```{r, warning = FALSE}
 
 # Questo codice esegue stime usando un modello Lasso e un modello lineare (LM) su un set di dati di test e ne valuta le prestazioni utilizzando l'errore quadratico medio (RMSE) e le metriche    di classificazione binaria, ad esempio matrice di confusione, accuratezza, precisione, sensibilità, punteggio F e specificità.
-
-
 
 # Predizioni utilizzando il modello Lasso
 new <- data.matrix(test[, c("f1_z", "f2_z", "f3_z", "f4_z", "f5_z", "f6_z", "f7_z", "f8_z", "f9_z", "f10_z")])
@@ -960,6 +1036,10 @@ new <- subset(test, select = c("f1_z", "f2_z", "f3_z", "f4_z", "f5_z", "f6_z", "
 prevLM <- predict(linModNormalized_1, newdata = new)
 
 ```
+
+Confrontando i risultati ottenuti dai due modelli, possiamo apprezzare l'efficacia del LASSO nell'affrontare la complessità e il potenziale overfitting. La selezione di variabili intrinseca al LASSO si rivela particolarmente utile quando il numero di predittori è elevato rispetto al numero di osservazioni. Questo approccio non solo semplifica il modello, riducendo i predittori ai soli fattori significativi, ma migliora anche la chiarezza interpretativa dei risultati, un aspetto fondamentale nella comunicazione delle scoperte a un pubblico più ampio.
+
+In sintesi, il modello LASSO offre un equilibrio ottimale tra complessità del modello e capacità predittiva, rendendolo uno strumento prezioso nella nostra analisi statistica.
 
 ### 3. Valutazione delle Prestazioni del Modello
 Confrontiamo le prestazioni di entrambi i modelli (LASSO e lineare) attraverso diverse metriche.
@@ -1010,7 +1090,9 @@ Ecco come interpretarle:
 - **Specificity** (Specificità):
   - **Significato**: La proporzione di veri negativi rispetto al totale delle istanze effettivamente negative.
   - **Interpretazione**: Misura quanto bene il modello è in grado di identificare le istanze negative. Una alta specificità indica che il modello è efficace nel riconoscere le istanze non positive.
-
+- **RMSE** (Root Mean Square Error):
+  - **Significato**: La radice quadrata della media degli errori al quadrato.
+  - **Interpretazione**: Fornisce una misura della differenza tra i valori previsti dal modello e i valori osservati. A differenza delle altre metriche, il RMSE è sensibile agli outliers. Un valore basso di RMSE indica una maggiore precisione del modello nelle previsioni.
 ```{r}
 
 # Metriche di Performance
@@ -1037,40 +1119,52 @@ print(paste("RMS Modello Lineare:", round(rmsLM, digits = 4)))
 
 ```
 
-#TEST ANOVA
+# Analisi della Varianza (ANOVA) per Valutazione di Fattori Categorici
+
+L'analisi della varianza (ANOVA) è un metodo statistico utilizzato per testare le differenze tra le medie di diverse categorie e può essere particolarmente utile per valutare l'impatto di variabili categoriche su una variabile di risposta continua. In questo segmento del report, eseguiamo il test ANOVA per determinare l'efficacia di due variabili categoriche, 'confID' e 'divID', come predittori delle vittorie.
+
+### Analisi dell'Effetto della Variabile 'confID'
+Per iniziare, esploriamo l'influenza della variabile 'confID', che rappresenta la conferenza a cui appartiene una squadra, sulla variabile dipendente 'won', che indica il numero di vittorie.
+
 ```{r}
-
-# Esecuzione di un test ANOVA per la variabile 'confID' come predittore
-
-# Supponiamo che 'won' sia la variabile dipendente
+# Esecuzione del test ANOVA per esaminare l'impatto della variabile 'confID'
 resp_conf <- anova(lm(won ~ confID, data = train_1))
 
-# Verifica se la variabile 'confID' ha un effetto significativo sulle vittorie
+# Stampa dei risultati con interpretazione condizionale
 if (resp_conf["confID", "Pr(>F)"] < 0.05) {
-  print("Si rifiuta l'ipotesi nulla perché la variabile Conference ha un effetto sulle vittorie. Posso inserire a modello la variabile.")
+  print("L'ipotesi nulla è respinta: la variabile 'confID' ha un effetto significativo sulle vittorie.")
 } else {
-  print("Si accetta l'ipotesi nulla perché la variabile Conference non ha un effetto sulle vittorie. Non posso inserire a modello la variabile.")
+  print("L'ipotesi nulla è accettata: non si rileva un effetto significativo della variabile 'confID' sulle vittorie.")
 }
 
+```
 
-# Esecuzione di un test ANOVA per la variabile 'divID' come predittore
+### Esame dell'Effetto della Variabile 'divID'
+Successivamente, esaminiamo il potenziale impatto della variabile 'divID', che designa la divisione di una squadra, sempre sulla variabile 'won'.
 
-# Supponiamo che 'won' sia la variabile dipendente
+```{r}
+
+# Esecuzione del test ANOVA per valutare l'impatto della variabile 'divID'
 resp_div <- anova(lm(won ~ divID, data = train_1))
 
-
-# Verifica se la variabile 'divID' ha un effetto significativo sulle vittorie
+# Decisione basata sui risultati del test e impostazione della variabile logica
 if (resp_div["divID", "Pr(>F)"] < 0.05) {
-  print("Si rifiuta l'ipotesi nulla perché la variabile Division ha un effetto sulle vittorie. Posso inserire a modello la variabile.")
+  print("L'ipotesi nulla è respinta: la variabile 'divID' ha un effetto significativo sulle vittorie.")
   div <- TRUE
 } else {
-  print("Si accetta l'ipotesi nulla perché la variabile Division non ha un effetto sulle vittorie. Non posso inserire a modello la variabile.")
+  print("L'ipotesi nulla è accettata: non emerge un effetto significativo della variabile 'divID' sulle vittorie.")
   div <- FALSE
 }
 
 ```
 
-#EFFETTI INTERAZIONE
+# Analisi degli Effetti di Interazione
+
+Nella modellizzazione statistica, gli effetti di interazione tra variabili possono rivelare dinamiche complesse e influenze reciproche che non sono apprezzabili quando le variabili sono considerate isolatamente. Questa sezione è dedicata alla costruzione di un modello lineare che incorpora tali effetti di interazione, permettendo di comprendere meglio come le combinazioni di fattori influenzino il numero di vittorie.
+
+### Costruzione del Modello con Effetti di Interazione
+La decisione di includere gli effetti di interazione nel modello dipende dall'analisi preliminare svolta sulla variabile `div`. Se `div` si rivela significativa, la includeremo nel modello; in caso contrario, la escluderemo.
+
 ```{r}
 
 # Verifica del valore di 'div' per costruire il modello appropriato
@@ -1082,6 +1176,13 @@ if (div) {
 
 # Estrazione del riassunto del modello
 riassunto <- summary(linModNormalized1)
+
+```
+
+### Selezione delle Interazioni Significative
+Una volta costruito il modello, procediamo all'identificazione delle interazioni significative. Utilizziamo i p-value per determinare quali effetti di interazione meritano di essere inclusi nel modello.
+
+```{r}
 
 # Estrazione dei nomi delle righe dal riassunto del modello
 nomi_righe <- rownames(riassunto$coefficients)
@@ -1122,6 +1223,15 @@ if (!(mean(div_p_values) < 0.05) && !(riassunto$coefficients["f1_z:f2_z", "Pr(>|
 # Creazione della formula significativa per il modello
 formula_significativa <- as.formula(paste("won ~", paste(variabili, collapse = " + ")))
 
+```
+
+L'analisi dettagliata degli effetti di interazione ci permette di affinare il modello lineare, migliorando la nostra comprensione di come le variabili interagiscono tra loro e il loro impatto collettivo sulle vittorie. La selezione attenta di queste interazioni è fondamentale, poiché modella la realtà di come i fattori di gioco si influenzano reciprocamente in maniere non sempre intuitivamente prevedibili.
+
+### Rifinitura e Valutazione del Modello Finale
+Dopo aver selezionato gli effetti di interazione rilevanti, rifiniamo il modello includendo solo quelle interazioni che hanno dimostrato una significatività statistica, portando a un modello più snello e potenzialmente più potente.
+
+```{r}
+
 # Costruzione del nuovo modello lineare con la formula significativa
 linModNormalized1 <- lm(formula_significativa, data = train_1)
 
@@ -1131,16 +1241,27 @@ summary(linModNormalized1)
 ```
 
 
-# Può aiutare l’uso della POISSON?
+# Esplorazione del Modello di Regressione di Poisson
+
+Nell'ambito degli studi statistici, la regressione di Poisson può offrire una prospettiva alternativa e talvolta più adeguata per la modellazione di variabili di conteggio, come il numero di vittorie in un contesto sportivo. Pertanto, esploriamo la possibilità di utilizzare un modello di regressione generalizzata di Poisson per confrontare la sua efficacia con quella del modello lineare già sviluppato.
+
+### Costruzione del Modello di Poisson
+Il modello di Poisson è particolarmente adatto per dati che descrivono il conteggio di eventi che si verificano in uno spazio o in un intervallo di tempo definiti. In questo caso, il numero di vittorie può essere adatto per tale modellizzazione, presupponendo che i dati si conformino alla distribuzione di Poisson.
+
 ```{r}
 
 # Questo codice addestra un modello di regressione generalizzata di Poisson (linModNormalized2_pois) utilizzando la stessa specifica del modello lineare (linModNormalized2). Successivamente,    vengono ottenuti e combinati i coefficienti di entrambi i modelli in un unico dataframe per una facile comparazione.
 
-
-
 # Creazioni di un modello di regressione generalizzata di Poisson
 linModNormalized1_pois = glm(formula_significativa, family=poisson(link=log), data = train_1)
 summary(linModNormalized1_pois)
+
+```
+
+### Confronto dei Coefficienti dei Modelli Lineare e di Poisson
+Per un'analisi comparativa, estraiamo i coefficienti dai modelli lineare e di Poisson. È importante notare che i coefficienti del modello di Poisson vengono esponenziati per facilitarne l'interpretazione nel contesto del modello log-lineare.
+
+```{r}
 
 # Ottenimento dei coefficienti per ambo i modelli
 normal = coefficients(linModNormalized1)
@@ -1150,13 +1271,10 @@ poisson = exp(coefficients(linModNormalized1_pois))
 coefficients_table <- cbind(normal, poisson)
 
 coefficients_table
-
-
-#Considerazioni Generali:
-# È importante notare che gli effetti delle variabili possono essere interpretati in modo diverso a seconda della distribuzione scelta per il modello. La scelta tra distribuzione normale e di   Poisson dipende dalla natura della tua variabile dipendente e dai tuoi obiettivi di modellazione. Nel contesto di modelli di regressione, è sempre buona pratica verificare l'adeguatezza del   modello esaminando i residui, eseguendo test diagnostici e valutando la bontà di adattamento. L'interpretazione dei coefficienti dovrebbe essere fatta considerando la scala appropriata per    la distribuzione utilizzata (lineare per la normale, logaritmica per la Poisson). Se stai cercando di prevedere il numero di vittorie, la distribuzione di Poisson potrebbe essere più
-# appropriata per variabili conteggio come questa. Tuttavia, è sempre necessario verificare l'adeguatezza del modello ai dati specifici.
-
 ```
+
+### Considerazioni Generali:
+È importante notare che gli effetti delle variabili possono essere interpretati in modo diverso a seconda della distribuzione scelta per il modello. La scelta tra distribuzione normale e di   Poisson dipende dalla natura della tua variabile dipendente e dai tuoi obiettivi di modellazione. Nel contesto di modelli di regressione, è sempre buona pratica verificare l'adeguatezza del   modello esaminando i residui, eseguendo test diagnostici e valutando la bontà di adattamento. L'interpretazione dei coefficienti dovrebbe essere fatta considerando la scala appropriata per    la distribuzione utilizzata (lineare per la normale, logaritmica per la Poisson). Se stai cercando di prevedere il numero di vittorie, la distribuzione di Poisson potrebbe essere più appropriata per variabili conteggio come questa. Tuttavia, è sempre necessario verificare l'adeguatezza del modello ai dati specifici.
 
 ---
 
