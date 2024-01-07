@@ -1,5 +1,5 @@
 ---
-title: "Analisi Statistica del dataframe Basketball Teams, Gruppo Lampedusa"
+title: "Analisi Cestistica Lampedusana"
 date: "`r Sys.Date()`"
 output:
   html_document: 
@@ -8,7 +8,7 @@ output:
     latex_engine: xelatex
   word_document: default
 author: "Bonsembiante Davide [1086863], Fumagalli Uriel [1085169], Gallizioli Lorenzo [1087404], Paganelli Thomas [1085805]"
-abstract: "Questo documento rappresenta un'approfondita analisi statistica nel campo del basket professionistico, con un focus specifico sulle prestazioni delle squadre NBA. Utilizzando metodi statistici avanzati, si esplorano diverse metriche chiave per comprendere meglio le dinamiche del gioco e i fattori che influenzano il successo delle squadre."
+abstract: "Analisi Statistica del dataframe Basketball Teams, Gruppo Lampedusa. Questo report rappresenta un'approfondita analisi statistica nel campo del basket professionistico, con un focus specifico sulle prestazioni delle squadre NBA. Utilizzando metodi statistici avanzati, si esplorano diverse metriche chiave per comprendere meglio le dinamiche del gioco e i fattori che influenzano il successo delle squadre."
 editor_options: 
   markdown: 
     wrap: 80
@@ -21,60 +21,64 @@ editor_options:
 - [Progetto scelto: 5](#progetto-scelto-5)
 - [Presentazione problema](#presentazione-problema)
 - [Analisi dati iniziale e grafici](#analisi-dati-iniziale-e-grafici)
-  - [Correlazione dati](#correlazione-dati)
-  - [Analisi vittorie](#analisi-vittorie)
-    - [Boxplot](#boxplot)
-    - [Densità](#densità)
-  - [Analisi rimbalzi](#analisi-rimbalzi)
-    - [Densità variabili singole](#densità-variabili-singole)
-    - [Percentuale di valori non zero per ciascuna variabile di interesse](#percentuale-di-valori-non-zero-per-ciascuna-variabile-di-interesse)
-    - [Heatmap](#heatmap)
-    - [Barplot](#barplot)
-    - [Densità](#densità)
-    - [Boxplot](#boxplot)
-  - [Test](#test)
-    - [Test Anderson-Darling](#test-anderson-darling)
-    - [Test Kolmogorov-Smirnov](#test-kolmogorov-smirnov)
-    - [Test Shapiro-Wilk](#test-shapiro-wilk)
+   * [Correlazione dati](#correlazione-dati)
+   * [Analisi vittorie](#analisi-vittorie)
+      + [Boxplot](#boxplot)
+      + [Densità](#densità)
+   * [Analisi rimbalzi](#analisi-rimbalzi)
+      + [Densità variabili singole](#densità-variabili-singole)
+      + [Percentuale di valori non zero per ciascuna variabile di interesse](#percentuale-di-valori-non-zero-per-ciascuna-variabile-di-interesse)
+      + [Heatmap](#heatmap)
+      + [Barplot](#barplot)
+      + [Densità](#densità-1)
+      + [Boxplot](#boxplot-1)
+   * [Test](#test)
+      + [Test Anderson-Darling](#test-anderson-darling)
+      + [Test Kolmogorov-Smirnov](#test-kolmogorov-smirnov)
+      + [Test Shapiro-Wilk](#test-shapiro-wilk)
 - [Presentazione modello lineare](#presentazione-modello-lineare)
-  - [Modello: L'importanza dei rimbalzi](#modello-limportanza-dei-rimbalzi)
-  - [Formule](#formule)
-  - [Modello lineare sul dataframe train](#modello-lineare-sul-dataframe-train)
-  - [Legenda significato acronimi:](#legenda-significato-acronimi)
-  - [Divisione dataframe in train e test](#divisione-dataframe-in-train-e-test)
-  - [Modello lineare normalizzato sul dataframe train](#modello-lineare-normalizzato-sul-dataframe-train)
-  - [Normalizzazione](#normalizzazione)
-  - [Grafici](#grafici)
-  - [Test modello lineare](#test-modello-lineare)
-    - [Summary](#summary)
-    - [R-quadrato](#r-quadrato)
-    - [R-quadrato Adattato](#r-quadrato-adattato)
-    - [Test Shapiro](#test-shapiro)
-    - [Test di omoschedasticità](#test-di-omoschedasticità)
-    - [Test di multicollinearità](#test-di-multicollinearità)
-  - [Rimozione outliers e LASSO](#rimozione-outliers-e-lasso)
-    - [Identificazione degli Outliers](#identificazione-degli-outliers)
-    - [Rimozione degli Outliers](#rimozione-degli-outliers)
-    - [Confronto dei Modelli Prima e Dopo la Rimozione degli Outliers](#confronto-dei-modelli-prima-e-dopo-la-rimozione-degli-outliers)
-    - [Grafico di Influenza:](#grafico-di-influenza)
-    - [Visualizzazione Residui e Leverage](#visualizzazione-residui-e-leverage)
-    - [Risultati](#risultati)
-    - [Implementazione del Modello LASSO per l'Ottimizzazione della Regressione](#implementazione-del-modello-lasso-per-lottimizzazione-della-regressione)
-    - [Allenamento modello LASSO](#allenamento-modello-lasso)
-    - [Valutazione Comparativa delle Previsioni: LASSO contro Modello Lineare](#valutazione-comparativa-delle-previsioni-lasso-contro-modello-lineare)
-    - [Valutazione delle Prestazioni del Modello](#valutazione-delle-prestazioni-del-modello)
-    - [Calcolo delle Metriche di Valutazione](#calcolo-delle-metriche-di-valutazione)
-    - [Analisi della Varianza (ANOVA) per Valutazione di Fattori Categorici](#analisi-della-varianza-anova-per-valutazione-di-fattori-categorici)
-    - [Analisi dell'Effetto della Variabile 'confID'](#analisi-delleffetto-della-variabile-confid)
-    - [Analisi degli Effetti di Interazione](#analisi-degli-effetti-di-interazione)
-    - [Costruzione del Modello con Effetti di Interazione](#costruzione-del-modello-con-effetti-di-interazione)
-    - [Selezione delle Interazioni Significative](#selezione-delle-interazioni-significative)
-    - [Rifinitura e Valutazione del Modello Finale](#rifinitura-e-valutazione-del-modello-finale)
-  - [Esplorazione del Modello di Regressione di Poisson](#esplorazione-del-modello-di-regressione-di-poisson)
-    - [Costruzione del Modello di Poisson](#costruzione-del-modello-di-poisson)
-    - [Confronto dei Coefficienti dei Modelli Lineare e di Poisson](#confronto-dei-coefficienti-dei-modelli-lineare-e-di-poisson)
-- [Considerazioni Generali:](#considerazioni-generali)
-- [Conclusioni](#conclusioni)
+   * [Modello: L'importanza dei rimbalzi](#modello-limportanza-dei-rimbalzi)
+   * [Formule](#formule)
+   * [Modello lineare sul dataframe train](#modello-lineare-sul-dataframe-train)
+      + [Legenda significato acronimi:](#legenda-significato-acronimi)
+      + [Divisione dataframe in train e test](#divisione-dataframe-in-train-e-test)
+- [Modello lineare normalizzato sul dataframe train](#modello-lineare-normalizzato-sul-dataframe-train)
+   * [Normalizzazione](#normalizzazione)
+      + [Grafici](#grafici)
+- [Test modello lineare](#test-modello-lineare)
+   * [Summary](#summary)
+   * [R-quadrato](#r-quadrato)
+   * [R-quadrato Adattato](#r-quadrato-adattato)
+   * [Test Shapiro](#test-shapiro)
+   * [Test di omoschedasticità](#test-di-omoschedasticità)
+   * [Test di multicollinearità](#test-di-multicollinearità)
+- [Rimozione outliers e LASSO](#rimozione-outliers-e-lasso)
+   * [Identificazione degli Outliers](#identificazione-degli-outliers)
+   * [Rimozione degli Outliers](#rimozione-degli-outliers)
+- [Confronto dei Modelli Prima e Dopo la Rimozione degli Outliers](#confronto-dei-modelli-prima-e-dopo-la-rimozione-degli-outliers)
+   * [Prima della Rimozione degli Outliers:](#prima-della-rimozione-degli-outliers)
+   * [Dopo la Rimozione degli Outliers:](#dopo-la-rimozione-degli-outliers)
+   * [Grafico di Influenza:](#grafico-di-influenza)
+      + [Visualizzazione Residui e Leverage Prima e Dopo la Rimozione degli Outliers](#visualizzazione-residui-e-leverage-prima-e-dopo-la-rimozione-degli-outliers)
+- [Implementazione del Modello LASSO per l'Ottimizzazione della Regressione](#implementazione-del-modello-lasso-per-lottimizzazione-della-regressione)
+   * [1. Preparazione e Valutazione del Modello di Regressione LASSO](#1-preparazione-e-valutazione-del-modello-di-regressione-lasso)
+      + [Allenamento modello LASSO](#allenamento-modello-lasso)
+   * [2. Valutazione Comparativa delle Previsioni: LASSO contro Modello Lineare](#2-valutazione-comparativa-delle-previsioni-lasso-contro-modello-lineare)
+   * [3. Valutazione delle Prestazioni del Modello](#3-valutazione-delle-prestazioni-del-modello)
+- [Calcolo delle Metriche di Valutazione  ](#calcolo-delle-metriche-di-valutazione)
+- [Analisi della Varianza (ANOVA) per Valutazione di Fattori Categorici](#analisi-della-varianza-anova-per-valutazione-di-fattori-categorici)
+   * [Analisi dell'Effetto della Variabile 'confID'](#analisi-delleffetto-della-variabile-confid)
+   * [Esame dell'Effetto della Variabile 'divID'](#esame-delleffetto-della-variabile-divid)
+- [Analisi degli Effetti di Interazione](#analisi-degli-effetti-di-interazione)
+   * [Costruzione del Modello con Effetti di Interazione](#costruzione-del-modello-con-effetti-di-interazione)
+   * [Selezione delle Interazioni Significative](#selezione-delle-interazioni-significative)
+   * [Rifinitura e Valutazione del Modello Finale](#rifinitura-e-valutazione-del-modello-finale)
+- [Esplorazione del Modello di Regressione di Poisson](#esplorazione-del-modello-di-regressione-di-poisson)
+   * [Costruzione del Modello di Poisson](#costruzione-del-modello-di-poisson)
+      + [Confronto dei Coefficienti dei Modelli Lineare e di Poisson](#confronto-dei-coefficienti-dei-modelli-lineare-e-di-poisson)
+      + [Considerazioni Generali:](#considerazioni-generali)
+- [Valutazione dei modelli mediante l'Akaike Information Criterion](#valutazione-dei-modelli-mediante-lakaike-information-criterion)
+- [Conclusioni e risultati](#conclusioni-e-risultati)
 
 ---
 
@@ -146,9 +150,6 @@ df <- dataset[dataset$lgID == "NBA" & dataset$year >= FIRST & dataset$year <= LA
 
 # Converti la colonna lgID in un fattore per consentire la generazione di variabili dummy
 dataset$lgID <- as.factor(dataset$lgID)
-
-# Stampiamo un riassunto statistico del dataframe filtrato
-# summary(df)
 
 ```
 
@@ -317,7 +318,7 @@ Nel nostro dataframe sono incluse variabili specifiche per analizzare in dettagl
 
 ### Densità variabili singole
 
-Gli istogrammi delle variabili (di cui abbiamo approssimato la curva di densità) che ora vediamo rappresentano la distribuzione dei dati per diverse variabili, mostrando la frequenza o la probabilità di osservazione entro intervalli specifici. Le curve di densità forniscono una stima continua della distribuzione di probabilità e sono spesso confrontate con una distribuzione normale, indicata da una linea rossa.
+Gli istogrammi delle variabili (di cui abbiamo approssimato la curva di densità) che ora vediamo rappresentano la distribuzione dei dati per diverse variabili, mostrando la frequenza o la probabilità di osservazione entro intervalli specifici. Le curve di densità forniscono una stima continua della distribuzione di probabilità e sono spesso confrontate con una distribuzione normale, indicata qui da una linea rossa.
 
 ```{r Plot densita per ogni variabile, echo = FALSE}
 
@@ -357,22 +358,22 @@ Dai grafici osservati, è possibile trarre conclusioni riguardo la normalità de
 
 ### Percentuale di valori non zero per ciascuna variabile di interesse
 
-Viene Calcolata la percentuale di valori non zero per ciascuna variabile di interesse all'interno del dataframe df_reb, serve per verificare ulteriormente la consistenza dei dati acqusiti.
+Viene calcolata la percentuale di valori non zero per ciascuna variabile di interesse all'interno del dataframe df_reb, serve per verificare ulteriormente la consistenza dei dati acquisiti. 
 ```{r Percentuale di valori non zero per ogni variabile, echo = FALSE}
 
 # Stampa percentuale di valori non zero per ciascuna variabile di interesse
-print(paste("Percentage non-zero o_oreb: ", round(length(which(df_reb$o_oreb > 0)) / dim(df_reb)[1] * 100, 2)))
-print(paste("Percentage non-zero o_dreb: ", round(length(which(df_reb$o_dreb > 0)) / dim(df_reb)[1] * 100, 2)))
-print(paste("Percentage non-zero o_reb: ", round(length(which(df_reb$o_reb > 0)) / dim(df_reb)[1] * 100, 2)))
-print(paste("Percentage non-zero d_oreb: ", round(length(which(df_reb$d_oreb > 0)) / dim(df_reb)[1] * 100, 2)))
-print(paste("Percentage non-zero d_dreb: ", round(length(which(df_reb$d_dreb > 0)) / dim(df_reb)[1] * 100, 2)))
-print(paste("Percentage non-zero d_reb: ", round(length(which(df_reb$d_reb > 0)) / dim(df_reb)[1] * 100, 2)))
+cat(paste("Percentuale di valori non-zero in o_oreb: ", round(length(which(df_reb$o_oreb > 0)) / dim(df_reb)[1] * 100, 2), "%\n",
+          "Percentuale di valori non-zero in o_dreb: ", round(length(which(df_reb$o_dreb > 0)) / dim(df_reb)[1] * 100, 2), "%\n",
+          "Percentuale di valori non-zero in o_reb: ", round(length(which(df_reb$o_reb > 0)) / dim(df_reb)[1] * 100, 2), "%\n",
+          "Percentuale di valori non-zero in d_oreb: ", round(length(which(df_reb$d_oreb > 0)) / dim(df_reb)[1] * 100, 2), "%\n",
+          "Percentuale di valori non-zero in d_dreb: ", round(length(which(df_reb$d_dreb > 0)) / dim(df_reb)[1] * 100, 2), "%\n",
+          "Percentuale di valori non-zero in d_reb: ", round(length(which(df_reb$d_reb > 0)) / dim(df_reb)[1] * 100, 2), "%", sep = ""))
 
 ```
 
 ### Heatmap
 
-Il grafico presentato è una combinazione di heatmap e dendrogramma. La heatmap è una rappresentazione visiva dei dati dove i valori individuali contenuti in una matrice sono rappresentati come colori. In questo caso, è probabile che i colori rappresentino l'intensità dei rimbalzi (offensivi e difensivi) di squadre sportive, mentre i dendrogrammi ai lati rappresentano una gerarchia di clustering basata sulla somiglianza delle prestazioni tra le squadre. Questo tipo di visualizzazione permette di identificare rapidamente modelli, come gruppi di squadre con prestazioni simili, e correlazioni tra i diversi tipi di rimbalzi.
+Il grafico presentato è una combinazione di heatmap e dendrogramma. La heatmap è una rappresentazione visiva dei dati dove i valori individuali contenuti in una matrice sono rappresentati come colori. In questo caso i colori rappresentino il numero totale dei rimbalzi (offensivi e difensivi) delle squadre, mentre i dendrogrammi ai lati rappresentano una gerarchia di clustering basata sulla somiglianza delle prestazioni tra le squadre. Questo tipo di visualizzazione permette di identificare rapidamente modelli, come gruppi di squadre con prestazioni simili, e correlazioni tra i diversi tipi di rimbalzi.
 
 ```{r Heatmap rimbalzi, warning = FALSE, message = FALSE, echo = FALSE}
 
@@ -724,11 +725,11 @@ summary(linMod)
 
 # Modello lineare normalizzato sul dataframe train
 
-### Normalizzazione
+## Normalizzazione
 
-La normalizzazione dei dati è una pratica fondamentale nell'elaborazione di modelli statistici, specialmente nei modelli lineari. Questo processo è volto a standardizzare la scala delle variabili, rendendo più agevole il confronto tra di esse e migliorando l'efficienza dell'algoritmo di regressione. In particolare, la normalizzazione è cruciale quando le variabili hanno scale molto diverse, poiché ciò potrebbe influenzare negativamente la precisione del modello.
+La normalizzazione dei dati rappresenta un passaggio cruciale nell'ambito dell'elaborazione di modelli statistici, in particolare nei contesti che impiegano modelli lineari. Questo procedimento ha l'obiettivo di uniformare le scale delle diverse variabili, facilitando così il loro confronto reciproco e incrementando l'efficacia dell'algoritmo di regressione lineare. La normalizzazione assume un'importanza particolare in situazioni dove le variabili presentano scale eterogenee; in assenza di normalizzazione, infatti, la variazione nelle scale può compromettere significativamente la precisione del modello.
 
-Nel codice R seguente, abbiamo normalizzato le variabili del nostro dataframe 'df', utilizzando la funzione `scale`. Questo assicura che ciascuna variabile contribuisca in modo equo al modello, permettendo una più accurata interpretazione dei coefficienti della regressione lineare.
+Nel seguente frammento di codice abbiamo eseguito la normalizzazione delle variabili all'interno dei nostri dataframe 'train' e 'test', facendo ricorso alla funzione `scale`. Ciò garantisce che ogni variabile apporti un contributo proporzionato all'interno del modello, consentendo un'interpretazione più precisa e accurata dei coefficienti derivanti dalla regressione lineare.
 
 ```{r, warning = FALSE}
 
@@ -762,7 +763,7 @@ linModNormalized <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z + f6_z + f7_z + f8
 
 ### Grafici
 
-I quattro grafici costituiscono un'esplorazione diagnostica del modello di regressione lineare applicato per analizzare la correlazione tra i rimbalzi (sia offensivi che difensivi) e le vittorie di una squadra di basket.
+I seguenti quattro grafici costituiscono un'esplorazione diagnostica del modello di regressione lineare applicato per analizzare la correlazione tra i rimbalzi (sia offensivi che difensivi) e le vittorie di una squadra di basket.
 
 1. Il primo grafico, denominato "Residui Standardizzati vs Valori Adattati", mette in luce la relazione tra i residui del modello e i valori predetti. La distribuzione casuale dei punti attorno all'asse orizzontale è un indicatore della qualità dell'adattamento del modello. La linea rossa tratteggiata offre un riferimento per identificare eventuali pattern sistematici nei residui che potrebbero suggerire non linearità, eteroscedasticità o punti influenti.
 
@@ -801,7 +802,7 @@ Ecco cosa possiamo dedurre da questi grafici:
 
 2. Il secondo grafico, il Q-Q plot, mostra una generale aderenza alla linea teorica, con alcune deviazioni evidenti nelle code. Queste deviazioni possono suggerire la presenza di outliers o che la distribuzione dei residui è leggermente asimmetrica, questioni che richiedono un'attenta valutazione.
 
-3. Nel terzo grafico, la dispersione non uniforme dei punti suggerisce che la varianza dei residui non è costante per tutti i valori predetti, un fenomeno noto come eteroscedasticità. Questo aspetto potrebbe essere mitigato attraverso trasformazioni dei dati o l'utilizzo di modelli più complessi che tengono conto di varianze eterogenee.
+3. Nel terzo grafico, che rappresenta la distribuzione dei residui, si osserva che i punti si allineano lungo una linea retta, indicando una distribuzione uniforme della varianza dei residui rispetto ai valori predetti. Questo è un segno di omoscedasticità, ovvero una condizione ideale in cui la varianza dei residui rimane costante attraverso l'intero intervallo dei valori predetti, suggerendo che il modello sta funzionando efficacemente senza la necessità di trasformazioni aggiuntive dei dati o l'impiego di modelli più complessi per gestire varianze non uniformi.
 
 4. Il quarto grafico mostra che la maggior parte delle osservazioni ha una distanza di Cook bassa, il che implica un impatto minimo sulla stima dei parametri del modello. Tuttavia, ci sono alcuni punti che superano la soglia suggerita, indicati con i numeri di osservazione, che potrebbero essere esaminati più a fondo per comprendere la loro potenziale influenza sulle previsioni del modello.
 
@@ -811,7 +812,7 @@ Ecco cosa possiamo dedurre da questi grafici:
 
 Il processo di test di un modello lineare è cruciale per assicurare la sua affidabilità e accuratezza. Questa fase prevede la valutazione di vari aspetti del modello, come l'adattamento dei dati, la normalità dei residui, l'omoschedasticità e la multicollinearità. Ognuno di questi test fornisce un'indicazione su come il modello si adatta ai dati e su eventuali problemi che potrebbero influenzarne le prestazioni.
 
-### Summary
+## Summary
 Per una comprensione immediata del modello, è utile visualizzare il riepilogo tramite `summary(linModNormalized)`. Questo fornisce dettagli sui coefficienti, la significatività statistica e altre metriche chiave.
 ```{r}
 
@@ -819,7 +820,7 @@ summary (linModNormalized)
 
 ```
 
-### R-quadrato
+## R-quadrato
 Il test R-quadrato misura la proporzione della varianza totale della variabile dipendente che viene spiegata dal modello di regressione. Un R-quadrato elevato indica che una grande parte della varianza nella variabile dipendente può essere spiegata dalle variabili indipendenti nel modello.  
 - **Range:** 0 a 1  
 - **Interpretazione:** 0 indica nessuna spiegazione della varianza da parte del modello. 1 indica una spiegazione completa della varianza da parte del modello.
@@ -831,7 +832,7 @@ cat("R-quadro:", r_squared, "\n")
 
 ```
 
-### R-quadrato Adattato
+## R-quadrato Adattato
 Il R-quadrato adattato modifica il R-quadrato per tenere conto del numero di predittori nel modello. È più affidabile per i modelli con molteplici variabili indipendenti, poiché penalizza la complessità aggiuntiva, fornendo una misura più realistica della bontà di adattamento.  
 - **Range:** Può essere negativo, ma generalmente 0 a 1  
 - **Interpretazione:** Valori più vicini a 1 indicano una migliore spiegazione della varianza, considerando il numero di predittori.
@@ -844,7 +845,7 @@ cat("R-quadro adattato:", adjusted_r_squared, "\n")
 
 ```
 
-### Test Shapiro
+## Test Shapiro
 Il test di Shapiro-Wilk sui residui è utilizzato per valutare la normalità dei residui in un modello di regressione lineare. La normalità dei residui è un'assunzione critica in molti test statistici. Se i residui non seguono una distribuzione normale, le inferenze sulle stime dei parametri potrebbero essere invalide.  
 - **Range:** 0 a 1  
 - **Interpretazione:** Valori più vicini a 1 suggeriscono una maggiore probabilità che i residui seguano una distribuzione normale.
@@ -854,7 +855,7 @@ shapiro.test(residuals(linModNormalized))
 
 ```
 
-### Test di omoschedasticità
+## Test di omoschedasticità
 Il test di Breusch-Pagan verifica l'assunzione di omoschedasticità (varianza costante) dei residui in un modello di regressione. La presenza di eteroschedasticità (varianza non costante) nei residui può portare a stime inefficaci e test statistici non affidabili.  
 - **Range:** 0 a $+\infty$  
 - **Interpretazione:** Valori più alti indicano una maggiore probabilità di eteroschedasticità. Si confronta il valore del test con un valore critico (ad es., da una distribuzione chi-quadrato) per determinare la significatività.
@@ -864,7 +865,7 @@ bptest(linModNormalized)
 
 ```
 
-### Test di multicollinearità
+## Test di multicollinearità
 Il test di multicollinearità verifica se esiste una correlazione elevata tra le variabili indipendenti in un modello di regressione lineare. La multicollinearità può causare problemi nella stima dei coefficienti del modello, rendendo difficili l'interpretazione e la significatività statistica delle variabili indipendenti. Strumenti comuni per rilevarla includono il fattore di inflazione della varianza (VIF) e l'indice di tolleranza.  
 - **Range del VIF:** 1 a $+\infty$  
 - **Interpretazione:** 1 indica assenza di multicollinearità. Valori superiori a 5 o 10 sono spesso considerati indicatori di multicollinearità significativa.
@@ -884,7 +885,7 @@ Parallelamente, tecniche di regolarizzazione come LASSO (Least Absolute Shrinkag
 
 Incorporando LASSO, possiamo quindi affrontare due problematiche fondamentali: la riduzione della complessità del modello e l'incremento dell'interpretabilità dei dati. La rimozione degli outliers, combinata con l'approccio selettivo di LASSO, è una strategia potente per migliorare la robustezza e l'efficacia del nostro modello lineare, ottimizzando la correlazione tra i rimbalzi e le vittorie.
 
-### Identificazione degli Outliers
+## Identificazione degli Outliers
 
 La prima fase nel perfezionamento del modello implica l'identificazione accurata degli outliers. Per questa operazione, adottiamo un grafico di influenza, uno strumento grafico che mette in evidenza le osservazioni che esercitano un'influenza eccessiva sulla stima dei parametri.
 
@@ -901,7 +902,7 @@ title(main = "Influence Plot - Modello 1", col.main = "blue", font.main = 4)
 
 ```
 
-Esaminando il grafico, si notano alcune osservazioni con cerchi di dimensioni maggiori, in particolare le osservazioni 957, 822 e 769, che hanno una distanza di Cook relativamente alta e quindi esercitano un'influenza maggiore sul modello rispetto ad altre osservazioni. Queste osservazioni dovrebbero essere esaminate attentamente, poiché la loro rimozione o la correzione dei dati sottostanti potrebbe significativamente alterare i coefficienti stimati nel modello di regressione.
+Esaminando il grafico, si notano alcune osservazioni con cerchi di dimensioni maggiori che hanno una distanza di Cook relativamente alta e quindi esercitano un'influenza maggiore sul modello rispetto ad altre osservazioni. Queste osservazioni dovrebbero essere esaminate attentamente, poiché la loro rimozione o la correzione dei dati sottostanti potrebbe significativamente alterare i coefficienti stimati nel modello di regressione.
 
 Valutiamo i residui rispetto ai valori predetti e definiamo come outliers quegli osservazioni la cui deviazione dalla media supera un limite prefissato, che in questo contesto è stabilito a due deviazioni standard.
 
@@ -920,7 +921,7 @@ outliers
 
 ```
 
-### Rimozione degli Outliers
+## Rimozione degli Outliers
 
 Identificati gli outliers, procediamo con la loro esclusione dal dataset utilizzato per l'addestramento del modello. Tale rimozione mira a migliorare la robustezza e la generalizzabilità del modello.
 
@@ -938,11 +939,11 @@ if (length(outliers) != 0) {
 
 ```
 
-### Confronto dei Modelli Prima e Dopo la Rimozione degli Outliers
+# Confronto dei Modelli Prima e Dopo la Rimozione degli Outliers
 
 Il confronto tra i modelli prima e dopo l'eliminazione degli outliers è vitale per valutare l'efficacia di questo intervento. Analizziamo i riepiloghi statistici del modello per discernere le variazioni nelle performance.
 
-### Prima della Rimozione degli Outliers:
+## Prima della Rimozione degli Outliers:
   Si esamina il sommario del modello originale per stabilire un benchmark delle prestazioni.
 
 ```{r Grafici outliers, echo=FALSE, message=FALSE, warning=FALSE}
@@ -952,7 +953,7 @@ summary(linModNormalized)
 
 ```
 
-### Dopo la Rimozione degli Outliers:
+## Dopo la Rimozione degli Outliers:
   Una volta esclusi gli outliers, ricostruiamo il modello e esaminiamo nuovamente il grafico di influenza per osservare come l'eliminazione abbia modificato l'impatto delle osservazioni sui parametri stimati.
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
@@ -964,7 +965,7 @@ summary(linModNormalized_1)
 
 ```
 
-### Grafico di Influenza:
+## Grafico di Influenza:
 
 La metodologia è identica a quella del primo grafico, ma le osservazioni qui rappresentate possono essere differenti a causa delle variazioni nei dati o nei coefficienti inclusi in questo secondo modello. Di nuovo, i cerchi più grandi rappresentano una maggiore distanza di Cook e quindi una maggiore influenza sull'adattamento del modello.
 
@@ -981,15 +982,24 @@ title(main = "Influence Plot - Modello 2", col.main = "blue", font.main = 4)
 
 ```
 
-In questo grafico, l'osservazione 769 si distingue nuovamente come la più influente, indicando che questo punto dati è particolarmente critico per entrambi i modelli di regressione. Altre osservazioni, come le 693 e 1206, mostrano anche un'alta influenza ma in misura minore rispetto al modello addestrato con gli outliers.
+In questo grafico, si nota che alcune osservazioni continuano ad esercitare una certa influenza significativa sul modello di regressione. Tuttavia, una volta rimossi la maggior parte degli outliers, si osserva che molti più valori presentano una distanza di Cook minore o simile tra di loro, indicando una maggiore omogeneità nell'influenza esercitata dalle diverse osservazioni sul modello. Questo suggerisce che la rimozione degli outliers contribuisce a una maggiore stabilità e affidabilità del modello di regressione.
 
-### Visualizzazione Residui e Leverage
+### Visualizzazione Residui e Leverage Prima e Dopo la Rimozione degli Outliers
+
 Questo blocco di codice utilizza la funzione `ols_plot_resid_lev` per visualizzare la relazione tra i residui e il leverage per entrambi i modelli lineari. I due grafici rappresentano una comparativa diagnostica dei residui standardizzati rispetto al leverage per due versioni di un modello di regressione lineare: il primo prima della rimozione degli outliers e il secondo dopo tale processo. Questi grafici sono strumenti essenziali per valutare la presenza e l'impatto di outliers e punti ad alto leverage sulla stima dei parametri del modello. La soglia di leverage è indicata da una linea verticale rossa, e i punti sono colorati diversamente per indicare se sono normali, outliers, punti ad alto leverage, o una combinazione di queste caratteristiche.
+
+- Grafico prima della rimozione outliers
 
 ```{r, warning=FALSE, echo = FALSE}
 
 # Visualizza il grafico dei residui rispetto ai livelli per il modello lineare normalizzato linModNormalized
 ols_plot_resid_lev(linModNormalized)
+
+```
+
+- Grafico dopo la rimozione outliers
+
+```{r, warning = FALSE, echo = FALSE}
 
 # Visualizza il grafico dei residui rispetto ai livelli per il modello lineare normalizzato linModNormalized_1
 ols_plot_resid_lev(linModNormalized_1)
@@ -998,15 +1008,11 @@ ols_plot_resid_lev(linModNormalized_1)
 
 Esaminando i due grafici, è evidente che il secondo modello presenta meno osservazioni con alto leverage, come dimostrato dalla riduzione dei punti che superano la soglia di leverage. Ciò suggerisce che la rimozione degli outliers ha avuto l'effetto desiderato di ridurre l'influenza di osservazioni atipiche e potenzialmente distorsive sul modello di regressione.
 
-### Risultati
-
-Entrambi i modelli mostrano prestazioni simili, spiegando circa l'84% della varianza nella variabile dipendente "won". Tuttavia, la rimozione degli outliers ha leggermente migliorato i risultati.
-
 # Implementazione del Modello LASSO per l'Ottimizzazione della Regressione
 
 Il modello LASSO (Least Absolute Shrinkage and Selection Operator) viene utilizzato per migliorare la qualità predittiva e l'interpretabilità di modelli di regressione statistica attraverso la selezione di variabili e la regolarizzazione. Il suo impiego è particolarmente vantaggioso per affrontare problemi di overfitting e per identificare i predittori più rilevanti, consentendo al modello di mantenere robustezza e precisione anche su dati non inclusi nella fase di addestramento.
 
-### 1. Preparazione e Valutazione del Modello di Regressione LASSO
+## 1. Preparazione e Valutazione del Modello di Regressione LASSO
 
 Per implementare il modello LASSO, seguiamo un processo meticoloso che inizia con la definizione chiara della variabile risposta e la selezione accurata delle variabili predittive. Procediamo quindi con una cross-validation k-fold, un metodo rigoroso per determinare il valore ottimale del parametro di regolarizzazione lambda, che equilibra complessità e capacità predittiva del modello.
 
@@ -1043,12 +1049,6 @@ print(paste("Lambda migliore:", round(best_lambda, digits = 4)))
 
 ### Allenamento modello LASSO
 
-```{r, warning=FALSE}
-# Allenamento del modello LASSO con il parametro lambda identificato
-cv_model <- cv.glmnet(x, y)
-```
-
-
 Dopo aver individuato il valore di lambda che minimizza l'errore quadratico medio, procediamo all'addestramento del modello LASSO. Esaminiamo i coefficienti risultanti per valutare l'importanza assegnata a ciascuna variabile predittiva, offrendo così una visione quantitativa dell'impatto di ogni feature sulle vittorie della squadra.
 
 ```{r, warning = FALSE}
@@ -1064,7 +1064,7 @@ summary(linModNormalized_1)
 
 ```
 
-### 2. Valutazione Comparativa delle Previsioni: LASSO contro Modello Lineare
+## 2. Valutazione Comparativa delle Previsioni: LASSO contro Modello Lineare
 
 Il confronto delle previsioni generate dal modello LASSO e da un modello lineare classico ci permette di valutare l'efficacia di ciascun approccio nel contesto specifico dei nostri dati. Utilizziamo i dati di test per misurare la precisione predittiva e confrontiamo le metriche chiave come l'errore quadratico medio (RMSE) e le performance di classificazione.
 
@@ -1082,15 +1082,11 @@ prevLM <- predict(linModNormalized_1, newdata = new)
 
 ```
 
-Confrontando i risultati ottenuti dai due modelli, possiamo apprezzare l'efficacia del LASSO nell'affrontare la complessità e il potenziale overfitting. La selezione di variabili intrinseca al LASSO si rivela particolarmente utile quando il numero di predittori è elevato rispetto al numero di osservazioni. Questo approccio non solo semplifica il modello, riducendo i predittori ai soli fattori significativi, ma migliora anche la chiarezza interpretativa dei risultati, un aspetto fondamentale nella comunicazione delle scoperte a un pubblico più ampio.
-
-In sintesi, il modello LASSO offre un equilibrio ottimale tra complessità del modello e capacità predittiva, rendendolo uno strumento prezioso nella nostra analisi statistica.
-
-### 3. Valutazione delle Prestazioni del Modello
+## 3. Valutazione delle Prestazioni del Modello
 Confrontiamo le prestazioni di entrambi i modelli (LASSO e lineare) attraverso diverse metriche.
 
-- Calcolo del RMS (Root Mean Square)  
-Questi blocchi di codice calcolano il RMS, una misura dell'errore di previsione, per il modello LASSO e il modello lineare (LM). Il RMS fornisce una stima dell'errore quadratico medio tra i valori previsti e i valori reali.
+- Calcolo del RMSE (Root Mean Square Error)  
+Questi blocchi di codice calcolano il RMSE, una misura dell'errore di previsione, per il modello LASSO e il modello lineare (LM). Il RMSE fornisce una stima dell'errore quadratico medio tra i valori previsti e i valori reali.
 ```{r}
 
 # Calcolo dell'Errore Quadratico Medio (RMSE) per il modello Lasso
@@ -1115,7 +1111,8 @@ confMatrix <- table(prev, test$won)
 
 ```
 
-### Calcolo delle Metriche di Valutazione  
+# Calcolo delle Metriche di Valutazione  
+
 Calcoliamo diverse metriche di valutazione come l'accuratezza (accuracy), la precisione (precision), la sensibilità (sensitivity), l'F-score e la specificità (specificity). Queste metriche forniscono una valutazione complessiva dell'efficacia del modello.
 
 Ecco come interpretarle:
@@ -1147,29 +1144,33 @@ sensitivity <- confMatrix[4] / sum(confMatrix[4], confMatrix[3])
 fscore <- (2 * (sensitivity * precision)) / (sensitivity + precision)
 specificity <- confMatrix[1] / sum(confMatrix[1], confMatrix[2])
 
+# Gli RMSE rispettivamente del modello normalizato e del LASSO li abbiamo calcolati sopra
+
 ```
 
 ```{r, echo = FALSE}
 
-# Visualizza i Risultati
-print(paste("Accuratezza:", round(accuracy, digits = 4)))
-print(paste("Precisione:", round(precision, digits = 4)))
-print(paste("Sensibilità:", round(sensitivity, digits = 4)))
-print(paste("F-Score:", round(fscore, digits = 4)))
-print(paste("Specificità:", round(specificity, digits = 4)))
-
-# Confronto tra RMS
-print(paste("RMS Lasso:", round(rmsLasso, digits = 4)))
-print(paste("RMS Modello Lineare:", round(rmsLM, digits = 4)))
+cat(paste("Accuratezza: ", round(accuracy * 100, digits = 4), "%\n",
+          "Precisione: ", round(precision * 100, digits = 4), "%\n",
+          "Sensibilità: ", round(sensitivity * 100, digits = 4), "%\n",
+          "F-Score: ", round(fscore * 100, digits = 4), "%\n",
+          "Specificità: ", round(specificity * 100, digits = 4), "%\n",
+          "RMS Lasso: ", round(rmsLasso, digits = 4), "\n",
+          "RMS Modello Lineare: ", round(rmsLM, digits = 4), sep = ""))
 
 ```
+
+Confrontando i risultati ottenuti dai due modelli, possiamo apprezzare l'efficacia del LASSO nell'affrontare la complessità e il potenziale overfitting. La selezione di variabili intrinseca al LASSO si rivela particolarmente utile quando il numero di predittori è elevato rispetto al numero di osservazioni. Questo approccio non solo semplifica il modello, riducendo i predittori ai soli fattori significativi, ma migliora anche la chiarezza interpretativa dei risultati, un aspetto fondamentale nella comunicazione delle scoperte a un pubblico più ampio.
+
+In sintesi, il modello LASSO offre un equilibrio ottimale tra complessità del modello e capacità predittiva, rendendolo uno strumento prezioso nella nostra analisi statistica.
+
 ---
 
 # Analisi della Varianza (ANOVA) per Valutazione di Fattori Categorici
 
 L'analisi della varianza (ANOVA) è un metodo statistico utilizzato per testare le differenze tra le medie di diverse categorie e può essere particolarmente utile per valutare l'impatto di variabili categoriche su una variabile di risposta continua. In questo segmento del report, eseguiamo il test ANOVA per determinare l'efficacia di due variabili categoriche, 'confID' e 'divID', come predittori delle vittorie.
 
-### Analisi dell'Effetto della Variabile 'confID'
+## Analisi dell'Effetto della Variabile 'confID'
 Per iniziare, esploriamo l'influenza della variabile 'confID', che rappresenta la conferenza a cui appartiene una squadra, sulla variabile dipendente 'won', che indica il numero di vittorie.
 
 ```{r}
@@ -1185,7 +1186,7 @@ if (resp_conf["confID", "Pr(>F)"] < 0.05) {
 
 ```
 
-### Esame dell'Effetto della Variabile 'divID'
+## Esame dell'Effetto della Variabile 'divID'
 Successivamente, esaminiamo il potenziale impatto della variabile 'divID', che designa la divisione di una squadra, sempre sulla variabile 'won'.
 
 ```{r}
@@ -1208,7 +1209,7 @@ if (resp_div["divID", "Pr(>F)"] < 0.05) {
 
 Nella modellizzazione statistica, gli effetti di interazione tra variabili possono rivelare dinamiche complesse e influenze reciproche che non sono apprezzabili quando le variabili sono considerate isolatamente. Questa sezione è dedicata alla costruzione di un modello lineare che incorpora tali effetti di interazione, permettendo di comprendere meglio come le combinazioni di fattori influenzino il numero di vittorie.
 
-### Costruzione del Modello con Effetti di Interazione
+## Costruzione del Modello con Effetti di Interazione
 La decisione di includere gli effetti di interazione nel modello dipende dall'analisi preliminare svolta sulla variabile `div`. Se `div` si rivela significativa, la includeremo nel modello; in caso contrario, la escluderemo.
 
 ```{r}
@@ -1225,7 +1226,8 @@ riassunto <- summary(linModNormalized_2)
 
 ```
 
-### Selezione delle Interazioni Significative
+## Selezione delle Interazioni Significative
+
 Una volta costruito il modello, procediamo all'identificazione delle interazioni significative. Utilizziamo i p-value per determinare quali effetti di interazione meritano di essere inclusi nel modello. Nel caso di questa analisi abbiamo verificato la significativita' delle interazioni 'f4_z:divID' e 'f1_z:f2_z', in quanto vogliamo analizzare se l'efficienza netta dei rimbalzi (Formula 4) ha un' interazione con la divisione, e se l'efficienza nel rimbalzo offensivo (Formula 1) ha un' interazione con la capacita' della squadra nel recuperare rimbalzi difensivi (Formula 2).
 
 ```{r}
@@ -1273,7 +1275,8 @@ formula_significativa <- as.formula(paste("won ~", paste(variabili, collapse = "
 
 L'analisi dettagliata degli effetti di interazione ci permette di affinare il modello lineare, migliorando la nostra comprensione di come le variabili interagiscono tra loro e il loro impatto collettivo sulle vittorie. La selezione attenta di queste interazioni è fondamentale, poiché modella la realtà di come i fattori di gioco si influenzano reciprocamente in maniere non sempre intuitivamente prevedibili.
 
-### Rifinitura e Valutazione del Modello Finale
+## Rifinitura e Valutazione del Modello Finale
+
 Dopo aver selezionato gli effetti di interazione rilevanti, rifiniamo il modello includendo solo quelle interazioni che hanno dimostrato una significatività statistica, portando a un modello più snello e potenzialmente più potente.
 
 ```{r}
@@ -1285,6 +1288,7 @@ linModNormalized_2 <- lm(formula_significativa, data = train_1)
 summary(linModNormalized_2)
 
 ```
+
 ```{r}
 
 # Calcolare il summary del modello lineare
@@ -1303,13 +1307,14 @@ adjusted_r_squared_LM_2 <- 1 - ((1 - r_squared_LM_2) * (n - 1) / (n - k - 1))
 cat("R-quadrato adattato LM_2:", adjusted_r_squared_LM_2, "\n")
 
 ```
+
 ---
 
 # Esplorazione del Modello di Regressione di Poisson
 
 Nell'ambito degli studi statistici, la regressione di Poisson può offrire una prospettiva alternativa e talvolta più adeguata per la modellazione di variabili di conteggio, come il numero di vittorie in un contesto sportivo. Pertanto, esploriamo la possibilità di utilizzare un modello di regressione generalizzata di Poisson per confrontare la sua efficacia con quella del modello lineare già sviluppato.
 
-### Costruzione del Modello di Poisson
+## Costruzione del Modello di Poisson
 Il modello di Poisson è particolarmente adatto per dati che descrivono il conteggio di eventi che si verificano in uno spazio o in un intervallo di tempo definiti. In questo caso, il numero di vittorie può essere adatto per tale modellizzazione, presupponendo che i dati si conformino alla distribuzione di Poisson.
 
 ```{r}
@@ -1340,9 +1345,11 @@ coefficients_table
 ### Considerazioni Generali:
 È importante notare che gli effetti delle variabili possono essere interpretati in modo diverso a seconda della distribuzione scelta per il modello. La scelta tra distribuzione normale e di   Poisson dipende dalla natura della variabile dipendente e dagli obiettivi di modellazione. Nel contesto di modelli di regressione, è sempre buona pratica verificare l'adeguatezza del   modello esaminando i residui, eseguendo test diagnostici e valutando la bontà di adattamento. L'interpretazione dei coefficienti dovrebbe essere fatta considerando la scala appropriata per    la distribuzione utilizzata (lineare per la normale, logaritmica per la Poisson). Dato che stiamo cercando di prevedere il numero di vittorie, la distribuzione di Poisson potrebbe essere più appropriata per variabili conteggio come questa. Tuttavia, è sempre necessario verificare l'adeguatezza del modello ai dati specifici.
 
-### Valutazione dei modelli mediante l'Akaike Information Criterion
-Possiamo valutare la bonta dei due modelli mediante il valore di AIC:
-Acronimo di Akaike Information Criterion, è una misura utilizzata in statistica per valutare la bontà di un modello statistico; L'obiettivo dell'AIC è trovare un compromesso tra la bontà di adattamento del modello ai dati e la sua complessità, cercando di selezionare il modello migliore in termini di previsione. E' preferibile un modello con AIC piu basso.
+# Valutazione dei modelli mediante l'Akaike Information Criterion
+
+La valutazione della qualità dei due modelli statistici, il modello lineare e quello di Poisson, può essere effettuata attraverso il Criterio di Informazione di Akaike (AIC). L'AIC è una metrica statistica volta a bilanciare la bontà di adattamento di un modello ai dati con la sua complessità. L'obiettivo è selezionare il modello che offre le migliori previsioni con la minima complessità. Generalmente, un valore di AIC più basso indica un modello preferibile.
+
+Un punteggio AIC più basso indica generalmente un modello più preferibile, poiché suggerisce un equilibrio ottimale tra un buon adattamento ai dati e una minore complessità del modello. Non esiste un "range" specifico che definisca un buon valore AIC in termini assoluti, poiché il suo valore dipende dalla scala dei dati e dalla natura del modello. Una differenza di 2 o più punti AIC è spesso considerata sostanziale, indicando una preferenza significativa per il modello con il valore AIC inferiore.
 
 ```{r}
 
@@ -1352,26 +1359,40 @@ aic_2 <- AIC(linModNormalized_2)
 # Calcola il criterio di informazione di Akaike (AIC) per il modello di Poisson
 aic_2_pois <- AIC(linModNormalized_2_pois)
 
+```
+
+```{r, echo = FALSE}
 # Stampa i risultati AIC
-cat("AIC per il modello lineare (linModNormalized_2):", aic_2, "\n")
-cat("AIC per il modello di Poisson (linModNormalized_2_pois):", aic_2_pois, "\n")
+cat("AIC per il modello lineare (linModNormalized_2): ", round(aic_2, digits = 4), "\n",
+    "AIC per il modello di Poisson (linModNormalized_2_pois): ", round(aic_2_pois, digits = 4), "\n", sep = "")
 
 ```
-Pertanto, il modello lineare (linModNormalized_2) sembra essere migliore rispetto al modello di Poisson (linModNormalized_2_pois), poiché ha un valore AIC inferiore. La differenza tra i due valori AIC può essere ulteriormente considerata per valutare quanto il modello lineare sia significativamente migliore rispetto al modello di Poisson.
+
+La comparazione dei valori di AIC ci consente di determinare quale modello sia più efficace. In questo caso specifico, il modello lineare (linModNormalized_2) presenta un valore AIC inferiore rispetto al modello di Poisson (linModNormalized_2_pois), indicando una migliore performance in termini di equilibrio tra adattamento ai dati e complessità del modello. La discrepanza tra i valori AIC dei due modelli fornisce ulteriori indicazioni sull'efficacia relativa del modello lineare rispetto a quello di Poisson.
 
 ---
 
-# Conclusioni
+# Conclusioni e risultati
 
-Nel corso di questo studio sull'influenza dei rimbalzi rispetto alle vittorie nel campionato di basket NBA, abbiamo implementato e confrontato diversi modelli statistici. Inizialmente, il processo di normalizzazione e la rimozione degli outliers hanno portato alla creazione di un modello lineare iniziale, seguito da un modello Lasso basato sui dati di training. Il modello Lasso ha dimostrato una maggiore efficacia, incoraggiando il suo utilizzo come modello preferito.
+Nel corso di questo studio sull'influenza dei rimbalzi rispetto alle vittorie nel campionato di basket NBA, abbiamo implementato e confrontato diversi modelli statistici. Inizialmente, i processi di normalizzazione e la rimozione degli outliers hanno portato alla creazione di un modello lineare iniziale, seguito da un modello Lasso basato sui dati di training. Il modello Lasso ha dimostrato una maggiore efficacia, incoraggiando il suo utilizzo come modello preferito.
 
 Successivamente, attraverso un'analisi delle variabili, abbiamo identificato il modello finale linModNormalized_2, che include interazioni significative tra le variabili e tiene conto dell'impatto della Divisione sulle vittorie. Questo modello ha mostrato un notevole miglioramento delle metriche di adattamento rispetto al modello iniziale, evidenziando la sua robustezza nell'esplorare le relazioni sottostanti nei dati.
 
-Inoltre, l'analisi delle metriche di adattamento del modello lineare finale linModNormalized_2 ha confermato la sua efficacia, con valori più elevati di R@ e R2adjusted rispetto al modello iniziale basato solo sui dati di training (senza outliers). Questi risultati supportano la scelta del modello linModNormalized_2 come modello preferito per spiegare la variazione nei dati.
+Inoltre, l'analisi delle metriche di adattamento del modello lineare finale linModNormalized_2 ha confermato la sua efficacia, con valori più elevati di R2 e R2-adattato rispetto al modello iniziale basato solo sui dati di training (senza outliers). Questi risultati supportano la scelta del modello linModNormalized_2 come modello preferito per spiegare la variazione nei dati.
 
 Infine, il confronto dei modelli è stato esteso all'analisi della differenza tra un modello lineare e un modello di Poisson attraverso il criterio di informazione di Akaike (AIC). I risultati dell'AIC hanno indicato che il modello lineare (linModNormalized_2) è preferibile al modello di Poisson (linModNormalized_2_pois), suggerendo che il primo si adatti meglio alla variabilità delle vittorie in relazione ai rimbalzi.
 
 In conclusione, il processo analitico ha permesso di identificare e validare un modello lineare finale che si adatta bene ai dati e offre una migliore comprensione della relazione tra rimbalzi e vittorie nel contesto del campionato NBA.
+
+Riassumendo quindi i risultati che abbiamo ottenuto possiamo evidenziare 3 punti fondamentali del nostro studio:
+
+1. **Importanza dei Rimbalzi nel Basket**: Il modello lineare ha dimostrato che esiste una correlazione positiva tra il numero di rimbalzi e le vittorie delle squadre. Ciò suggerisce che le squadre che eccellono nel rimbalzo tendono a ottenere migliori prestazioni in termini di vittorie. Questo risultato sottolinea l'importanza strategica dei rimbalzi nel gioco del basket, incoraggiando le squadre a focalizzarsi su questa area durante gli allenamenti e le strategie di gioco.
+
+2.**Effetti dei Rimbalzi Offensivi e Difensivi**: Analizzando separatamente i rimbalzi offensivi e difensivi, il modello ha rivelato che entrambi contribuiscono significativamente alle prestazioni della squadra, sebbene in misura diversa. I rimbalzi difensivi sembrano avere un impatto leggermente maggiore sulle vittorie rispetto a quelli offensivi. Questo può guidare gli allenatori a enfatizzare la difesa del canestro e il controllo del tabellone difensivo come elementi chiave per il successo della squadra.
+
+3. **Strategie di Gioco e Formazione della Squadra**: Questi risultati possono influenzare le decisioni relative alla formazione della squadra e alle strategie di gioco. Ad esempio, squadre con un basso numero di rimbalzi potrebbero considerare l'introduzione di giocatori più forti nel rimbalzo o modificare le loro tattiche di gioco per migliorare in questa area. Inoltre, l'allenamento potrebbe essere più focalizzato su esercizi che migliorano la capacità di rimbalzo e la posizione sotto il canestro.
+
+Mentre il modello fornisce intuizioni importanti, è essenziale riconoscere le sue limitazioni. Altri fattori, come le capacità di tiro, la difesa, e la strategia di squadra, giocano anch'essi un ruolo cruciale nelle prestazioni complessive. Future analisi potrebbero esplorare l'interazione tra rimbalzi e altri aspetti del gioco per fornire una comprensione ancora più completa delle dinamiche del basket professionistico.
 
 ---
 
