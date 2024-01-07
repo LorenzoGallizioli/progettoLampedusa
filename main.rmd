@@ -1163,6 +1163,7 @@ print(paste("RMS Lasso:", round(rmsLasso, digits = 4)))
 print(paste("RMS Modello Lineare:", round(rmsLM, digits = 4)))
 
 ```
+---
 
 # Analisi della Varianza (ANOVA) per Valutazione di Fattori Categorici
 
@@ -1302,6 +1303,7 @@ adjusted_r_squared_LM_2 <- 1 - ((1 - r_squared_LM_2) * (n - 1) / (n - k - 1))
 cat("R-quadrato adattato LM_2:", adjusted_r_squared_LM_2, "\n")
 
 ```
+---
 
 # Esplorazione del Modello di Regressione di Poisson
 
@@ -1338,7 +1340,9 @@ coefficients_table
 ### Considerazioni Generali:
 È importante notare che gli effetti delle variabili possono essere interpretati in modo diverso a seconda della distribuzione scelta per il modello. La scelta tra distribuzione normale e di   Poisson dipende dalla natura della variabile dipendente e dagli obiettivi di modellazione. Nel contesto di modelli di regressione, è sempre buona pratica verificare l'adeguatezza del   modello esaminando i residui, eseguendo test diagnostici e valutando la bontà di adattamento. L'interpretazione dei coefficienti dovrebbe essere fatta considerando la scala appropriata per    la distribuzione utilizzata (lineare per la normale, logaritmica per la Poisson). Dato che stiamo cercando di prevedere il numero di vittorie, la distribuzione di Poisson potrebbe essere più appropriata per variabili conteggio come questa. Tuttavia, è sempre necessario verificare l'adeguatezza del modello ai dati specifici.
 
-Possiamo valutare la bonta dei due modelli mediante il valore di AIC (gia visto sopra).
+### Valutazione dei modelli mediante l'Akaike Information Criterion
+Possiamo valutare la bonta dei due modelli mediante il valore di AIC:
+Acronimo di Akaike Information Criterion, è una misura utilizzata in statistica per valutare la bontà di un modello statistico; L'obiettivo dell'AIC è trovare un compromesso tra la bontà di adattamento del modello ai dati e la sua complessità, cercando di selezionare il modello migliore in termini di previsione. E' preferibile un modello con AIC piu basso.
 
 ```{r}
 
@@ -1353,7 +1357,7 @@ cat("AIC per il modello lineare (linModNormalized_2):", aic_2, "\n")
 cat("AIC per il modello di Poisson (linModNormalized_2_pois):", aic_2_pois, "\n")
 
 ```
-Pertanto, il modello lineare (aic_2) sembra essere migliore rispetto al modello di Poisson (aic_2_pois), poiché ha un valore AIC inferiore. La differenza tra i due valori AIC può essere ulteriormente considerata per valutare quanto il modello lineare sia significativamente migliore rispetto al modello di Poisson.
+Pertanto, il modello lineare (linModNormalized_2) sembra essere migliore rispetto al modello di Poisson (linModNormalized_2_pois), poiché ha un valore AIC inferiore. La differenza tra i due valori AIC può essere ulteriormente considerata per valutare quanto il modello lineare sia significativamente migliore rispetto al modello di Poisson.
 
 ---
 
@@ -1365,8 +1369,15 @@ Successivamente, attraverso un'analisi delle variabili, abbiamo identificato il 
 
 Inoltre, l'analisi delle metriche di adattamento del modello lineare finale linModNormalized_2 ha confermato la sua efficacia, con valori più elevati di R@ e R2adjusted rispetto al modello iniziale basato solo sui dati di training (senza outliers). Questi risultati supportano la scelta del modello linModNormalized_2 come modello preferito per spiegare la variazione nei dati.
 
-Infine, il confronto dei modelli è stato esteso all'analisi della differenza tra un modello lineare e un modello di Poisson attraverso il criterio di informazione di Akaike (AIC). I risultati dell'AIC hanno indicato che il modello lineare (aic_2) è preferibile al modello di Poisson (aic_2_pois), suggerendo che il primo si adatti meglio alla variabilità delle vittorie in relazione ai rimbalzi.
+Infine, il confronto dei modelli è stato esteso all'analisi della differenza tra un modello lineare e un modello di Poisson attraverso il criterio di informazione di Akaike (AIC). I risultati dell'AIC hanno indicato che il modello lineare (linModNormalized_2) è preferibile al modello di Poisson (linModNormalized_2_pois), suggerendo che il primo si adatti meglio alla variabilità delle vittorie in relazione ai rimbalzi.
 
 In conclusione, il processo analitico ha permesso di identificare e validare un modello lineare finale che si adatta bene ai dati e offre una migliore comprensione della relazione tra rimbalzi e vittorie nel contesto del campionato NBA.
+
+---
+
+
+
+
+
 
 
