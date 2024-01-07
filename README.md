@@ -97,5 +97,3 @@ Questo progetto mira a applicare tecniche avanzate di regressione lineare e gene
 - **Innovazione nei Modelli Statistici**: Esplorazione e confronto di diversi approcci statistici, come la regressione lineare e la regressione di Poisson, per determinare il modello più efficace nel catturare le complessità e le sfumature delle prestazioni delle squadre NBA.
 - **Focus sulle Variabili Chiave**: Analisi dettagliata dell'impatto di variabili specifiche, come rimbalzi, furti e blocchi, per comprendere meglio il loro effetto sulle vittorie delle squadre, sfruttando tecniche come l'analisi ANOVA e l'esame di variabili categoriche.
 - **Valutazione Critica e Sviluppo di Strategie**: Utilizzo dei risultati dell'analisi per formulare raccomandazioni strategiche per le squadre NBA, incluse tattiche di gioco e potenziali aree di miglioramento basate sui dati analizzati.
-=======
->>>>>>> bdf4a8b91f169ca9e704df7586826bfe1e9b4c24
