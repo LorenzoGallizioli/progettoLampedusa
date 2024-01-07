@@ -7,7 +7,7 @@ output:
   pdf_document:
     latex_engine: xelatex
   word_document: default
-author: "Bonsembiante Davide, Fumagalli Uriel, Gallizioli Lorenzo, Paganelli Thomas"
+author: "Bonsembiante Davide [1086863], Fumagalli Uriel [1085169], Gallizioli Lorenzo [1087404], Paganelli Thomas [1085805]"
 abstract: "Questo documento rappresenta un'approfondita analisi statistica nel campo del basket professionistico, con un focus specifico sulle prestazioni delle squadre NBA. Utilizzando metodi statistici avanzati, si esplorano diverse metriche chiave per comprendere meglio le dinamiche del gioco e i fattori che influenzano il successo delle squadre."
 editor_options: 
   markdown: 
