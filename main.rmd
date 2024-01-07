@@ -70,7 +70,7 @@ editor_options:
     - [Costruzione del Modello con Effetti di Interazione](#costruzione-del-modello-con-effetti-di-interazione)
     - [Selezione delle Interazioni Significative](#selezione-delle-interazioni-significative)
     - [Rifinitura e Valutazione del Modello Finale](#rifinitura-e-valutazione-del-modello-finale)
-    - [Esplorazione del Modello di Regressione di Poisson](#esplorazione-del-modello-di-regressione-di-poisson)
+  - [Esplorazione del Modello di Regressione di Poisson](#esplorazione-del-modello-di-regressione-di-poisson)
     - [Costruzione del Modello di Poisson](#costruzione-del-modello-di-poisson)
     - [Confronto dei Coefficienti dei Modelli Lineare e di Poisson](#confronto-dei-coefficienti-dei-modelli-lineare-e-di-poisson)
 - [Considerazioni Generali:](#considerazioni-generali)
@@ -1163,6 +1163,7 @@ print(paste("RMS Lasso:", round(rmsLasso, digits = 4)))
 print(paste("RMS Modello Lineare:", round(rmsLM, digits = 4)))
 
 ```
+---
 
 # Analisi della Varianza (ANOVA) per Valutazione di Fattori Categorici
 
@@ -1214,18 +1215,18 @@ La decisione di includere gli effetti di interazione nel modello dipende dall'an
 
 # Verifica del valore di 'div' per costruire il modello appropriato
 if (div) {
-  linModNormalized1 <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z + f6_z + f7_z + f8_z + f9_z + f10_z + divID + f1_z:f2_z + f4_z:divID, data = train_1)
+  linModNormalized_2 <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z + f6_z + f7_z + f8_z + f9_z + f10_z + divID + f1_z:f2_z + f4_z:divID, data = train_1)
 } else {
-  linModNormalized1 <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z + f6_z + f7_z + f8_z + f9_z + f10_z + f1_z:f2_z + f4_z:divID, data = train_1)
+  linModNormalized_2 <- lm(won ~ f1_z + f2_z + f3_z + f4_z + f5_z + f6_z + f7_z + f8_z + f9_z + f10_z + f1_z:f2_z + f4_z:divID, data = train_1)
 }
 
 # Estrazione del riassunto del modello
-riassunto <- summary(linModNormalized1)
+riassunto <- summary(linModNormalized_2)
 
 ```
 
 ### Selezione delle Interazioni Significative
-Una volta costruito il modello, procediamo all'identificazione delle interazioni significative. Utilizziamo i p-value per determinare quali effetti di interazione meritano di essere inclusi nel modello.
+Una volta costruito il modello, procediamo all'identificazione delle interazioni significative. Utilizziamo i p-value per determinare quali effetti di interazione meritano di essere inclusi nel modello. Nel caso di questa analisi abbiamo verificato la significativita' delle interazioni 'f4_z:divID' e 'f1_z:f2_z', in quanto vogliamo analizzare se l'efficienza netta dei rimbalzi (Formula 4) ha un' interazione con la divisione, e se l'efficienza nel rimbalzo offensivo (Formula 1) ha un' interazione con la capacita' della squadra nel recuperare rimbalzi difensivi (Formula 2).
 
 ```{r}
 
@@ -1238,7 +1239,7 @@ nomi_da_escludere <- c("(Intercept)", "f1_z:f2_z", "f4_z:divIDCD", "f4_z:divIDMW
 # Creazione di un vettore con i nomi delle righe da utilizzare
 nomi_righe_da_utilizzare <- setdiff(nomi_righe, nomi_da_escludere)
 
-# Aggiunta della variabile 'divID' se presente nei nomi delle righe
+# divID' viene aggiunto a modello solo se e' stata riscontrata influenza significativa durante il test anova, ma non     significa che sara significativo anche nel nuovo modello.
 if ("divIDCD" %in% nomi_righe) {
   nomi_righe_da_utilizzare <- append(nomi_righe_da_utilizzare, c("divID"))
 }
@@ -1278,13 +1279,31 @@ Dopo aver selezionato gli effetti di interazione rilevanti, rifiniamo il modello
 ```{r}
 
 # Costruzione del nuovo modello lineare con la formula significativa
-linModNormalized1 <- lm(formula_significativa, data = train_1)
+linModNormalized_2 <- lm(formula_significativa, data = train_1)
 
 # Visualizzazione del riassunto del nuovo modello
-summary(linModNormalized1)
+summary(linModNormalized_2)
 
 ```
+```{r}
 
+# Calcolare il summary del modello lineare
+summary_linModNormalized_2 <- summary(linModNormalized_2)
+
+# Ottenere il coefficiente di determinazione R-quadrato
+r_squared_LM_2 <- summary_linModNormalized_2$r.squared
+cat("R-quadrato LM_2:", r_squared_LM_2, "\n")
+
+# Calcolare l'R-quadrato adattato
+# (dove n è il numero di osservazioni e k è il numero di parametri nel modello)
+n <- length(linModNormalized_2$residuals)  # Numero di osservazioni
+k <- length(linModNormalized_2$coefficients) - 1  # Numero di parametri nel modello
+adjusted_r_squared_LM_2 <- 1 - ((1 - r_squared_LM_2) * (n - 1) / (n - k - 1))
+
+cat("R-quadrato adattato LM_2:", adjusted_r_squared_LM_2, "\n")
+
+```
+---
 
 # Esplorazione del Modello di Regressione di Poisson
 
@@ -1298,8 +1317,8 @@ Il modello di Poisson è particolarmente adatto per dati che descrivono il conte
 # Questo codice addestra un modello di regressione generalizzata di Poisson (linModNormalized2_pois) utilizzando la stessa specifica del modello lineare (linModNormalized2). Successivamente,    vengono ottenuti e combinati i coefficienti di entrambi i modelli in un unico dataframe per una facile comparazione.
 
 # Creazioni di un modello di regressione generalizzata di Poisson
-linModNormalized1_pois = glm(formula_significativa, family=poisson(link=log), data = train_1)
-summary(linModNormalized1_pois)
+linModNormalized_2_pois = glm(formula_significativa, family=poisson(link=log), data = train_1)
+summary(linModNormalized_2_pois)
 
 ```
 
@@ -1309,8 +1328,8 @@ Per un'analisi comparativa, estraiamo i coefficienti dai modelli lineare e di Po
 ```{r}
 
 # Ottenimento dei coefficienti per ambo i modelli
-normal = coefficients(linModNormalized1)
-poisson = exp(coefficients(linModNormalized1_pois))
+normal = coefficients(linModNormalized_2)
+poisson = exp(coefficients(linModNormalized_2_pois))
 
 # Combinazione dei coefficienti in un unico dataframe
 coefficients_table <- cbind(normal, poisson)
@@ -1319,9 +1338,46 @@ coefficients_table
 ```
 
 ### Considerazioni Generali:
-È importante notare che gli effetti delle variabili possono essere interpretati in modo diverso a seconda della distribuzione scelta per il modello. La scelta tra distribuzione normale e di   Poisson dipende dalla natura della tua variabile dipendente e dai tuoi obiettivi di modellazione. Nel contesto di modelli di regressione, è sempre buona pratica verificare l'adeguatezza del   modello esaminando i residui, eseguendo test diagnostici e valutando la bontà di adattamento. L'interpretazione dei coefficienti dovrebbe essere fatta considerando la scala appropriata per    la distribuzione utilizzata (lineare per la normale, logaritmica per la Poisson). Se stai cercando di prevedere il numero di vittorie, la distribuzione di Poisson potrebbe essere più appropriata per variabili conteggio come questa. Tuttavia, è sempre necessario verificare l'adeguatezza del modello ai dati specifici.
+È importante notare che gli effetti delle variabili possono essere interpretati in modo diverso a seconda della distribuzione scelta per il modello. La scelta tra distribuzione normale e di   Poisson dipende dalla natura della variabile dipendente e dagli obiettivi di modellazione. Nel contesto di modelli di regressione, è sempre buona pratica verificare l'adeguatezza del   modello esaminando i residui, eseguendo test diagnostici e valutando la bontà di adattamento. L'interpretazione dei coefficienti dovrebbe essere fatta considerando la scala appropriata per    la distribuzione utilizzata (lineare per la normale, logaritmica per la Poisson). Dato che stiamo cercando di prevedere il numero di vittorie, la distribuzione di Poisson potrebbe essere più appropriata per variabili conteggio come questa. Tuttavia, è sempre necessario verificare l'adeguatezza del modello ai dati specifici.
+
+### Valutazione dei modelli mediante l'Akaike Information Criterion
+Possiamo valutare la bonta dei due modelli mediante il valore di AIC:
+Acronimo di Akaike Information Criterion, è una misura utilizzata in statistica per valutare la bontà di un modello statistico; L'obiettivo dell'AIC è trovare un compromesso tra la bontà di adattamento del modello ai dati e la sua complessità, cercando di selezionare il modello migliore in termini di previsione. E' preferibile un modello con AIC piu basso.
+
+```{r}
+
+# Calcola il criterio di informazione di Akaike (AIC) per il modello lineare
+aic_2 <- AIC(linModNormalized_2)
+
+# Calcola il criterio di informazione di Akaike (AIC) per il modello di Poisson
+aic_2_pois <- AIC(linModNormalized_2_pois)
+
+# Stampa i risultati AIC
+cat("AIC per il modello lineare (linModNormalized_2):", aic_2, "\n")
+cat("AIC per il modello di Poisson (linModNormalized_2_pois):", aic_2_pois, "\n")
+
+```
+Pertanto, il modello lineare (linModNormalized_2) sembra essere migliore rispetto al modello di Poisson (linModNormalized_2_pois), poiché ha un valore AIC inferiore. La differenza tra i due valori AIC può essere ulteriormente considerata per valutare quanto il modello lineare sia significativamente migliore rispetto al modello di Poisson.
 
 ---
 
 # Conclusioni
+
+Nel corso di questo studio sull'influenza dei rimbalzi rispetto alle vittorie nel campionato di basket NBA, abbiamo implementato e confrontato diversi modelli statistici. Inizialmente, il processo di normalizzazione e la rimozione degli outliers hanno portato alla creazione di un modello lineare iniziale, seguito da un modello Lasso basato sui dati di training. Il modello Lasso ha dimostrato una maggiore efficacia, incoraggiando il suo utilizzo come modello preferito.
+
+Successivamente, attraverso un'analisi delle variabili, abbiamo identificato il modello finale linModNormalized_2, che include interazioni significative tra le variabili e tiene conto dell'impatto della Divisione sulle vittorie. Questo modello ha mostrato un notevole miglioramento delle metriche di adattamento rispetto al modello iniziale, evidenziando la sua robustezza nell'esplorare le relazioni sottostanti nei dati.
+
+Inoltre, l'analisi delle metriche di adattamento del modello lineare finale linModNormalized_2 ha confermato la sua efficacia, con valori più elevati di R@ e R2adjusted rispetto al modello iniziale basato solo sui dati di training (senza outliers). Questi risultati supportano la scelta del modello linModNormalized_2 come modello preferito per spiegare la variazione nei dati.
+
+Infine, il confronto dei modelli è stato esteso all'analisi della differenza tra un modello lineare e un modello di Poisson attraverso il criterio di informazione di Akaike (AIC). I risultati dell'AIC hanno indicato che il modello lineare (linModNormalized_2) è preferibile al modello di Poisson (linModNormalized_2_pois), suggerendo che il primo si adatti meglio alla variabilità delle vittorie in relazione ai rimbalzi.
+
+In conclusione, il processo analitico ha permesso di identificare e validare un modello lineare finale che si adatta bene ai dati e offre una migliore comprensione della relazione tra rimbalzi e vittorie nel contesto del campionato NBA.
+
+---
+
+
+
+
+
+
 
