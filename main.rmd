@@ -79,6 +79,7 @@ editor_options:
       + [Considerazioni Generali:](#considerazioni-generali)
 - [Valutazione dei modelli mediante l'Akaike Information Criterion](#valutazione-dei-modelli-mediante-lakaike-information-criterion)
 - [Conclusioni e risultati](#conclusioni-e-risultati)
+- [Bibliografia](#bibliografia)
 
 ---
 
@@ -1396,9 +1397,8 @@ Mentre il modello fornisce intuizioni importanti, è essenziale riconoscere le s
 
 ---
 
-
-
-
-
-
-
+# Bibliografia
+1. "Introduzione a R" - Claudio Agostinelli (https://cran.r-project.org/doc/contrib/manuale.0.3.pdf)
+2. "An Introduction to R" - W. N. Venables, D. M. Smith and the R Core Team (https://cran.rproject.org/doc/manuals/r-release/R-intro.pdf)
+3. "R Essentials" (https://bookdown.org/content/4e34e34f-ca48-4090-90ca-8ae7b1b65e0e/plotting-with-r-base-code.html)
+4. Un grazie ad Anna Giabelli per il materiale che ci ha offerto
