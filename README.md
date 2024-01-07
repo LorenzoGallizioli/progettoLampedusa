@@ -2,24 +2,28 @@
 
 ---
 
+### 🏝 Gruppo Lampedusa
+### 📝 Autori (ordine alfabetico):
+- Bonsembiante Davide [1086863]
+- Fumagalli Uriel [1085169]
+- Gallizioli Lorenzo [1087404]
+- Paganelli Thomas [1085805]
+
+---
+
 ## 📈 Dataset: Basketball Teams
 
 ---
 
 ## 🎯 Obbiettivo
 
-L'obiettivo di questo progetto è applicare tecniche di **regressione lineare o generalizzata** in R Studio (o altro software a scelta) per analizzare una specifica variabile risposta (𝑌) in funzione delle altre variabili esplicative disponibili nel dataset (covariate, 𝑋).
+Questo progetto mira a applicare tecniche avanzate di regressione lineare e generalizzata per analizzare la relazione tra diverse variabili e il numero di vittorie delle squadre NBA. Il focus è posto sul ruolo dei rimbalzi e su come essi influenzino le vittorie.
 
 ### Punti chiave:
 
-- Identificare i modelli più adatti per descrivere Y, basandosi su: 
-  - Conoscenze sui modelli di regressione lineari e generalizzati
-  - Criteri di valutazione e confronto tra modelli (es. significatività delle variabili, adattamento del modello, trasformazioni dei dati, diagnostica sui residui)
-  - Altri criteri come AIC, BIC, stepwise, cross-validation, regolarizzazione
-- Discussione e commento sulle scelte effettuate
-- Interpretazione dei risultati, focalizzandosi su: 
-  - Significatività delle covariate
-  - Performance del modello
+1. **Identificazione dei Modelli**: Selezione dei modelli statistici più adatti per descrivere la relazione tra rimbalzi e vittorie, sfruttando sia i rimbalzi offensivi che difensivi.
+2. **Analisi e Confronto dei Modelli**: Uso di tecniche come la normalizzazione dei dati, l'identificazione e la rimozione degli outliers, e l'implementazione del modello LASSO, per ottimizzare l'accuratezza dei mod​​rce】.
+3. **Interpretazione dei Risultati**: Enfasi sulla significatività delle covariate, sulla performance del modello, e sull'analisi degli effetti di interazione e di fattori categorici come 'confID' e 'di​​rce】.
 
 ---
 
@@ -29,7 +33,7 @@ L'obiettivo di questo progetto è applicare tecniche di **regressione lineare o 
    - Formato: R Markdown, consegnato in .html (o PowerPoint/PDF)
    - Contenuto: Descrizione del lavoro, analisi svolte, risultati principali e commenti
    - Lunghezza: 3-7 pagine (inclusi codici, tabelle, figure)
-   - Nomenclatura file: `GYYYYY_Report.html` (YYYYY = nome del gruppo, es. Favignana)
+   - Nomenclatura file: `GYYYYY_Report.html` (YYYYY = nome del gruppo, es. Lampedusa)
    - Prima pagina: Nomi, cognomi, matricole dei membri del gruppo, nome del gruppo
 2. **Presentazione Case Study**:
    - Formato: PowerPoint/PDF
@@ -61,10 +65,13 @@ L'obiettivo di questo progetto è applicare tecniche di **regressione lineare o 
 - **Covariate**: Tutte le altre (o un insieme specifico, a seconda dell'obiettivo di analisi)
 - **Nota**: Considerare solo le squadre che hanno giocato 82 partite (`dataset$games == 82`)
 
-### Domanda 3
+### Domanda scelta dal gruppo
 
-- Qual è l'effetto di prendere più rimbalzi degli avversari e di recuperare molti palloni (stl, blk)?
+- Qual è l'effetto di un maggior numero di rimbalzi (sia offensivi che difensivi, sia vinti che persi) sulle vittorie in stagione delle squadre NBA?
 
 ### Approfondimenti Personali
 
-...
+- **Approccio Multidimensionale nell'Analisi**: Approfondimento dei dati per esplorare non solo la correlazione tra rimbalzi e vittorie, ma anche l'interazione di vari altri fattori, come le statistiche difensive, che potrebbero influenzare le prestazioni delle squadre.
+- **Innovazione nei Modelli Statistici**: Esplorazione e confronto di diversi approcci statistici, come la regressione lineare e la regressione di Poisson, per determinare il modello più efficace nel catturare le complessità e le sfumature delle prestazioni delle squadre NBA.
+- **Focus sulle Variabili Chiave**: Analisi dettagliata dell'impatto di variabili specifiche, come rimbalzi, furti e blocchi, per comprendere meglio il loro effetto sulle vittorie delle squadre, sfruttando tecniche come l'analisi ANOVA e l'esame di variabili categoriche.
+- **Valutazione Critica e Sviluppo di Strategie**: Utilizzo dei risultati dell'analisi per formulare raccomandazioni strategiche per le squadre NBA, incluse tattiche di gioco e potenziali aree di miglioramento basate sui dati analizzati.
