@@ -2,7 +2,37 @@
 
 ---
 
+### 🏝 Gruppo Lampedusa
+### 📝 Autori (ordine alfabetico):
+- Bonsembiante Davide [1086863]
+- Fumagalli Uriel [1085169]
+- Gallizioli Lorenzo [1087404]
+- Paganelli Thomas [1085805]
+
+---
+
 ## 📈 Dataset: Basketball Teams
+
+---
+
+## 📚 Decisione Progetto
+
+### Progetto 5: NBA Moderna (1976-2011)
+
+- **Variabile Dipendente**: Numero di vittorie in stagione
+- **Covariate**: Tutte le altre (o un insieme specifico, a seconda dell'obiettivo di analisi)
+- **Nota**: Considerare solo le squadre che hanno giocato 82 partite (`dataset$games == 82`)
+
+### Domanda scelta dal gruppo
+
+- Qual è l'effetto di un maggior numero di rimbalzi (sia offensivi che difensivi, sia vinti che persi) sulle vittorie in stagione delle squadre NBA?
+
+### Approfondimenti Personali
+
+- **Approccio Multidimensionale nell'Analisi**: Approfondimento dei dati per esplorare non solo la correlazione tra rimbalzi e vittorie, ma anche l'interazione di vari altri fattori, come le statistiche difensive, che potrebbero influenzare le prestazioni delle squadre.
+- **Innovazione nei Modelli Statistici**: Esplorazione e confronto di diversi approcci statistici, come la regressione lineare e la regressione di Poisson, per determinare il modello più efficace nel catturare le complessità e le sfumature delle prestazioni delle squadre NBA.
+- **Focus sulle Variabili Chiave**: Analisi dettagliata dell'impatto di variabili specifiche, come rimbalzi, per comprendere meglio il loro effetto sulle vittorie delle squadre, sfruttando tecniche come l'analisi ANOVA e l'esame di variabili categoriche.
+- **Valutazione Critica e Sviluppo di Strategie**: Utilizzo dei risultati dell'analisi per formulare raccomandazioni strategiche per le squadre NBA, incluse tattiche di gioco e potenziali aree di miglioramento basate sui dati analizzati.
 
 ---
 
@@ -45,6 +75,7 @@ Questo progetto mira a applicare tecniche avanzate di regressione lineare e gene
 - **Durata**: 10 minuti per gruppo
 - **Partecipazione**: Tutti i membri del gruppo devono intervenire
 - **Comunicazione Presenza**: Informare i docenti almeno una settimana prima della data scelta
+<<<<<<< HEAD
 
 ---
 
@@ -66,3 +97,5 @@ Questo progetto mira a applicare tecniche avanzate di regressione lineare e gene
 - **Innovazione nei Modelli Statistici**: Esplorazione e confronto di diversi approcci statistici, come la regressione lineare e la regressione di Poisson, per determinare il modello più efficace nel catturare le complessità e le sfumature delle prestazioni delle squadre NBA.
 - **Focus sulle Variabili Chiave**: Analisi dettagliata dell'impatto di variabili specifiche, come rimbalzi, furti e blocchi, per comprendere meglio il loro effetto sulle vittorie delle squadre, sfruttando tecniche come l'analisi ANOVA e l'esame di variabili categoriche.
 - **Valutazione Critica e Sviluppo di Strategie**: Utilizzo dei risultati dell'analisi per formulare raccomandazioni strategiche per le squadre NBA, incluse tattiche di gioco e potenziali aree di miglioramento basate sui dati analizzati.
+=======
+>>>>>>> bdf4a8b91f169ca9e704df7586826bfe1e9b4c24
