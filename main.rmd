@@ -1401,4 +1401,7 @@ Mentre il modello fornisce intuizioni importanti, è essenziale riconoscere le s
 1. "Introduzione a R" - Claudio Agostinelli (https://cran.r-project.org/doc/contrib/manuale.0.3.pdf)
 2. "An Introduction to R" - W. N. Venables, D. M. Smith and the R Core Team (https://cran.rproject.org/doc/manuals/r-release/R-intro.pdf)
 3. "R Essentials" (https://bookdown.org/content/4e34e34f-ca48-4090-90ca-8ae7b1b65e0e/plotting-with-r-base-code.html)
-4. Un grazie ad Anna Giabelli per il materiale che ci ha offerto
+4. "Metulini_Gnecco_2022_ANOR-2.pdf" (https://elearning15.unibg.it/pluginfile.php/441960/mod_folder/content/0/Metulini_Gnecco_2022_ANOR.pdf?forcedownload=1)
+5. Un grazie ad Anna Giabelli per il materiale che ci ha offerto
+
+---
